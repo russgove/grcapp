@@ -15,7 +15,10 @@
     "types": [
       "es6-promise",
       "webpack-env",
-      "csv-parse"
+      "csv-parse",
+      "microsoft-ajax",
+      "sharepoint"
+
     ],
     "lib": [
       "es5",

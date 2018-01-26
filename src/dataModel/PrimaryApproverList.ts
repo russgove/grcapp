@@ -2,11 +2,10 @@ import { Item } from "sp-pnp-js";
 // tassks to be approved
 export default class PrimaryApproverList extends Item {
 
-    public Approver: string;
-    public Approver_x0020_Name: string;
-    public Completed: string;
-    public AssignedToId: number;
-    public AssignedTo: {
+        public Id:number;
+    public GRCCompleted: string;
+    public GRCApproverId: number;
+    public GRCApprover: {
         Title: string;
 
     };

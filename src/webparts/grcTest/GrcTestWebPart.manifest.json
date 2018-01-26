@@ -20,9 +20,9 @@
     "description": { "default": "GRC Test description" },
     "officeFabricIconFontName": "Page",
     "properties": {
-      "primaryApproverListName":"Primary Approver List Role to TCode",
-      "roleToTCodeReviewListName": "EPA Role to TCode Review",
-      "roleToTransactionListName":"Role To Transaction EPA",
+      "primaryApproverListName":"Primary Approver",
+      "roleToTCodeReviewListName": "Role Review",
+      "roleToTransactionListName":"Role To Transaction",
     }
   }]
 }

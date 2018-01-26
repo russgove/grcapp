@@ -1,8 +1,12 @@
 import PrimaryApproverList from "../../../dataModel/PrimaryApproverList";
-import RoleToTCodeReview from "../../../dataModel/RoleToTCodeReview";
+import RoleReview from "../../../dataModel/RoleReview";
+import RoleToTransaction from "../../../dataModel/RoleToTransaction";
 
 export interface IGrcTestState {
   primaryApproverList: Array<PrimaryApproverList>;
-  roleToTCodeReview: Array<RoleToTCodeReview>;
+  roleReview: Array<RoleReview>;
+  roleToTransaction?: Array<RoleToTransaction>;
   changesHaveBeenMade:boolean;
+  showPopup:boolean;
+
 }

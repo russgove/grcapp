@@ -6,13 +6,16 @@ import {
   IPropertyPaneConfiguration,
   PropertyPaneTextField
 } from '@microsoft/sp-webpart-base';
-import { } from "office-ui-fabric-react/"
+import { } from "office-ui-fabric-react/";
 import * as strings from 'GrcUploadWebPartStrings';
 import GrcUpload from './components/GrcUpload';
 import { IGrcUploadProps } from './components/IGrcUploadProps';
 
 export interface IGrcUploadWebPartProps {
-  description: string;
+  templateName:string;
+  primaryApproverContentTypeId:string;
+  roleToTransactionContentTypeId:string;
+  roleReviewContentTypeId:string;
 }
 
 export default class GrcUploadWebPart extends BaseClientSideWebPart<IGrcUploadWebPartProps> {
@@ -21,11 +24,11 @@ export default class GrcUploadWebPart extends BaseClientSideWebPart<IGrcUploadWe
     const element: React.ReactElement<IGrcUploadProps> = React.createElement(
       GrcUpload,
       {
-        siteUrl: "",
-        templateName: "",
-        PrimaryApproverContentTypeId: "",
-        RoleToTransactionContentTypeId: "string;",
-        RoleReviewContentTypeId: ""
+        siteUrl:this.context.pageContext.site.serverRelativeUrl,
+        templateName:this.properties.templateName,
+        primaryApproverContentTypeId: this.properties.primaryApproverContentTypeId,
+        roleToTransactionContentTypeId: this.properties.roleToTransactionContentTypeId,
+        roleReviewContentTypeId: this.properties.roleReviewContentTypeId
 
       }
     );

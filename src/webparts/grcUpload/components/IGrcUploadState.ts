@@ -1,8 +1,10 @@
+import { Web } from "sp-pnp-js";
 export interface IGrcUploadState {
 
-  siteName:string;
-  messages:Array<string>;
-  process:""|"Uploading"|"Validating";
+  siteName: string; // the name of the web to create
+  newWeb: Web; // the web that we created
+  messages: Array<string>;
+  process: "" | "Uploading" | "Validating";
 
   roleToTransactionTotalRows: number;
   roleToTransactionRowsUploaded: number;

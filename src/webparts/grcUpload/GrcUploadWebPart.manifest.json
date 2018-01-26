@@ -20,7 +20,10 @@
     "description": { "default": "Upload acc3ess database" },
     "officeFabricIconFontName": "Page",
     "properties": {
-      "description": "GRCUpload"
+      "templateName":"STS#0",
+      "primaryApproverContentTypeId":"0x0100DEE5801C4195AC4388F30F7AB3273676",
+      "roleToTransactionContentTypeId":"0x0100B6ECFC98573CF04EB8FF9C8889654310",
+      "roleReviewContentTypeId":"0x010052110AFB029A0B48959C92FF97D6810F"
     }
   }]
 }

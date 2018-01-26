@@ -12,7 +12,8 @@ import GrcTest from "./components/GrcTest";
 import { IGrcTestProps } from "./components/IGrcTestProps";
 import pnp, { EmailProperties, Items, Item } from "sp-pnp-js";
 import PrimaryApproverList from "../../dataModel/PrimaryApproverList";
-import RoleToTCodeReview from "../../dataModel/RoleToTCodeReview";
+import RoleReview from "../../dataModel/RoleReview";
+import RoleToTransaction from "../../dataModel/RoleToTransaction";
 import { find, filter } from "lodash";
 export interface IGrcTestWebPartProps {
   primaryApproverListName: string;
@@ -22,11 +23,11 @@ export interface IGrcTestWebPartProps {
 
 export default class GrcTestWebPart extends BaseClientSideWebPart<IGrcTestWebPartProps> {
   private primaryApproverLists: Array<PrimaryApproverList>;
-  private roleToTCodeReviews: Array<RoleToTCodeReview>;
+  private roleReviews: Array<RoleReview>;
   private async testmethod(): Promise<any> {
     class CustomListItem extends Item {
-     public Id: number;
-     public Title: string;
+      public Id: number;
+      public Title: string;
     }
     let listItems: Array<CustomListItem>;
 
@@ -51,49 +52,54 @@ export default class GrcTestWebPart extends BaseClientSideWebPart<IGrcTestWebPar
     });
     let userId = this.context.pageContext.legacyPageContext.userId;
     // this.testmethod();
-    let expands = "AssignedTo";
-    let select = "Id,Approver,Approver_x0020_Name,Completed,AssignedTo,AssignedToId,AssignedTo/Title";
+    let expands = "GRCApprover";
+    let select = "Id,GRCCompleted,GRCApprover,GRCApproverId,GRCApprover/Title";
     await pnp.sp.web.lists.getByTitle(this.properties.primaryApproverListName).items
       .select(select)
       .expand(expands)
-      .filter('AssignedToId eq ' + userId)
+      .filter('GRCApproverId eq ' + userId)
       .getAs<Array<PrimaryApproverList>>().then((result) => {
         this.primaryApproverLists = result;
 
       }).catch((err) => {
+        console.error(err.data.responseBody["odata.error"].message.value);
+        alert(err.data.responseBody["odata.error"].message.value);
         debugger;
       });
-    select = `Id,Role_x0020_Name,Approver,Approver_x0020_Name,
-      Alt_x0020_Apprv, Alternate_x0020_Approver,
-      Approval, Approved_x0020_By, Date_x0020_Reviewed, 
-      Comments, Remediation`;
+    select = `Id,GRCRoleName,GRCApproverId,GRCApprover/Title,
+      GRCApproval,GRCApprovedById, GRCDateReview, 
+      GRCComments, GRCRemediation`;
+    expands = "GRCApprover";
     await pnp.sp.web.lists.getByTitle(this.properties.roleToTCodeReviewListName).items
       .select(select)
-      .filter(`Approver eq '${this.primaryApproverLists[0].Approver}'`)
-      .getAs<Array<RoleToTCodeReview>>().then((result) => {
-        this.roleToTCodeReviews = result;
+      .expand(expands)
+      .filter('GRCApproverId eq ' + userId)
+      .getAs<Array<RoleReview>>().then((result) => {
+        this.roleReviews = result;
       }).catch((err) => {
-        console.error(err);
+        console.error(err.data.responseBody["odata.error"].message.value);
         alert(err.data.responseBody["odata.error"].message.value);
+        debugger;
+
       });
 
   }
-  public save(roleToTCodeReviews: Array<RoleToTCodeReview>): Promise<any> {
+  public save(roleToTCodeReviews: Array<RoleReview>): Promise<any> {
     debugger;
     let itemsToSave = filter(roleToTCodeReviews, (rtc) => { return rtc.hasBeenUpdated === true; });
     let batch = pnp.sp.createBatch();
     //let promises: Array<Promise<any>> = [];
 
     for (let item of itemsToSave) {
-    pnp.sp.web.lists.getByTitle(this.properties.roleToTCodeReviewListName)
-        .items.getById(item.Id).inBatch(batch).update({ "Approval": item.Approval })
+      pnp.sp.web.lists.getByTitle(this.properties.roleToTCodeReviewListName)
+        .items.getById(item.Id).inBatch(batch).update({ "GRCApproval": item.GRCApproval })
         .then((x) => {
           debugger;
         })
         .catch((err) => {
           debugger;
         });
-      
+
     }
     return batch.execute();
 
@@ -111,42 +117,62 @@ export default class GrcTestWebPart extends BaseClientSideWebPart<IGrcTestWebPar
     // }
     // return Promise.all(promises);
   }
-  public render(): void {
-    const element: React.ReactElement<IGrcTestProps> = React.createElement(
-      GrcTest,
-      {
-        primaryApproverList: this.primaryApproverLists,
-        roleToTCodeReview: this.roleToTCodeReviews,
-        save: this.save.bind(this)
-      }
-    );
 
-    ReactDom.render(element, this.domElement);
+  public getRoleToTransaction(roleName: string): Promise<RoleToTransaction> {
+    debugger;
+    
+   
+      return pnp.sp.web.lists.getByTitle(this.properties.roleToTransactionListName)
+        .items.filter(`GRCRoleName eq '${roleName}'`).getAs<RoleToTransaction>();
+        
+
   }
+  public setComplete(primaryApproverList:PrimaryApproverList): Promise<any> {
+    debugger;
+    
+    let userId = this.context.pageContext.legacyPageContext.userId;
+    return pnp.sp.web.lists.getByTitle(this.properties.primaryApproverListName)
+    .items.getById(primaryApproverList.Id).update({ "GRCCompleted": "Yes" })
+    
+  }
+  public render(): void {
+  const element: React.ReactElement < IGrcTestProps > = React.createElement(
+    GrcTest,
+    {
+      primaryApproverList: this.primaryApproverLists,
+      roleReview: this.roleReviews,
+      save: this.save.bind(this),
+      getRoleToTransaction: this.getRoleToTransaction.bind(this),
+      setComplete: this.setComplete.bind(this)
+    }
+  );
+
+  ReactDom.render(element, this.domElement);
+}
 
   protected get dataVersion(): Version {
-    return Version.parse("1.0");
-  }
+  return Version.parse("1.0");
+}
 
   protected getPropertyPaneConfiguration(): IPropertyPaneConfiguration {
-    return {
-      pages: [
-        {
-          header: {
-            description: strings.PropertyPaneDescription
-          },
-          groups: [
-            {
-              groupName: strings.BasicGroupName,
-              groupFields: [
-                PropertyPaneTextField("description", {
-                  label: strings.DescriptionFieldLabel
-                })
-              ]
-            }
-          ]
-        }
-      ]
-    };
-  }
+  return {
+    pages: [
+      {
+        header: {
+          description: strings.PropertyPaneDescription
+        },
+        groups: [
+          {
+            groupName: strings.BasicGroupName,
+            groupFields: [
+              PropertyPaneTextField("description", {
+                label: strings.DescriptionFieldLabel
+              })
+            ]
+          }
+        ]
+      }
+    ]
+  };
+}
 }

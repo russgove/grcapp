@@ -4,11 +4,17 @@ import { IGrcUploadProps } from './IGrcUploadProps';
 import { IGrcUploadState } from './IGrcUploadState';
 import { escape } from '@microsoft/sp-lodash-subset';
 const parse = require('csv-parse');
-import pnp, { TypedHash, ItemAddResult } from "sp-pnp-js";
+import pnp, { TypedHash, ItemAddResult, ListAddResult, ContextInfo, Web, WebAddResult, List as PNPList } from "sp-pnp-js";
 import { List } from "office-ui-fabric-react/lib/List";
+import { TextField } from "office-ui-fabric-react/lib/TextField";
 import { Image, ImageFit } from "office-ui-fabric-react/lib/Image";
-import { Button, IconButton } from "office-ui-fabric-react/lib/Button";
+import { Button, IconButton, PrimaryButton } from "office-ui-fabric-react/lib/Button";
 import { find, clone, map } from "lodash";
+require('sp-init');
+require('microsoft-ajax');
+require('sp-runtime');
+require('sharepoint');
+require('sp-workflow');
 class CachedId {
   public upn: string;
   public id: number | null;
@@ -56,7 +62,9 @@ export default class GrcUpload extends React.Component<IGrcUploadProps, IGrcUplo
 
     this.state = {
       siteName: "",
+      newWeb: null,
       process: "",
+
       messages: [],
       roleToTransactionRowsUploaded: 0,
       roleToTransactionTotalRows: 0,
@@ -201,7 +209,7 @@ export default class GrcUpload extends React.Component<IGrcUploadProps, IGrcUplo
       let approverId: number = await this.findId(row.ApproverEmail);
       let alternateApproverId: number = await this.findId(row.AlternateApproverEmail);
       if (!approverId) {
-        this.addMessage(`Approver  ${row.ApproverEmail} on row {rowNumber} of the Role To Transaction File is invalid`);
+        this.addMessage(`Approver  ${row.ApproverEmail} on row ${rowNumber} of the Role To Transaction File is invalid`);
       }
     }
     this.addMessage("Done validating RoleReviewUsers");
@@ -227,7 +235,7 @@ export default class GrcUpload extends React.Component<IGrcUploadProps, IGrcUplo
       }
 
       //add an item to the list
-      await pnp.sp.web.lists.getByTitle('Role Review').items.add(obj, entityTypeFullName)
+      await this.state.newWeb.lists.getByTitle('Role Review').items.add(obj, entityTypeFullName)
         // pnp.sp.web.lists.getByTitle('Role Review').items.inBatch(batch).add(obj, entityTypeFullName)
         .then((iar: ItemAddResult) => {
 
@@ -246,7 +254,7 @@ export default class GrcUpload extends React.Component<IGrcUploadProps, IGrcUplo
 
   }
   public async uploadRoleReviewData(data: Array<any>): Promise<any> {
-    let entityTypeFullName = await pnp.sp.web.lists.getByTitle('Role Review').getListItemEntityTypeFullName();
+    let entityTypeFullName = await this.state.newWeb.lists.getByTitle('Role Review').getListItemEntityTypeFullName();
     var batchSize = 100;
     var batches = Math.ceil(data.length / batchSize);
     for (var i = 0; i < batches; i++) {
@@ -360,6 +368,7 @@ export default class GrcUpload extends React.Component<IGrcUploadProps, IGrcUplo
       let obj = {
         Title: "",
         GRCRole: row.Role,
+        GRCRoleName: row.RoleName,
         GRCTCode: row.TCode,
         GRCTransactionText: row.TransactionText,
       };
@@ -371,7 +380,7 @@ export default class GrcUpload extends React.Component<IGrcUploadProps, IGrcUplo
       }
 
       //add an item to the list
-      await pnp.sp.web.lists.getByTitle('Role to Transaction').items.add(obj, entityTypeFullName)
+      await this.state.newWeb.lists.getByTitle('Role to Transaction').items.add(obj, entityTypeFullName)
         // pnp.sp.web.lists.getByTitle('Role to Transaction').items.inBatch(batch).add(obj, entityTypeFullName)
         .then((iar: ItemAddResult) => {
 
@@ -390,9 +399,12 @@ export default class GrcUpload extends React.Component<IGrcUploadProps, IGrcUplo
 
   }
   public async uploadRoleToTransactionData(data: Array<any>): Promise<any> {
-    let entityTypeFullName = await pnp.sp.web.lists.getByTitle('Role to Transaction').getListItemEntityTypeFullName();
+    let entityTypeFullName = await this.state.newWeb.lists.getByTitle('Role to Transaction').getListItemEntityTypeFullName();
     var batchSize = 100;
     var batches = Math.ceil(data.length / batchSize);
+    batches = 5;
+    this.addMessage("NOTE!!!! Role toi transaction currently limited to 500 items");
+
     for (var i = 0; i < batches; i++) {
       var thisBatchItems = data.slice(i * batchSize, ((i * batchSize) + batchSize));
       await this.uploadRoleToTransactionBatch(thisBatchItems, entityTypeFullName)
@@ -428,7 +440,7 @@ export default class GrcUpload extends React.Component<IGrcUploadProps, IGrcUplo
   }
   public extractColumnHeadersRoleToTransactionData(headerRow: Array<String>): String[] {
     debugger;
-    const requiredColumns = ["ApproverEmail", "AlternateApproverEmail", "Role", "TCode", "Transaction Text"];
+    const requiredColumns = ["ApproverEmail", "AlternateApproverEmail", "Role","RoleName", "TCode", "Transaction Text"];
     for (let requiredColumn of requiredColumns) {
       if (headerRow.indexOf(requiredColumn) === -1) {
         this.addMessage(`Column ${requiredColumn} is missing on Role To Transaction Data File`);
@@ -464,7 +476,7 @@ export default class GrcUpload extends React.Component<IGrcUploadProps, IGrcUplo
 
     this.setState((current) => ({ ...current, process: "Validating" }));// this determinse what runs after we parse the data
     debugger;
-    this.uploadRoleReviewFile();
+    this.uploadRoleToTransactionFile();
 
   }
 
@@ -512,7 +524,7 @@ export default class GrcUpload extends React.Component<IGrcUploadProps, IGrcUplo
       }
 
       //add an item to the list
-      await pnp.sp.web.lists.getByTitle('Primary Approver').items.add(obj, entityTypeFullName)
+      await this.state.newWeb.lists.getByTitle('Primary Approver').items.add(obj, entityTypeFullName)
         // pnp.sp.web.lists.getByTitle('EPA Role to Transaction').items.inBatch(batch).add(obj, entityTypeFullName)
         .then((iar: ItemAddResult) => {
 
@@ -531,7 +543,7 @@ export default class GrcUpload extends React.Component<IGrcUploadProps, IGrcUplo
 
   }
   public async uploadPrimaryApproversData(data: Array<any>): Promise<any> {
-    let entityTypeFullName = await pnp.sp.web.lists.getByTitle('Primary Approver').getListItemEntityTypeFullName();
+    let entityTypeFullName = await this.state.newWeb.lists.getByTitle('Primary Approver').getListItemEntityTypeFullName();
     var batchSize = 100;
     var batches = Math.ceil(data.length / batchSize);
     for (var i = 0; i < batches; i++) {
@@ -613,9 +625,180 @@ export default class GrcUpload extends React.Component<IGrcUploadProps, IGrcUplo
     debugger;
     this.uploadPrimaryApproversFile();
   }
-
-
   //#endregion
+
+  //#region Site  Creation Methods
+  /**
+ *  Adds a custom webpart to the edit form located at editformUrl
+ * 
+ * @param {string} webRelativeUrl -- The web containing the list
+ * @param {any} editformUrl -- the url of the editform page
+ * @param {string} webPartXml  -- the xml for the webpart to add
+ * @memberof EfrAdmin
+ */
+  public async SetWebToUseSharedNavigation(webRelativeUrl: string) {
+
+    const clientContext: SP.ClientContext = new SP.ClientContext(webRelativeUrl);
+    var currentWeb = clientContext.get_web();
+    var navigation = currentWeb.get_navigation();
+    navigation.set_useShared(true);
+    await new Promise((resolve, reject) => {
+      clientContext.executeQueryAsync((x) => {
+        console.log("the web was set to use shared navigation");
+        resolve();
+      }, (error) => {
+        console.log(error);
+        reject();
+      });
+    });
+  }
+  public async AddQuickLaunchItem(webUrl: string, title: string, url: string, isExternal: boolean) {
+    let nnci: SP.NavigationNodeCreationInformation = new SP.NavigationNodeCreationInformation();
+    nnci.set_title(title);
+    nnci.set_url(url);
+    nnci.set_isExternal(isExternal);
+    const clientContext: SP.ClientContext = new SP.ClientContext(webUrl);
+    const web = clientContext.get_web();
+    web.get_navigation().get_quickLaunch().add(nnci);
+    await new Promise((resolve, reject) => {
+      clientContext.executeQueryAsync((x) => {
+        resolve();
+      }, (error) => {
+        console.log(error);
+        reject();
+      });
+    });
+
+  }
+  public async RemoveQuickLaunchItem(webUrl: string, titlesToRemove: string[]) {
+    const clientContext: SP.ClientContext = new SP.ClientContext(webUrl);
+    const ql: SP.NavigationNodeCollection = clientContext.get_web().get_navigation().get_quickLaunch();
+    clientContext.load(ql);
+    await new Promise((resolve, reject) => {
+      clientContext.executeQueryAsync((x) => {
+        resolve();
+      }, (error) => {
+        console.log(error);
+        reject();
+      });
+    });
+    debugger;
+    let itemsToDelete = [];
+    let itemCount = ql.get_count();
+    for (let x = 0; x < itemCount; x++) {
+      let item = ql.getItemAtIndex(x);
+      let itemtitle = item.get_title();
+      if (titlesToRemove.indexOf(itemtitle) !== -1) {
+        itemsToDelete.push(item);
+      }
+    }
+    for (let item of itemsToDelete) {
+      item.deleteObject();
+    }
+    await new Promise((resolve, reject) => {
+      clientContext.executeQueryAsync((x) => {
+        resolve();
+      }, (error) => {
+        console.log(error);
+        reject();
+      });
+    });
+    debugger;
+
+  }
+
+  public async fixUpLeftNav(webUrl: string, homeUrl: string) {
+    debugger;
+    await this.AddQuickLaunchItem(webUrl, "EFR Home", homeUrl, true);
+    await this.RemoveQuickLaunchItem(webUrl, ["Pages", "Documents"]);
+
+  }
+
+  public async createSite() {
+    let newWeb: Web;  // the web that gets created
+    let libraryList: Array<any>; // the list of libraries we need to create in the new site. has the library name and the name of the group that should get access
+    let foldersList: Array<string>; // the list of folders to create in each of the libraries.
+    let roleDefinitions: Array<any>;// the roledefs for the site, we need to grant 'contribute no delete'
+    let siteGroups: Array<any>;// all the sitegroups in the site
+    let tasks: Array<any>; // the list of tasks in the TaskMaster list. We need to create on e task for each of these in tye EFRTasks list in the new site
+    let taskList: List; // the task list we created  in the new site
+    let taskListId: string; // the ID of task list we created  in the new site
+    let webServerRelativeUrl: string; // the url of the subweb
+    let contextInfo: ContextInfo;
+    let editformurl: string;
+
+
+
+    this.addMessage("CreatingSite");
+    await pnp.sp.site.getContextInfo().then((context: ContextInfo) => {
+      contextInfo = context;
+    });
+    // create the site
+    await pnp.sp.web.webs.add(this.state.siteName, this.state.siteName, this.state.siteName, this.props.templateName).then((war: WebAddResult) => {
+      this.addMessage("CreatedSite");
+      // show the response from the server when adding the web
+      webServerRelativeUrl = war.data.ServerRelativeUrl;
+      console.log(war.data);
+      newWeb = war.web;
+      this.setState((current) => ({ ...current, newWeb: newWeb })); /// save in state so file uploads can use it
+
+      return;
+    }).catch(error => {
+      debugger;
+      this.addMessage("<h1>error creating site</h1>");
+      this.addMessage(error.data.responseBody["odata.error"].message.value);
+      console.error(error);
+      return;
+    });
+
+    await this.SetWebToUseSharedNavigation(webServerRelativeUrl);
+    debugger;
+    await this.fixUpLeftNav(webServerRelativeUrl, this.props.siteUrl);
+
+    // create the libraries and assign permissions
+    let primaryApproverList: PNPList;
+    await newWeb.lists.add("Primary Approver", "Primary Approver", 100, false).then(async (listResponse: ListAddResult) => {
+      this.addMessage("Created List " + "Primary Approver");
+      primaryApproverList = listResponse.list;
+    });
+    await primaryApproverList.contentTypes.addAvailableContentType(this.props.primaryApproverContentTypeId).then((ct) => {
+      this.addMessage("Added Primary Approver content type");
+      return;
+    }).catch(error => {
+      debugger;
+      return;
+    });
+    let roleReviewList: PNPList;
+    await newWeb.lists.add("Role Review", "Role Review", 100, false).then(async (listResponse: ListAddResult) => {
+      this.addMessage("Created List " + "Role Review");
+      roleReviewList = listResponse.list;
+    });
+    await roleReviewList.contentTypes.addAvailableContentType(this.props.roleReviewContentTypeId).then((ct) => {
+      this.addMessage("Added roleReviewList content type");
+      return;
+    }).catch(error => {
+      debugger;
+      return;
+    });
+    let roleToTransactionList: PNPList;
+    await newWeb.lists.add("Role To Transaction", "Role To Transaction", 100, false).then(async (listResponse: ListAddResult) => {
+      this.addMessage("Created List " + "Role To Transaction");
+      roleToTransactionList = listResponse.list;
+    });
+    await roleToTransactionList.contentTypes.addAvailableContentType(this.props.roleToTransactionContentTypeId).then((ct) => {
+      this.addMessage("Added Role To Transaction content type");
+      return;
+    }).catch(error => {
+      debugger;
+      return;
+    });
+
+
+    this.addMessage("DONE!!");
+
+  }
+  //#endregion
+
 
   private _onRenderMessage(item: any, index: number, isScrolling: boolean): JSX.Element {
     debugger;
@@ -627,6 +810,30 @@ export default class GrcUpload extends React.Component<IGrcUploadProps, IGrcUplo
     debugger;
     return (
       <div className={styles.grcUpload} >
+        <table>
+          <tr>
+            <td>
+              New Site Name
+            </td>
+            <td>
+              <TextField label="" onChanged={(e) => {
+                this.setState((current) => ({ ...current, siteName: e }));
+              }} />
+            </td>
+            <td>
+              <PrimaryButton onClick={this.createSite.bind(this)} title="Create Site">Create Site</PrimaryButton>
+            </td>
+            <td>
+              Active Site:
+            </td>
+            <td>
+              {this.state.siteName}
+            </td>
+
+          </tr>
+
+        </table>
+
         <table>
           <thead>
             <th>
