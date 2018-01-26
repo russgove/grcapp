@@ -1,3 +1,7 @@
 export interface IGrcUploadProps {
-  description: string;
+  siteUrl:string;
+  templateName:string;
+  PrimaryApproverContentTypeId:string;
+  RoleToTransactionContentTypeId:string;
+  RoleReviewContentTypeId:string;
 }
