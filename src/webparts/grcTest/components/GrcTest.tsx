@@ -26,6 +26,7 @@ export default class GrcTest extends React.Component<IGrcTestProps, IGrcTestStat
     this.save = this.save.bind(this);
     this.setComplete = this.setComplete.bind(this);
     this.changeAll = this.changeAll.bind(this);
+    this.fetchRoleReviews=this.fetchRoleReviews.bind(this);
     this.state = {
       primaryApproverList: props.primaryApproverList,
       roleReview: props.roleReview,
@@ -125,6 +126,15 @@ export default class GrcTest extends React.Component<IGrcTestProps, IGrcTestStat
   public haveItemsChanged(): boolean {
     return true;
   }
+  public fetchRoleReviews():Promise<any>{
+    return this.props.fetchRoleReviews().then((roleReviews) => {
+      debugger;
+            this.setState((current) => ({ ...current, roleReview: roleReviews }));
+    }).catch((err) => {
+      debugger;
+      alert(err);
+    });
+  }
   public render(): React.ReactElement<IGrcTestProps> {
     debugger;
     let itemsNonFocusable: IContextualMenuItem[] = [
@@ -158,6 +168,10 @@ export default class GrcTest extends React.Component<IGrcTestProps, IGrcTestStat
 
           ]
         }
+      },
+      {
+        key: "Undo", name: "Undo", icon: "Undo", onClick: this.fetchRoleReviews,
+        disabled:  !(filter(this.state.roleReview, (rr) => { return rr.hasBeenUpdated; }).length > 0)
       },
       {
         key: "Done", name: "Complete", icon: "Completed", onClick: this.setComplete,

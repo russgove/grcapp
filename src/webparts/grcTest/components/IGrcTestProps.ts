@@ -7,6 +7,7 @@ export interface IGrcTestProps {
   roleReview: Array<RoleReview>;
   save: (roleToTCodeReview:  Array<RoleReview>) => Promise<any>; 
   getRoleToTransaction: (role:  string) => Promise<Array<RoleToTransaction>>; 
+  fetchRoleReviews:() =>  Promise<Array<RoleReview>>; 
   setComplete: ( PrimaryApproverList:PrimaryApproverList) => Promise<any>; 
   
 }
