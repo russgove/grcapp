@@ -3,7 +3,10 @@ import styles from './GrcTest.module.scss';
 import { IGrcTestProps } from './IGrcTestProps';
 import { IGrcTestState } from './IGrcTestState';
 import { escape } from '@microsoft/sp-lodash-subset';
-import { DetailsList, DetailsListLayoutMode, IColumn, SelectionMode } from "office-ui-fabric-react/lib/DetailsList";
+import {
+  DetailsList, DetailsListLayoutMode, IColumn, SelectionMode, Selection,
+  ColumnActionsMode
+} from "office-ui-fabric-react/lib/DetailsList";
 import { Dropdown, IDropdownOption, IDropdownProps } from "office-ui-fabric-react/lib/Dropdown";
 import { Modal, IModalProps } from "office-ui-fabric-react/lib/Modal";
 import { Panel, IPanelProps, PanelType } from "office-ui-fabric-react/lib/Panel";
@@ -12,28 +15,38 @@ import { IContextualMenuItem } from "office-ui-fabric-react/lib/ContextualMenu";
 
 import { PrimaryButton, ButtonType, Button, DefaultButton, ActionButton, IconButton } from "office-ui-fabric-react/lib/Button";
 import { Dialog } from "office-ui-fabric-react/lib/Dialog";
-
+import { TextField } from "office-ui-fabric-react/lib/TextField";
 import PrimaryApproverList from "../../../dataModel/PrimaryApproverList";
 import RoleReview from "../../../dataModel/RoleReview";
 import RoleToTransaction from "../../../dataModel/RoleToTransaction";
 import { find, map, clone, filter } from "lodash";
 export default class GrcTest extends React.Component<IGrcTestProps, IGrcTestState> {
+  selection: Selection = new Selection();
+
   public constructor(props: IGrcTestProps) {
     super();
     console.log("in Construrctor");
     // this.CloseButton = this.CloseButton.bind(this);
     // this.CompleteButton = this.CompleteButton.bind(this);
+    this.selection.getKey = (item => { return item["Id"] })
     this.save = this.save.bind(this);
     this.setComplete = this.setComplete.bind(this);
     this.changeAll = this.changeAll.bind(this);
-    this.fetchRoleReviews=this.fetchRoleReviews.bind(this);
+    this.changeSelected = this.changeSelected.bind(this);
+    this.fetchRoleReviews = this.fetchRoleReviews.bind(this);
     this.state = {
       primaryApproverList: props.primaryApproverList,
-      roleReview: props.roleReview,
+      roleReview: [],
       changesHaveBeenMade: false,
       showPopup: false
 
     };
+  }
+  public componentDidMount() {
+    this.props.fetchRoleReviews().then(reviews => {
+      this.setState((current) => ({ ...current, roleReview: reviews, changesHaveBeenMade: false }));
+
+    });
   }
   public RenderApproval(item?: RoleReview, index?: number, column?: IColumn): JSX.Element {
 
@@ -45,9 +58,9 @@ export default class GrcTest extends React.Component<IGrcTestProps, IGrcTestStat
     if (this.props.primaryApproverList[0].GRCCompleted === "Yes") {
       return (
         <div>
-          {find(options,(o)=>{return o.key===item.GRCApproval}).text}
+          {find(options, (o) => { return o.key === item.GRCApproval; }).text}
         </div>
-      )
+      );
     }
     else {
       return (
@@ -68,8 +81,38 @@ export default class GrcTest extends React.Component<IGrcTestProps, IGrcTestStat
         >
 
         </Dropdown>
-      )
-    };
+      );
+    }
+
+
+  }
+  public RenderComments(item?: RoleReview, index?: number, column?: IColumn): JSX.Element {
+    if (this.props.primaryApproverList[0].GRCCompleted === "Yes") {
+      return (
+        <div>
+          {item.GRCComments}
+        </div>
+      );
+    }
+    else {
+      return (
+        <TextField
+          onChanged={(newValue) => {
+            let tempRoleToTCodeReview = this.state.roleReview;
+            let rtc = find(tempRoleToTCodeReview, (x) => {
+              return x.Id === item.Id;
+            });
+            rtc.GRCComments = newValue;
+            rtc.hasBeenUpdated = true;
+            this.setState((current) => ({ ...current, roleToTCodeReview: tempRoleToTCodeReview, changesHaveBeenMade: true }));
+
+          }}
+
+        >
+
+        </TextField>
+      );
+    }
 
 
   }
@@ -95,8 +138,29 @@ export default class GrcTest extends React.Component<IGrcTestProps, IGrcTestStat
       alert(err);
     });
   }
+  public changeSelected(ev?: React.MouseEvent<HTMLElement>, item?: IContextualMenuItem): void {
+
+    var roleReview = map(this.state.roleReview, (rr) => {
+      if (this.selection.isKeySelected(rr.Id.toString())) {
+        return {
+          ...rr,
+          GRCApproval: item.data, hasBeenUpdated: true
+        };
+
+      }
+      else {
+        return {
+          ...rr
+        };
+      }
+    });
+    this.setState((current) => ({ ...current, roleReview: roleReview }));
+
+
+
+  }
   public changeAll(ev?: React.MouseEvent<HTMLElement>, item?: IContextualMenuItem): void {
-    debugger;
+
     var roleReview = map(this.state.roleReview, (rr) => {
       return { ...rr, GRCApproval: item.data, hasBeenUpdated: true };
     });
@@ -109,16 +173,16 @@ export default class GrcTest extends React.Component<IGrcTestProps, IGrcTestStat
 
   }
   public showPopup(item: RoleReview) {
-    debugger;
+
     this.props.getRoleToTransaction(item.GRCRoleName)
       .then((roleToTransactions) => {
-        debugger;
+
         this.setState((current) => ({ ...current, roleToTransaction: roleToTransactions, showPopup: true }));
 
       }).catch((err) => {
         console.error(err.data.responseBody["odata.error"].message.value);
         alert(err.data.responseBody["odata.error"].message.value);
-        debugger;
+
         debugger;
       });
   }
@@ -126,22 +190,23 @@ export default class GrcTest extends React.Component<IGrcTestProps, IGrcTestStat
   public haveItemsChanged(): boolean {
     return true;
   }
-  public fetchRoleReviews():Promise<any>{
+  public fetchRoleReviews(): Promise<any> {
     return this.props.fetchRoleReviews().then((roleReviews) => {
-      debugger;
-            this.setState((current) => ({ ...current, roleReview: roleReviews }));
+
+      this.setState((current) => ({ ...current, roleReview: roleReviews }));
     }).catch((err) => {
       debugger;
       alert(err);
     });
   }
+
   public render(): React.ReactElement<IGrcTestProps> {
-    debugger;
+
     let itemsNonFocusable: IContextualMenuItem[] = [
       {
         key: "Change All",
         name: "Change All",
-        icon: "TriggerApproval",
+        icon: "TriggerAuto",
         disabled: this.props.primaryApproverList[0].GRCCompleted === "Yes",
         subMenuProps: {
           items: [
@@ -170,12 +235,46 @@ export default class GrcTest extends React.Component<IGrcTestProps, IGrcTestStat
         }
       },
       {
-        key: "Undo", name: "Undo", icon: "Undo", onClick: this.fetchRoleReviews,
-        disabled:  !(filter(this.state.roleReview, (rr) => { return rr.hasBeenUpdated; }).length > 0)
+        key: "Change Selected",
+        name: "Change Selected",
+        icon: "TriggerApproval",
+        disabled: this.props.primaryApproverList[0].GRCCompleted === "Yes",
+        subMenuProps: {
+          items: [
+            {
+              key: 'yup',
+              name: 'Yup',
+              data: "0",
+              onClick: this.changeSelected,
+              disabled: this.props.primaryApproverList[0].GRCCompleted === "Yes"
+            },
+            {
+              key: 'Nope',
+              name: 'Nope',
+              data: "1",
+              onClick: this.changeSelected,
+              disabled: this.props.primaryApproverList[0].GRCCompleted === "Yes"
+            },
+            {
+              key: "no f'in way",
+              name: "no f'in way",
+              data: "2",
+              onClick: this.changeSelected,
+              disabled: this.props.primaryApproverList[0].GRCCompleted === "Yes"
+
+            }
+
+          ]
+        }
       },
       {
+        key: "Undo", name: "Undo", icon: "Undo", onClick: this.fetchRoleReviews,
+        disabled: !(filter(this.state.roleReview, (rr) => { return rr.hasBeenUpdated; }).length > 0)
+      },
+      { // if the item has been comleted OR there are items with noo approvasl, diable
         key: "Done", name: "Complete", icon: "Completed", onClick: this.setComplete,
-        disabled: this.props.primaryApproverList[0].GRCCompleted === "Yes"
+        disabled: this.props.primaryApproverList[0].GRCCompleted === "Yes" ||
+        (filter(this.state.roleReview, (rr) => { return rr.GRCApproval === null; }).length > 0)
       }
 
     ];
@@ -200,8 +299,15 @@ export default class GrcTest extends React.Component<IGrcTestProps, IGrcTestStat
         />
         <DetailsList
           items={this.state.roleReview}
-          selectionMode={SelectionMode.none}
+          selectionMode={SelectionMode.multiple}
+          selection={this.selection}
+          key="Id"
           columns={[
+            {
+              key: "id", name: "Id",
+              fieldName: "Id", minWidth: 5, maxWidth: 5,
+
+            },
             {
               key: "title", name: "Role Name",
               fieldName: "GRCRoleName", minWidth: 400, maxWidth: 400,
@@ -220,18 +326,16 @@ export default class GrcTest extends React.Component<IGrcTestProps, IGrcTestStat
             {
               key: "Approval", name: "Approval",
               fieldName: "GRCApproval", minWidth: 90, maxWidth: 90,
-              onRender: (item?: any, index?: number, column?: IColumn) => { return this.RenderApproval(item, index, column); }
-
+              onRender: (item?: any, index?: number, column?: IColumn) => { return this.RenderApproval(item, index, column); },
             },
             {
               key: "Comments", name: "Comments",
               fieldName: "GRCComments", minWidth: 150, maxWidth: 150,
-
+              onRender: (item?: any, index?: number, column?: IColumn) => { return this.RenderComments(item, index, column); },
             },
             {
               key: "Remediation", name: "Remediation",
               fieldName: "GRCRemediation", minWidth: 150, maxWidth: 150,
-
             },
 
           ]}
@@ -240,13 +344,11 @@ export default class GrcTest extends React.Component<IGrcTestProps, IGrcTestStat
         <Panel
           type={PanelType.custom | PanelType.smallFixedNear}
           customWidth='600px'
-
           isOpen={this.state.showPopup}
           onDismiss={
             () => {
-              this.setState((current) => ({ ...current, roleToTransaction: [], showPopup: false }))
+              this.setState((current) => ({ ...current, roleToTransaction: [], showPopup: false }));
             }}
-
           isBlocking={true}
         >
           <DetailsList

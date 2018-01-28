@@ -4,8 +4,7 @@ import RoleToTransaction from "../../../dataModel/RoleToTransaction";
 
 export interface IGrcTestProps {
   primaryApproverList: Array<PrimaryApproverList>;
-  roleReview: Array<RoleReview>;
-  save: (roleToTCodeReview:  Array<RoleReview>) => Promise<any>; 
+   save: (roleToTCodeReview:  Array<RoleReview>) => Promise<any>; 
   getRoleToTransaction: (role:  string) => Promise<Array<RoleToTransaction>>; 
   fetchRoleReviews:() =>  Promise<Array<RoleReview>>; 
   setComplete: ( PrimaryApproverList:PrimaryApproverList) => Promise<any>; 

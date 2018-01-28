@@ -16,6 +16,7 @@ export interface IGrcUploadWebPartProps {
   primaryApproverContentTypeId:string;
   roleToTransactionContentTypeId:string;
   roleReviewContentTypeId:string;
+  webPartXml:string;
 }
 
 export default class GrcUploadWebPart extends BaseClientSideWebPart<IGrcUploadWebPartProps> {
@@ -28,7 +29,9 @@ export default class GrcUploadWebPart extends BaseClientSideWebPart<IGrcUploadWe
         templateName:this.properties.templateName,
         primaryApproverContentTypeId: this.properties.primaryApproverContentTypeId,
         roleToTransactionContentTypeId: this.properties.roleToTransactionContentTypeId,
-        roleReviewContentTypeId: this.properties.roleReviewContentTypeId
+        roleReviewContentTypeId: this.properties.roleReviewContentTypeId,
+        webPartXml:this.properties.webPartXml
+
 
       }
     );

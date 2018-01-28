@@ -24,8 +24,8 @@ export interface IGrcTestWebPartProps {
 export default class GrcTestWebPart extends BaseClientSideWebPart<IGrcTestWebPartProps> {
   private primaryApproverLists: Array<PrimaryApproverList>;
   private roleReviews: Array<RoleReview>;
-  reactElement: React.ReactElement<IGrcTestProps>;
-  formComponent: GrcTest;
+  private reactElement: React.ReactElement<IGrcTestProps>;
+  private formComponent: GrcTest;
   private async testmethod(): Promise<any> {
     class CustomListItem extends Item {
       public Id: number;
@@ -79,28 +79,8 @@ export default class GrcTestWebPart extends BaseClientSideWebPart<IGrcTestWebPar
         alert(err.data.responseBody["odata.error"].message.value);
         debugger;
       });
-      this.roleReviews = await this.fetchRoleReviews()
-      .catch(err=>{
-        console.log(err);
-        alert("There was an error fething your Role Reviews ")
-        return []
-      });
-    // select = `Id,GRCRoleName,GRCApproverId,GRCApprover/Title,
-    //   GRCApproval,GRCApprovedById, GRCDateReview, 
-    //   GRCComments, GRCRemediation`;
-    // expands = "GRCApprover";
-    // await pnp.sp.web.lists.getByTitle(this.properties.roleToTCodeReviewListName).items
-    //   .select(select)
-    //   .expand(expands)
-    //   .filter('GRCApproverId eq ' + userId)
-    //   .getAs<Array<RoleReview>>().then((result) => {
-    //     this.roleReviews = result;
-    //   }).catch((err) => {
-    //     console.error(err.data.responseBody["odata.error"].message.value);
-    //     alert(err.data.responseBody["odata.error"].message.value);
-    //     debugger;
-
-    //   });
+    
+  
 
   }
   public save(roleToTCodeReviews: Array<RoleReview>): Promise<any> {
@@ -111,7 +91,7 @@ export default class GrcTestWebPart extends BaseClientSideWebPart<IGrcTestWebPar
 
     for (let item of itemsToSave) {
       pnp.sp.web.lists.getByTitle(this.properties.roleToTCodeReviewListName)
-        .items.getById(item.Id).inBatch(batch).update({ "GRCApproval": item.GRCApproval })
+        .items.getById(item.Id).inBatch(batch).update({ "GRCApproval": item.GRCApproval, "GRCComments": item.GRCComments })
         .then((x) => {
           debugger;
         })
@@ -120,6 +100,7 @@ export default class GrcTestWebPart extends BaseClientSideWebPart<IGrcTestWebPar
         });
 
     }
+    debugger;
     return batch.execute();
 
     // let batch = pnp.sp.createBatch();
@@ -150,10 +131,6 @@ export default class GrcTestWebPart extends BaseClientSideWebPart<IGrcTestWebPar
     debugger;
 
     let userId = this.context.pageContext.legacyPageContext.userId;
-    let newProps = this.reactElement.props;
-    newProps.primaryApproverList[0].GRCCompleted = "Yes";
-    this.reactElement.props = newProps;
-    this.formComponent.forceUpdate();
     return pnp.sp.web.lists.getByTitle(this.properties.primaryApproverListName)
       .items.getById(primaryApproverList.Id).update({ "GRCCompleted": "Yes" }).then(() => {
         let newProps = this.reactElement.props;
@@ -161,7 +138,7 @@ export default class GrcTestWebPart extends BaseClientSideWebPart<IGrcTestWebPar
         this.reactElement.props = newProps;
         this.formComponent.forceUpdate();
 
-      })
+      });
 
   }
   public render(): void {
@@ -169,7 +146,7 @@ export default class GrcTestWebPart extends BaseClientSideWebPart<IGrcTestWebPar
       GrcTest,
       {
         primaryApproverList: this.primaryApproverLists,
-        roleReview: this.roleReviews,
+    
         save: this.save.bind(this),
         getRoleToTransaction: this.getRoleToTransaction.bind(this),
         setComplete: this.setComplete.bind(this),

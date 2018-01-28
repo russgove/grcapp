@@ -98,14 +98,12 @@ export default class GrcUpload extends React.Component<IGrcUploadProps, IGrcUplo
     let id: number | null = null;
     let cached: CachedId = find(this.cachedIds, (cachedId) => { return cachedId.upn === upn; });
     if (cached) {
-      console.log(`Found ${upn} in cache id is ${cached.id}`);
       return cached.id;
     }
     await pnp.sp.web.ensureUser(upn)
       .then((response) => {
         id = response.data.Id;
         this.cachedIds.push({ upn: upn, id: id });
-        console.log(` ${upn} added to cached,id is ${id}`);
         return;
       })
       .catch((err) => {
@@ -440,7 +438,7 @@ export default class GrcUpload extends React.Component<IGrcUploadProps, IGrcUplo
   }
   public extractColumnHeadersRoleToTransactionData(headerRow: Array<String>): String[] {
     debugger;
-    const requiredColumns = ["ApproverEmail", "AlternateApproverEmail", "Role","RoleName", "TCode", "Transaction Text"];
+    const requiredColumns = ["ApproverEmail", "AlternateApproverEmail", "Role", "Role Name", "TCode", "Transaction Text"];
     for (let requiredColumn of requiredColumns) {
       if (headerRow.indexOf(requiredColumn) === -1) {
         this.addMessage(`Column ${requiredColumn} is missing on Role To Transaction Data File`);
@@ -629,13 +627,62 @@ export default class GrcUpload extends React.Component<IGrcUploadProps, IGrcUplo
 
   //#region Site  Creation Methods
   /**
- *  Adds a custom webpart to the edit form located at editformUrl
- * 
- * @param {string} webRelativeUrl -- The web containing the list
- * @param {any} editformUrl -- the url of the editform page
- * @param {string} webPartXml  -- the xml for the webpart to add
- * @memberof EfrAdmin
- */
+     *  Adds a custom webpart to the edit form located at editformUrl
+     * 
+     * @param {string} webRelativeUrl -- The web 
+     * @param {any} homePageUrl -- the url of the  page
+     * @param {string} webPartXml  -- the xml for the webpart to add
+     * @memberof EfrAdmin
+     */
+  public async CleanupHomePage(webRelativeUrl: string, homePageUrl, webPartXml: string) {
+    const clientContext: SP.ClientContext = new SP.ClientContext(webRelativeUrl);
+    var oFile = clientContext.get_web().getFileByServerRelativeUrl(homePageUrl);
+
+    var limitedWebPartManager = oFile.getLimitedWebPartManager(SP.WebParts.PersonalizationScope.shared);
+    let webparts = limitedWebPartManager.get_webParts();
+    clientContext.load(webparts, 'Include(WebPart)');
+    clientContext.load(limitedWebPartManager);
+    await new Promise((resolve, reject) => {
+      clientContext.executeQueryAsync((x) => {
+        resolve();
+      }, (error) => {
+        console.log(error);
+        reject();
+      });
+    });
+    let count = webparts.get_count();
+    for (let i = 0; i < count; i++) {
+      let originalWebPartDef = webparts.get_item(i);
+      originalWebPartDef.deleteWebPart();
+    }
+    await new Promise((resolve, reject) => {
+      clientContext.executeQueryAsync((x) => {
+        console.log("the webpartw were deleted hidden");
+        resolve();
+      }, (error) => {
+        console.log(error);
+        reject();
+      });
+    });
+
+    let oWebPartDefinition = limitedWebPartManager.importWebPart(webPartXml);
+    let oWebPart = oWebPartDefinition.get_webPart();
+
+    limitedWebPartManager.addWebPart(oWebPart, 'Main', 1);
+
+    clientContext.load(oWebPart);
+
+    await new Promise((resolve, reject) => {
+      clientContext.executeQueryAsync((x) => {
+        console.log("the new webpart was added");
+        resolve();
+      }, (error) => {
+        console.log(error);
+        reject();
+      });
+    });
+  }
+
   public async SetWebToUseSharedNavigation(webRelativeUrl: string) {
 
     const clientContext: SP.ClientContext = new SP.ClientContext(webRelativeUrl);
@@ -713,6 +760,62 @@ export default class GrcUpload extends React.Component<IGrcUploadProps, IGrcUplo
     await this.RemoveQuickLaunchItem(webUrl, ["Pages", "Documents"]);
 
   }
+  /**
+   *  Adds a custom webpart to the edit form located at editformUrl
+   * 
+   * @param {string} webRelativeUrl -- The web containing the list
+   * @param {any} editformUrl -- the url of the editform page
+   * @param {string} webPartXml  -- the xml for the webpart to add
+   * @memberof EfrAdmin
+   */
+  public async AddWebPartToEditForm(webRelativeUrl: string, editformUrl, webPartXml: string) {
+    const clientContext: SP.ClientContext = new SP.ClientContext(webRelativeUrl);
+    var oFile = clientContext.get_web().getFileByServerRelativeUrl(editformUrl);
+
+    var limitedWebPartManager = oFile.getLimitedWebPartManager(SP.WebParts.PersonalizationScope.shared);
+    let webparts = limitedWebPartManager.get_webParts();
+    clientContext.load(webparts, 'Include(WebPart)');
+    clientContext.load(limitedWebPartManager);
+    await new Promise((resolve, reject) => {
+      clientContext.executeQueryAsync((x) => {
+        resolve();
+      }, (error) => {
+        console.log(error);
+        reject();
+      });
+    });
+    let originalWebPartDef = webparts.get_item(0);
+    let originalWebPart = originalWebPartDef.get_webPart();
+    originalWebPart.set_hidden(true);
+    originalWebPartDef.saveWebPartChanges();
+    await new Promise((resolve, reject) => {
+      clientContext.executeQueryAsync((x) => {
+        console.log("the webpart was hidden");
+        resolve();
+      }, (error) => {
+        console.log(error);
+        reject();
+      });
+    });
+
+    let oWebPartDefinition = limitedWebPartManager.importWebPart(webPartXml);
+    let oWebPart = oWebPartDefinition.get_webPart();
+
+    limitedWebPartManager.addWebPart(oWebPart, 'Main', 1);
+
+    clientContext.load(oWebPart);
+
+    await new Promise((resolve, reject) => {
+      clientContext.executeQueryAsync((x) => {
+        console.log("the new webpart was added");
+        resolve();
+      }, (error) => {
+        console.log(error);
+        reject();
+      });
+    });
+  }
+
 
   public async createSite() {
     let newWeb: Web;  // the web that gets created
@@ -792,7 +895,22 @@ export default class GrcUpload extends React.Component<IGrcUploadProps, IGrcUplo
       debugger;
       return;
     });
-
+    await roleToTransactionList.fields.getByInternalNameOrTitle("GRCRoleName").update({
+      Indexed: true
+    }).then(function (resp) {
+      debugger;
+    }).catch(function (err) {
+      debugger;
+    });
+    // customize the home paged
+    let welcomePageUrl: string;
+    await newWeb.rootFolder.getAs<any>().then(rootFolder => {
+      debugger;
+      welcomePageUrl = rootFolder.ServerRelativeUrl + rootFolder.WelcomePage;
+    });
+    this.addMessage("Customizing Home Page");
+    await this.CleanupHomePage(webServerRelativeUrl, welcomePageUrl, this.props.webPartXml);
+    this.addMessage("Customized Home Page");
 
     this.addMessage("DONE!!");
 
@@ -801,38 +919,16 @@ export default class GrcUpload extends React.Component<IGrcUploadProps, IGrcUplo
 
 
   private _onRenderMessage(item: any, index: number, isScrolling: boolean): JSX.Element {
-    debugger;
+
     return (
       <div>{item}</div>
     );
   }
   public render(): React.ReactElement<IGrcUploadProps> {
-    debugger;
+
     return (
       <div className={styles.grcUpload} >
-        <table>
-          <tr>
-            <td>
-              New Site Name
-            </td>
-            <td>
-              <TextField label="" onChanged={(e) => {
-                this.setState((current) => ({ ...current, siteName: e }));
-              }} />
-            </td>
-            <td>
-              <PrimaryButton onClick={this.createSite.bind(this)} title="Create Site">Create Site</PrimaryButton>
-            </td>
-            <td>
-              Active Site:
-            </td>
-            <td>
-              {this.state.siteName}
-            </td>
 
-          </tr>
-
-        </table>
 
         <table>
           <thead>
@@ -920,7 +1016,30 @@ export default class GrcUpload extends React.Component<IGrcUploadProps, IGrcUplo
 
           </tr>
         </table>
+        <hr />
+        <table>
+          <tr>
+            <td>
+              New Site Name
+            </td>
+            <td>
+              <TextField label="" onChanged={(e) => {
+                this.setState((current) => ({ ...current, siteName: e }));
+              }} />
+            </td>
+            <td>
+              <PrimaryButton onClick={this.createSite.bind(this)} title="Create Site">Create Site</PrimaryButton>
+            </td>
+            <td>
+              Active Site:
+            </td>
+            <td>
+              {this.state.siteName}
+            </td>
 
+          </tr>
+
+        </table>
         <button onClick={this.test}>test</button>
         <div style={{ border: '1px', borderStyle: "solid" }} >
           <IconButton iconProps={{ iconName: "Clear" }}
