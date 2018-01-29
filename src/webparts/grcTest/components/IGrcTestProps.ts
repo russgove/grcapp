@@ -8,5 +8,6 @@ export interface IGrcTestProps {
   getRoleToTransaction: (role:  string) => Promise<Array<RoleToTransaction>>; 
   fetchRoleReviews:() =>  Promise<Array<RoleReview>>; 
   setComplete: ( PrimaryApproverList:PrimaryApproverList) => Promise<any>; 
+  domElement:any; // needed to disable button postback after render on classic pages
   
 }

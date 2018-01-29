@@ -1,5 +1,10 @@
 import * as React from 'react';
 import styles from './GrcTest.module.scss';
+import {
+  Environment,
+  EnvironmentType
+} from '@microsoft/sp-core-library';
+import { initializeIcons } from 'office-ui-fabric-react/lib/Icons';
 import { IGrcTestProps } from './IGrcTestProps';
 import { IGrcTestState } from './IGrcTestState';
 import { escape } from '@microsoft/sp-lodash-subset';
@@ -21,14 +26,14 @@ import RoleReview from "../../../dataModel/RoleReview";
 import RoleToTransaction from "../../../dataModel/RoleToTransaction";
 import { find, map, clone, filter } from "lodash";
 export default class GrcTest extends React.Component<IGrcTestProps, IGrcTestState> {
-  selection: Selection = new Selection();
+  private selection: Selection = new Selection();
 
   public constructor(props: IGrcTestProps) {
     super();
     console.log("in Construrctor");
-    // this.CloseButton = this.CloseButton.bind(this);
-    // this.CompleteButton = this.CompleteButton.bind(this);
-    this.selection.getKey = (item => { return item["Id"] })
+
+    initializeIcons();
+    this.selection.getKey = (item => { return item["Id"]; });
     this.save = this.save.bind(this);
     this.setComplete = this.setComplete.bind(this);
     this.changeAll = this.changeAll.bind(this);
@@ -37,16 +42,30 @@ export default class GrcTest extends React.Component<IGrcTestProps, IGrcTestStat
     this.state = {
       primaryApproverList: props.primaryApproverList,
       roleReview: [],
-      changesHaveBeenMade: false,
       showPopup: false
 
     };
   }
   public componentDidMount() {
     this.props.fetchRoleReviews().then(reviews => {
+      debugger;
       this.setState((current) => ({ ...current, roleReview: reviews, changesHaveBeenMade: false }));
 
     });
+  }
+  public componentDidUpdate(): void {
+    // disable postback of buttons. see https://github.com/SharePoint/sp-dev-docs/issues/492
+    if (Environment.type === EnvironmentType.ClassicSharePoint) {
+      const buttons: NodeListOf<HTMLButtonElement> = this.props.domElement.getElementsByTagName('button');
+      for (let i: number = 0; i < buttons.length; i++) {
+        if (buttons[i]) {
+          // Disable the button onclick postback
+          buttons[i].onclick = function () {
+            return false;
+          };
+        }
+      }
+    }
   }
   public RenderApproval(item?: RoleReview, index?: number, column?: IColumn): JSX.Element {
 
@@ -97,6 +116,7 @@ export default class GrcTest extends React.Component<IGrcTestProps, IGrcTestStat
     else {
       return (
         <TextField
+          value={item.GRCComments}
           onChanged={(newValue) => {
             let tempRoleToTCodeReview = this.state.roleReview;
             let rtc = find(tempRoleToTCodeReview, (x) => {
@@ -187,12 +207,10 @@ export default class GrcTest extends React.Component<IGrcTestProps, IGrcTestStat
       });
   }
 
-  public haveItemsChanged(): boolean {
-    return true;
-  }
   public fetchRoleReviews(): Promise<any> {
+    debugger;
     return this.props.fetchRoleReviews().then((roleReviews) => {
-
+      debugger;
       this.setState((current) => ({ ...current, roleReview: roleReviews }));
     }).catch((err) => {
       debugger;
@@ -297,6 +315,7 @@ export default class GrcTest extends React.Component<IGrcTestProps, IGrcTestStat
           farItems={farItemsNonFocusable}
 
         />
+         <IconButton iconProps={{ iconName: "Info" }} onClick={(e) => { this.showPopup(null); }} />
         <DetailsList
           items={this.state.roleReview}
           selectionMode={SelectionMode.multiple}

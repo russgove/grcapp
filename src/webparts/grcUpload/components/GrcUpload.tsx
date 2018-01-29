@@ -121,11 +121,10 @@ export default class GrcUpload extends React.Component<IGrcUploadProps, IGrcUplo
     // so no additional requests will be sent to get entity type for each item
     debugger;
     const entityType = await list.ListItemEntityTypeFullName;
-    const list2 = await pnp.sp.web.getList('/sites/GRCTest/test/Lists/CustomList');
-    console.log(list2);
+
     debugger;
     for (let i = 0, len = 2; i < len; i += 1) {
-      list2.items.inBatch(batch).add({
+      pnp.sp.web.lists.getByTitle("CustomList").items.inBatch(batch).add({
         Title: `Item ${i}`
       }, entityType).catch((err) => {
         console.error(err);
@@ -216,7 +215,7 @@ export default class GrcUpload extends React.Component<IGrcUploadProps, IGrcUplo
   }
   public async uploadRoleReviewBatch(rows: Array<any>, entityTypeFullName): Promise<any> {
 
-    let batch = pnp.sp.createBatch();
+    let batch = this.state.newWeb.createBatch();
     for (let row of rows) {
       let approverId: number = await this.findId(row.ApproverEmail);
       let alternateApproverId: number = await this.findId(row.AlternateApproverEmail);
@@ -233,8 +232,8 @@ export default class GrcUpload extends React.Component<IGrcUploadProps, IGrcUplo
       }
 
       //add an item to the list
-      await this.state.newWeb.lists.getByTitle('Role Review').items.add(obj, entityTypeFullName)
-        // pnp.sp.web.lists.getByTitle('Role Review').items.inBatch(batch).add(obj, entityTypeFullName)
+      //await this.state.newWeb.lists.getByTitle('Role Review').items.add(obj, entityTypeFullName)
+      this.state.newWeb.lists.getByTitle('Role Review').items.inBatch(batch).add(obj, entityTypeFullName)
         .then((iar: ItemAddResult) => {
 
           return;
@@ -358,7 +357,7 @@ export default class GrcUpload extends React.Component<IGrcUploadProps, IGrcUplo
   }
   public async uploadRoleToTransactionBatch(rows: Array<any>, entityTypeFullName): Promise<any> {
 
-    let batch = pnp.sp.createBatch();
+    let batch = this.state.newWeb.createBatch();
     for (let row of rows) {
       let approverId: number = await this.findId(row.ApproverEmail);
       let alternateApproverId: number = await this.findId(row.AlternateApproverEmail);
@@ -378,8 +377,9 @@ export default class GrcUpload extends React.Component<IGrcUploadProps, IGrcUplo
       }
 
       //add an item to the list
-      await this.state.newWeb.lists.getByTitle('Role to Transaction').items.add(obj, entityTypeFullName)
-        // pnp.sp.web.lists.getByTitle('Role to Transaction').items.inBatch(batch).add(obj, entityTypeFullName)
+      // await this.state.newWeb.lists.getByTitle('Role to Transaction').items.add(obj, entityTypeFullName)
+  
+      this.state.newWeb.lists.getByTitle('Role to Transaction').items.inBatch(batch).add(obj, entityTypeFullName)
         .then((iar: ItemAddResult) => {
 
           return;
@@ -393,6 +393,7 @@ export default class GrcUpload extends React.Component<IGrcUploadProps, IGrcUplo
         });
     }
 
+   
     return batch.execute();
 
   }
@@ -400,13 +401,22 @@ export default class GrcUpload extends React.Component<IGrcUploadProps, IGrcUplo
     let entityTypeFullName = await this.state.newWeb.lists.getByTitle('Role to Transaction').getListItemEntityTypeFullName();
     var batchSize = 100;
     var batches = Math.ceil(data.length / batchSize);
-    batches = 5;
-    this.addMessage("NOTE!!!! Role toi transaction currently limited to 500 items");
+    // batches = 5;
+    // this.addMessage("NOTE!!!! Role toi transaction currently limited to 500 items");
 
     for (var i = 0; i < batches; i++) {
       var thisBatchItems = data.slice(i * batchSize, ((i * batchSize) + batchSize));
+      let startTime=(new Date()).getTime();
+      
       await this.uploadRoleToTransactionBatch(thisBatchItems, entityTypeFullName)
         .then(resp => {
+          debugger;
+          let endTime=(new Date()).getTime();
+          let elapsedSeconds = endTime-startTime/1000; // this was the seconds  to do batchsize, so how many in a minute?
+          let itemsPerMinute = 60/elapsedSeconds;
+          console.log("itemsperminute-"+itemsPerMinute);
+          
+          // 
           this.setState((current) => ({ ...current, roleToTransactionRowsUploaded: current.roleToTransactionRowsUploaded + thisBatchItems.length }));
         })
         .catch(err => {
@@ -509,7 +519,7 @@ export default class GrcUpload extends React.Component<IGrcUploadProps, IGrcUplo
   }
   public async uploadPrimaryApproversBatch(rows: Array<any>, entityTypeFullName): Promise<any> {
 
-    let batch = pnp.sp.createBatch();
+    let batch = this.state.newWeb.createBatch();
     for (let row of rows) {
       let approverId: number = await this.findId(row.ApproverEmail);
 
@@ -522,8 +532,8 @@ export default class GrcUpload extends React.Component<IGrcUploadProps, IGrcUplo
       }
 
       //add an item to the list
-      await this.state.newWeb.lists.getByTitle('Primary Approver').items.add(obj, entityTypeFullName)
-        // pnp.sp.web.lists.getByTitle('EPA Role to Transaction').items.inBatch(batch).add(obj, entityTypeFullName)
+      // await this.state.newWeb.lists.getByTitle('Primary Approver').items.add(obj, entityTypeFullName)
+      this.state.newWeb.lists.getByTitle('EPA Role to Transaction').items.inBatch(batch).add(obj, entityTypeFullName)
         .then((iar: ItemAddResult) => {
 
           return;
@@ -863,18 +873,30 @@ export default class GrcUpload extends React.Component<IGrcUploadProps, IGrcUplo
     await newWeb.lists.add("Primary Approver", "Primary Approver", 100, false).then(async (listResponse: ListAddResult) => {
       this.addMessage("Created List " + "Primary Approver");
       primaryApproverList = listResponse.list;
+    }).catch(error => {
+      debugger;
+      console.error(error);
+      this.addMessage(error);
+      return;
     });
     await primaryApproverList.contentTypes.addAvailableContentType(this.props.primaryApproverContentTypeId).then((ct) => {
       this.addMessage("Added Primary Approver content type");
       return;
     }).catch(error => {
       debugger;
+      console.error(error);
+      this.addMessage(error);
       return;
     });
     let roleReviewList: PNPList;
     await newWeb.lists.add("Role Review", "Role Review", 100, false).then(async (listResponse: ListAddResult) => {
       this.addMessage("Created List " + "Role Review");
       roleReviewList = listResponse.list;
+    }).catch(error => {
+      debugger;
+      console.error(error);
+      this.addMessage(error);
+      return;
     });
     await roleReviewList.contentTypes.addAvailableContentType(this.props.roleReviewContentTypeId).then((ct) => {
       this.addMessage("Added roleReviewList content type");
@@ -887,6 +909,11 @@ export default class GrcUpload extends React.Component<IGrcUploadProps, IGrcUplo
     await newWeb.lists.add("Role To Transaction", "Role To Transaction", 100, false).then(async (listResponse: ListAddResult) => {
       this.addMessage("Created List " + "Role To Transaction");
       roleToTransactionList = listResponse.list;
+    }).catch(error => {
+      debugger;
+      console.error(error);
+      this.addMessage(error);
+      return;
     });
     await roleToTransactionList.contentTypes.addAvailableContentType(this.props.roleToTransactionContentTypeId).then((ct) => {
       this.addMessage("Added Role To Transaction content type");
@@ -897,10 +924,15 @@ export default class GrcUpload extends React.Component<IGrcUploadProps, IGrcUplo
     });
     await roleToTransactionList.fields.getByInternalNameOrTitle("GRCRoleName").update({
       Indexed: true
-    }).then(function (resp) {
+    }).then((resp) => {
       debugger;
-    }).catch(function (err) {
+    }).catch((error) => {
+
       debugger;
+      console.error(error);
+      this.addMessage(error);
+      return;
+
     });
     // customize the home paged
     let welcomePageUrl: string;

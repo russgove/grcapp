@@ -44,6 +44,7 @@ export default class GrcTestWebPart extends BaseClientSideWebPart<IGrcTestWebPar
   }
 
   private async fetchRoleReviews(): Promise<Array<RoleReview>> {
+    debugger;
     let userId = this.context.pageContext.legacyPageContext.userId;
     let select = `Id,GRCRoleName,GRCApproverId,GRCApprover/Title,
     GRCApproval,GRCApprovedById, GRCDateReview, 
@@ -79,8 +80,8 @@ export default class GrcTestWebPart extends BaseClientSideWebPart<IGrcTestWebPar
         alert(err.data.responseBody["odata.error"].message.value);
         debugger;
       });
-    
-  
+
+
 
   }
   public save(roleToTCodeReviews: Array<RoleReview>): Promise<any> {
@@ -146,11 +147,12 @@ export default class GrcTestWebPart extends BaseClientSideWebPart<IGrcTestWebPar
       GrcTest,
       {
         primaryApproverList: this.primaryApproverLists,
-    
+
         save: this.save.bind(this),
         getRoleToTransaction: this.getRoleToTransaction.bind(this),
         setComplete: this.setComplete.bind(this),
-      fetchRoleReviews:this.fetchRoleReviews.bind(this)
+        fetchRoleReviews: this.fetchRoleReviews.bind(this),
+        domElement: this.domElement
       }
     );
 

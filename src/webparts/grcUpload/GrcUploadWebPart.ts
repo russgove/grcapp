@@ -1,6 +1,7 @@
 import * as React from 'react';
 import * as ReactDom from 'react-dom';
 import { Version } from '@microsoft/sp-core-library';
+import pnp from "sp-pnp-js";
 import {
   BaseClientSideWebPart,
   IPropertyPaneConfiguration,
@@ -20,7 +21,15 @@ export interface IGrcUploadWebPartProps {
 }
 
 export default class GrcUploadWebPart extends BaseClientSideWebPart<IGrcUploadWebPartProps> {
-
+  public async onInit(): Promise<any> {
+    await super.onInit().then(() => {
+      pnp.setup({
+        spfxContext: this.context,
+      });
+      return;
+    });
+    return Promise.resolve();
+  }
   public render(): void {
     const element: React.ReactElement<IGrcUploadProps> = React.createElement(
       GrcUpload,

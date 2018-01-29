@@ -6,7 +6,7 @@ export interface IGrcTestState {
   primaryApproverList: Array<PrimaryApproverList>;
   roleReview: Array<RoleReview>;
   roleToTransaction?: Array<RoleToTransaction>;
-  changesHaveBeenMade:boolean;
+
   showPopup:boolean;
 
 }
