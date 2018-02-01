@@ -17,6 +17,38 @@
           "manifest": "./src/webparts/grcUpload/GrcUploadWebPart.manifest.json"
         }
       ]
+    },
+    "35-high-risk-user-form-web-part": {
+      "components": [
+        {
+          "entrypoint": "./lib/webparts/35HighRiskUserForm/35HighRiskUserFormWebPart.js",
+          "manifest": "./src/webparts/35HighRiskUserForm/35HighRiskUserFormWebPart.manifest.json"
+        }
+      ]
+    },
+    "35-high-risk-admin-web-part": {
+      "components": [
+        {
+          "entrypoint": "./lib/webparts/35HighRiskAdmin/35HighRiskAdminWebPart.js",
+          "manifest": "./src/webparts/35HighRiskAdmin/35HighRiskAdminWebPart.manifest.json"
+        }
+      ]
+    },
+    "high-risk-admin-webpart-web-part": {
+      "components": [
+        {
+          "entrypoint": "./lib/webparts/highRiskAdminWebpart/HighRiskAdminWebpartWebPart.js",
+          "manifest": "./src/webparts/highRiskAdminWebpart/HighRiskAdminWebpartWebPart.manifest.json"
+        }
+      ]
+    },
+    "high-risk-user-webpart-web-part": {
+      "components": [
+        {
+          "entrypoint": "./lib/webparts/highRiskUserWebpart/HighRiskUserWebpartWebPart.js",
+          "manifest": "./src/webparts/highRiskUserWebpart/HighRiskUserWebpartWebPart.manifest.json"
+        }
+      ]
     }
   },
   "externals": {
@@ -55,6 +87,10 @@
   },
   "localizedResources": {
     "GrcTestWebPartStrings": "lib/webparts/grcTest/loc/{locale}.js",
-    "GrcUploadWebPartStrings": "lib/webparts/grcUpload/loc/{locale}.js"
+    "GrcUploadWebPartStrings": "lib/webparts/grcUpload/loc/{locale}.js",
+    "35HighRiskUserFormWebPartStrings": "lib/webparts/35HighRiskUserForm/loc/{locale}.js",
+    "35HighRiskAdminWebPartStrings": "lib/webparts/35HighRiskAdmin/loc/{locale}.js",
+    "HighRiskAdminWebpartWebPartStrings": "lib/webparts/highRiskAdminWebpart/loc/{locale}.js",
+    "HighRiskUserWebpartWebPartStrings": "lib/webparts/highRiskUserWebpart/loc/{locale}.js"
   }
 }

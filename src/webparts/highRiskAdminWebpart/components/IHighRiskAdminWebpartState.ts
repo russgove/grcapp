@@ -1,5 +1,5 @@
 import { Web } from "sp-pnp-js";
-export interface IGrcUploadState {
+export interface IHighRiskAdminWebpartState {
 
   siteName: string; // the name of the web to create
   newWeb: Web; // the web that we created
@@ -12,10 +12,10 @@ export interface IGrcUploadState {
   roleToTransactionStatus: string;
   roleToTransactionFile: File;
 
-  roleReviewTotalRows: number;
-  roleReviewRowsUploaded: number;
-  roleReviewStatus: string;
-  roleReviewFile: File;
+  highRiskTotalRows: number;
+  highRiskRowsUploaded: number;
+  highRiskStatus: string;
+  highRiskFile: File;
 
   primaryApproversTotalRows: number;
   primaryApproversRowsUploaded: number;

@@ -8,19 +8,20 @@ import {
   PropertyPaneTextField
 } from '@microsoft/sp-webpart-base';
 
-import * as strings from 'GrcUploadWebPartStrings';
-import GrcUpload from './components/GrcUpload';
-import { IGrcUploadProps } from './components/IGrcUploadProps';
+import * as strings from 'HighRiskAdminWebpartWebPartStrings';
+import HighRiskAdminWebpart from './components/HighRiskAdminWebpart';
+import { IHighRiskAdminWebpartProps } from './components/IHighRiskAdminWebpartProps';
 
-export interface IGrcUploadWebPartProps {
+export interface IHighRiskAdminWebpartWebPartProps {
   templateName:string;
   primaryApproverContentTypeId:string;
   roleToTransactionContentTypeId:string;
-  roleReviewContentTypeId:string;
+  highRiskContentTypeId:string;
   webPartXml:string;
 }
 
-export default class GrcUploadWebPart extends BaseClientSideWebPart<IGrcUploadWebPartProps> {
+export default class HighRiskAdminWebpartWebPart extends BaseClientSideWebPart<IHighRiskAdminWebpartWebPartProps> {
+
   public async onInit(): Promise<any> {
     await super.onInit().then(() => {
       pnp.setup({
@@ -31,21 +32,18 @@ export default class GrcUploadWebPart extends BaseClientSideWebPart<IGrcUploadWe
     return Promise.resolve();
   }
   public render(): void {
-    debugger;
-    const element: React.ReactElement<IGrcUploadProps> = React.createElement(
-      GrcUpload,
+    const element: React.ReactElement<IHighRiskAdminWebpartProps > = React.createElement(
+      HighRiskAdminWebpart,
       {
         siteUrl:this.context.pageContext.site.serverRelativeUrl,
         siteAbsoluteUrl:this.context.pageContext.site.absoluteUrl,
         templateName:this.properties.templateName,
         primaryApproverContentTypeId: this.properties.primaryApproverContentTypeId,
         roleToTransactionContentTypeId: this.properties.roleToTransactionContentTypeId,
-        roleReviewContentTypeId: this.properties.roleReviewContentTypeId,
+        highRiskContentTypeId: this.properties.highRiskContentTypeId,
         webPartXml:this.properties.webPartXml,
         azureFunctionUrl:"https://grctest.azurewebsites.net/api/HttpTriggerCSharp1?code=HBM82bnia7nKPC/nqVTbaCmfPaFyubQa8iY22lb0r88fdQH370CRUg==",
         httpClient:this.context.httpClient
-
-
       }
     );
 

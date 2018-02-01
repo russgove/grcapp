@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { HttpClient, IHttpClientOptions, HttpClientResponse } from '@microsoft/sp-http';
 import styles from './GrcUpload.module.scss';
 import { IGrcUploadProps } from './IGrcUploadProps';
 import { IGrcUploadState } from './IGrcUploadState';
@@ -21,49 +22,50 @@ class CachedId {
 }
 export default class GrcUpload extends React.Component<IGrcUploadProps, IGrcUploadState> {
   private reader;
+  private counter = 0;
   private cachedIds: Array<CachedId> = [];
   //#region common code
   constructor(props: IGrcUploadProps) {
     super(props);
     // ROlte To transaction
-    this.uploadRoleToTransactionBatch = this.uploadRoleToTransactionBatch.bind(this);
-    this.onRoleToTransactionDataParsed = this.onRoleToTransactionDataParsed.bind(this);
     this.onRoleToTransactionDataloaded = this.onRoleToTransactionDataloaded.bind(this);
     this.saveRoleToTransactionFile = this.saveRoleToTransactionFile.bind(this);
     this.extractColumnHeadersRoleToTransactionData = this.extractColumnHeadersRoleToTransactionData.bind(this);
-    this.validateRoleToTransactionUsers = this.validateRoleToTransactionUsers.bind(this);
-    this.processRoleToTransaction = this.processRoleToTransaction.bind(this);
+    this.uploadRoleToTransactionFile = this.uploadRoleToTransactionFile.bind(this);
+    this.parseRoleToTransactionFile = this.parseRoleToTransactionFile.bind(this);
+    this.esnureRoleToTransactionUsers = this.esnureRoleToTransactionUsers.bind(this);
 
-    // Primar7y Approveres
-    this.uploadPrimaryApproversBatch = this.uploadPrimaryApproversBatch.bind(this);
-    this.onPrimaryApproversDataParsed = this.onPrimaryApproversDataParsed.bind(this);
+    // Primary Approveres
     this.onPrimaryApproversDataloaded = this.onPrimaryApproversDataloaded.bind(this);
     this.savePrimaryApproversFile = this.savePrimaryApproversFile.bind(this);
     this.extractColumnHeadersPrimaryApproversData = this.extractColumnHeadersPrimaryApproversData.bind(this);
-    this.validatePrimaryApproverUsers = this.validatePrimaryApproverUsers.bind(this);
-    this.processPrimaryApprovers = this.processPrimaryApprovers.bind(this);
+    this.uploadPrimaryApproversFile = this.uploadPrimaryApproversFile.bind(this);
+    this.parsePrimaryApproversFile = this.parsePrimaryApproversFile.bind(this);
+    this.esnurePrimaryApproversUsers = this.esnurePrimaryApproversUsers.bind(this);
 
 
     // Role Review
-    this.uploadRoleReviewBatch = this.uploadRoleReviewBatch.bind(this);
-    this.onRoleReviewDataParsed = this.onRoleReviewDataParsed.bind(this);
     this.onRoleReviewDataloaded = this.onRoleReviewDataloaded.bind(this);
     this.saveRoleReviewFile = this.saveRoleReviewFile.bind(this);
     this.extractColumnHeadersRoleReviewData = this.extractColumnHeadersRoleReviewData.bind(this);
-    this.validateRoleReviewUsers = this.validateRoleReviewUsers.bind(this);
-    this.processRoleReview = this.processRoleReview.bind(this);
+    this.uploadRoleReviewFile = this.uploadRoleReviewFile.bind(this);
+
+    this.parseRoleReviewFile = this.parseRoleReviewFile.bind(this);
+    this.esnureRoleReviewUsers = this.esnureRoleReviewUsers.bind(this);
 
 
 
 
 
     this.extractColumnHeaders = this.extractColumnHeaders.bind(this);
+    this.processUploadedFiles = this.processUploadedFiles.bind(this);
 
 
     this.state = {
       siteName: "",
       newWeb: null,
-      process: "",
+      newWebUrl: null,
+
 
       messages: [],
       roleToTransactionRowsUploaded: 0,
@@ -112,82 +114,7 @@ export default class GrcUpload extends React.Component<IGrcUploadProps, IGrcUplo
       });
     return id;
   }
-  public async test() {
 
-    // Scoping to web, pnp.sp.createBatch() works as well
-    const batch = pnp.sp.web.createBatch();
-    const list = await pnp.sp.web.lists.getByTitle("CustomList").get();
-    // It's better get entity type separetly and pass it into item add method, 
-    // so no additional requests will be sent to get entity type for each item
-    debugger;
-    const entityType = await list.ListItemEntityTypeFullName;
-
-    debugger;
-    for (let i = 0, len = 2; i < len; i += 1) {
-      pnp.sp.web.lists.getByTitle("CustomList").items.inBatch(batch).add({
-        Title: `Item ${i}`
-      }, entityType).catch((err) => {
-        console.error(err);
-      });
-    }
-    // Promise.all should not be used together with requests in batches
-    debugger;
-    await batch.execute(); // Batch execute response doesn't contain responses
-    // responces can be received in a specific requests promises resolutions
-    // even if no phisical requests were not send
-
-    console.log('Done');
-
-
-
-    // debugger;
-    // var batch = pnp.sp.createBatch();
-    // var promises = [];
-
-    // for (var i = 0, len = 25; i < len; i += 1) {
-    //   promises.push(pnp.sp.web.lists.getByTitle('CustomList').items.inBatch(batch).add({ "Title": "Title " + i }));
-    // }
-
-    // Promise.all(promises).then(function () {
-    //   console.log("Batch items creation is completed");
-    // });
-
-    // await batch.execute().then((x) => {
-    //   debugger;
-    // }).catch((err) => {
-    //   debugger;
-    // });
-
-
-    // // without promise
-    // debugger;
-    // var batch2 = pnp.sp.createBatch();
-
-
-    // for (var i = 0, len = 25; i < len; i += 1) {
-    //   pnp.sp.web.lists.getByTitle('CustomList').items.inBatch(batch2).add({ "Title": "Title " + i });
-    // }
-
-
-    // await batch2.execute().then((x) => {
-    //   debugger;
-    // }).catch((err) => {
-    //   debugger;
-    // });
-
-
-    // pnp.sp.web.lists.getByTitle("CustomList").items.add({
-    //   Title: "",
-    //   ContentTypeId: "0x0100B6ECFC98573CF04EB8FF9C888965431000743C05350624064F94BF4711E93C3A7D",
-
-    // }).then((iar: ItemAddResult) => {
-    //   console.log(iar);
-    // }).catch((err) => {
-    //   debugger;
-    //   return;
-
-    // });
-  }
   private addMessage(message: string) {
     let messages = this.state.messages;
     var copy = map(this.state.messages, clone);
@@ -198,8 +125,9 @@ export default class GrcUpload extends React.Component<IGrcUploadProps, IGrcUplo
   //#endregion
 
   //#region Role Review 
-  public async esnureRoleReviewUsers(data: Array<any>): Promise<any> {
+  public async esnureRoleReviewUsers(error, data: Array<any>): Promise<any> {
     debugger;
+    this.setState((current) => ({ ...current, roleReviewStatus: "Validating users" }));
     let rowNumber = 0;
     for (let row of data) {
       rowNumber++;
@@ -213,80 +141,7 @@ export default class GrcUpload extends React.Component<IGrcUploadProps, IGrcUplo
     this.setState((current) => ({ ...current, roleReviewStatus: "Completed Validation" }));
     return Promise.resolve();
   }
-  public async uploadRoleReviewBatch(rows: Array<any>, entityTypeFullName): Promise<any> {
 
-    let batch = this.state.newWeb.createBatch();
-    for (let row of rows) {
-      let approverId: number = await this.findId(row.ApproverEmail);
-      let alternateApproverId: number = await this.findId(row.AlternateApproverEmail);
-
-      let obj = {
-        Title: "",
-        GRCRoleName: row.RoleName,
-      };
-      if (approverId != null) {
-        obj["GRCApproverId"] = approverId;
-      }
-      if (alternateApproverId != null) {
-        obj["GRCAlternateApproverId"] = alternateApproverId;
-      }
-
-      //add an item to the list
-      //await this.state.newWeb.lists.getByTitle('Role Review').items.add(obj, entityTypeFullName)
-      this.state.newWeb.lists.getByTitle('Role Review').items.inBatch(batch).add(obj, entityTypeFullName)
-        .then((iar: ItemAddResult) => {
-
-          return;
-        })
-        .catch((err) => {
-          debugger;
-          console.error(err);
-          console.error(obj);
-          return;
-
-        });
-    }
-
-    return batch.execute();
-
-  }
-  public async uploadRoleReviewData(data: Array<any>): Promise<any> {
-    let entityTypeFullName = await this.state.newWeb.lists.getByTitle('Role Review').getListItemEntityTypeFullName();
-    var batchSize = 100;
-    var batches = Math.ceil(data.length / batchSize);
-    for (var i = 0; i < batches; i++) {
-      var thisBatchItems = data.slice(i * batchSize, ((i * batchSize) + batchSize));
-      await this.uploadRoleReviewBatch(thisBatchItems, entityTypeFullName)
-        .then(resp => {
-          this.setState((current) => ({ ...current, roleReviewRowsUploaded: current.roleReviewRowsUploaded + thisBatchItems.length }));
-        })
-        .catch(err => {
-          debugger;
-        });
-
-    }
-    this.setState((current) => ({ ...current, roleReviewStatus: "Upload Complete" }));
-    return Promise.resolve();
-  }
-  public onRoleReviewDataParsed(error, data: Array<any>) {
-    debugger;
-
-    switch (this.state.process) {
-      case "Uploading":
-        this.setState((current) => ({ ...current, roleReviewStatus: "Uploading file", roleReviewTotalRows: data.length }));
-        this.uploadRoleReviewData(data);
-        break;
-      case "Validating":
-        this.setState((current) => ({ ...current, roleReviewStatus: "Validating", roleReviewTotalRows: data.length }));
-
-        this.esnureRoleReviewUsers(data);
-        break;
-      default:
-        alert("Invalid Process");
-
-    }
-
-  }
   public extractColumnHeadersRoleReviewData(headerRow: Array<String>): String[] {
     debugger;
     const requiredColumns = ["ApproverEmail", "AlternateApproverEmail", "Role Name"];
@@ -298,13 +153,12 @@ export default class GrcUpload extends React.Component<IGrcUploadProps, IGrcUplo
 
     return this.extractColumnHeaders(headerRow);
 
-  }
-  public onRoleReviewDataloaded() {
+  } public onRoleReviewDataloaded() {
     this.setState((current) => ({ ...current, roleReviewStatus: "Parsing file" }));
-    parse(this.reader.result, { delimiter: ',', columns: this.extractColumnHeadersRoleReviewData }, this.onRoleReviewDataParsed);
+    parse(this.reader.result, { delimiter: ',', columns: this.extractColumnHeadersRoleReviewData }, this.esnureRoleReviewUsers);
   }
 
-  public uploadRoleReviewFile(): Promise<any> {
+  public parseRoleReviewFile(): Promise<any> {
 
     //https://stackoverflow.com/questions/14446447/how-to-read-a-local-text-file
     //let file: File = e.target["files"][0];
@@ -315,33 +169,49 @@ export default class GrcUpload extends React.Component<IGrcUploadProps, IGrcUplo
     return Promise.resolve();
 
   }
+  public uploadRoleReviewFile(): Promise<any> {
+    debugger;
+    this.setState((current) => ({ ...current, roleReviewStatus: "Uploading file" }));
+    return this.state.newWeb.lists.getByTitle("Documents").rootFolder.files
+      .addChunked("Role Review", this.state.roleReviewFile, data => {
+        console.log({ data: data, message: "progress" });
+        this.addMessage(`(Stage ${data.stage}) Uploaded block ${data.blockNumber} of ${data.totalBlocks}`);
+
+      }, true)
+      .then((results) => {
+        return results.file.getItem().then(item => {
+          return item.update({ Title: "Role Review" }).then((r) => {
+            this.setState((current) => ({ ...current, roleReviewStatus: "Upload complete" }));
+            return;
+          }).catch((err) => {
+            debugger;
+            this.addMessage(err.data.responseBody["odata.error"].message.value);
+            this.setState((current) => ({ ...current, roleReviewStatus: "Upload  Error" }));
+            console.log(err);
+          });
+        });
+      })
+      .catch((err) => {
+        this.addMessage(err.data.responseBody["odata.error"].message.value);
+        this.setState((current) => ({ ...current, roleReviewStatus: "Upload  Error" }));
+        console.log(err);
+      });
+  }
+
   public saveRoleReviewFile(e: any) {
 
     //https://stackoverflow.com/questions/14446447/how-to-read-a-local-text-file
     let file: File = e.target["files"][0];
     this.setState((current) => ({ ...current, roleReviewFile: file }));
   }
-  public validateRoleReviewUsers(e: any) {
-
-    this.setState((current) => ({ ...current, process: "Validating" }));// this determinse what runs after we parse the data
-    debugger;
-    this.uploadRoleReviewFile();
-
-  }
-  public processRoleReview(e: any) {
-
-    this.setState((current) => ({ ...current, process: "Uploading" }));// this determinse what runs after we parse the data
-    debugger;
-    this.uploadRoleReviewFile();
-  }
-
 
   //#endregion
 
 
   //#region Role To Transaction
-  public async esnureRoleToTransactionUsers(data: Array<any>): Promise<any> {
+  public async esnureRoleToTransactionUsers(error, data: Array<any>): Promise<any> {
     debugger;
+    this.setState((current) => ({ ...current, roleToTransactionStatus: "Validating users" }));
     let rowNumber = 0;
     for (let row of data) {
       rowNumber++;
@@ -355,97 +225,7 @@ export default class GrcUpload extends React.Component<IGrcUploadProps, IGrcUplo
     this.setState((current) => ({ ...current, roleToTransactionStatus: "Completed Validation" }));
     return Promise.resolve();
   }
-  public async uploadRoleToTransactionBatch(rows: Array<any>, entityTypeFullName): Promise<any> {
 
-    let batch = this.state.newWeb.createBatch();
-    for (let row of rows) {
-      let approverId: number = await this.findId(row.ApproverEmail);
-      let alternateApproverId: number = await this.findId(row.AlternateApproverEmail);
-
-      let obj = {
-        Title: "",
-        GRCRole: row.Role,
-        GRCRoleName: row.RoleName,
-        GRCTCode: row.TCode,
-        GRCTransactionText: row.TransactionText,
-      };
-      if (approverId != null) {
-        obj["GRCApproverId"] = approverId;
-      }
-      if (alternateApproverId != null) {
-        obj["GRCAlternateApproverId"] = alternateApproverId;
-      }
-
-      //add an item to the list
-      // await this.state.newWeb.lists.getByTitle('Role to Transaction').items.add(obj, entityTypeFullName)
-  
-      this.state.newWeb.lists.getByTitle('Role to Transaction').items.inBatch(batch).add(obj, entityTypeFullName)
-        .then((iar: ItemAddResult) => {
-
-          return;
-        })
-        .catch((err) => {
-          debugger;
-          console.error(err);
-          console.error(obj);
-          return;
-
-        });
-    }
-
-   
-    return batch.execute();
-
-  }
-  public async uploadRoleToTransactionData(data: Array<any>): Promise<any> {
-    let entityTypeFullName = await this.state.newWeb.lists.getByTitle('Role to Transaction').getListItemEntityTypeFullName();
-    var batchSize = 100;
-    var batches = Math.ceil(data.length / batchSize);
-    // batches = 5;
-    // this.addMessage("NOTE!!!! Role toi transaction currently limited to 500 items");
-
-    for (var i = 0; i < batches; i++) {
-      var thisBatchItems = data.slice(i * batchSize, ((i * batchSize) + batchSize));
-      let startTime=(new Date()).getTime();
-      
-      await this.uploadRoleToTransactionBatch(thisBatchItems, entityTypeFullName)
-        .then(resp => {
-          debugger;
-          let endTime=(new Date()).getTime();
-          let elapsedSeconds = endTime-startTime/1000; // this was the seconds  to do batchsize, so how many in a minute?
-          let itemsPerMinute = 60/elapsedSeconds;
-          console.log("itemsperminute-"+itemsPerMinute);
-          
-          // 
-          this.setState((current) => ({ ...current, roleToTransactionRowsUploaded: current.roleToTransactionRowsUploaded + thisBatchItems.length }));
-        })
-        .catch(err => {
-          debugger;
-        });
-
-    }
-    this.setState((current) => ({ ...current, roleToTransactionStatus: "Upload Complete" }));
-    return Promise.resolve();
-  }
-  public onRoleToTransactionDataParsed(error, data: Array<any>) {
-    debugger;
-    switch (this.state.process) {
-      case "Uploading":
-        this.setState((current) => ({ ...current, roleToTransactionStatus: "Uploading file", roleToTransactionTotalRows: data.length }));
-
-        this.uploadRoleToTransactionData(data);
-        break;
-      case "Validating":
-        this.setState((current) => ({ ...current, roleToTransactionStatus: "Validating", roleToTransactionTotalRows: data.length }));
-
-        this.esnureRoleToTransactionUsers(data);
-        break;
-      default:
-        alert("Invalid Process");
-
-    }
-
-  }
   public extractColumnHeadersRoleToTransactionData(headerRow: Array<String>): String[] {
     debugger;
     const requiredColumns = ["ApproverEmail", "AlternateApproverEmail", "Role", "Role Name", "TCode", "Transaction Text"];
@@ -460,49 +240,56 @@ export default class GrcUpload extends React.Component<IGrcUploadProps, IGrcUplo
   }
   public onRoleToTransactionDataloaded() {
     this.setState((current) => ({ ...current, roleToTransactionStatus: "Parsing file" }));
-    parse(this.reader.result, { delimiter: ',', columns: this.extractColumnHeadersRoleToTransactionData }, this.onRoleToTransactionDataParsed);
+    parse(this.reader.result, { delimiter: ',', columns: this.extractColumnHeadersRoleToTransactionData }, this.esnureRoleToTransactionUsers);
   }
-
-  public uploadRoleToTransactionFile(): Promise<any> {
-
-    //https://stackoverflow.com/questions/14446447/how-to-read-a-local-text-file
-    //let file: File = e.target["files"][0];
+  public parseRoleToTransactionFile(): Promise<any> {
     this.setState((current) => ({ ...current, roleToTransactionStatus: "Reading file" }));
     this.reader = new FileReader();
     this.reader.onload = this.onRoleToTransactionDataloaded;
     this.reader.readAsText(this.state.roleToTransactionFile);
     return Promise.resolve();
-
   }
+  public uploadRoleToTransactionFile(): Promise<any> {
+    debugger;
+    this.setState((current) => ({ ...current, roleToTransactionStatus: "Uploading file" }));
+    return this.state.newWeb.lists.getByTitle("Documents").rootFolder.files
+      .addChunked("Role To Transaction", this.state.roleToTransactionFile, data => {
+        console.log({ data: data, message: "progress" });
+        this.addMessage(`(Stage ${data.stage}) Uploaded block ${data.blockNumber} of ${data.totalBlocks}`);
+
+      }, true)
+      .then((results) => {
+        return results.file.getItem().then(item => {
+          return item.update({ Title: "Role To Transaction" }).then((r) => {
+            this.setState((current) => ({ ...current, roleToTransactionStatus: "Upload complete" }));
+            return;
+          }).catch((err) => {
+            debugger;
+            this.addMessage(err.data.responseBody["odata.error"].message.value);
+            this.setState((current) => ({ ...current, roleToTransactionStatus: "Upload  Error" }));
+            console.log(err);
+          });
+        });
+      })
+      .catch((err) => {
+        this.addMessage(err.data.responseBody["odata.error"].message.value);
+        this.setState((current) => ({ ...current, roleToTransactionStatus: "Upload  Error" }));
+        console.log(err);
+      });
+  }
+
   public saveRoleToTransactionFile(e: any) {
 
     //https://stackoverflow.com/questions/14446447/how-to-read-a-local-text-file
     let file: File = e.target["files"][0];
     this.setState((current) => ({ ...current, roleToTransactionFile: file }));
   }
-  public validateRoleToTransactionUsers(e: any) {
-
-    this.setState((current) => ({ ...current, process: "Validating" }));// this determinse what runs after we parse the data
-    debugger;
-    this.uploadRoleToTransactionFile();
-
-  }
-
-  public processRoleToTransaction(e: any) {
-
-    this.setState((current) => ({ ...current, process: "Uploading" }));// this determinse what runs after we parse the data
-    debugger;
-    this.uploadRoleToTransactionFile();
-  }
-
   //#endregion
 
-
-
-
   //#region PrimaryApprovers
-  public async esnurePrimaryApproversUsers(data: Array<any>): Promise<any> {
+  public async esnurePrimaryApproversUsers(error, data: Array<any>): Promise<any> {
     debugger;
+    this.setState((current) => ({ ...current, primaryApproversStatus: "Validating Users" }));
     let rowNumber = 0;
     for (let row of data) {
       rowNumber++;
@@ -516,75 +303,6 @@ export default class GrcUpload extends React.Component<IGrcUploadProps, IGrcUplo
     this.setState((current) => ({ ...current, primaryApproversStatus: "Completed Validation" }));
 
     return Promise.resolve();
-  }
-  public async uploadPrimaryApproversBatch(rows: Array<any>, entityTypeFullName): Promise<any> {
-
-    let batch = this.state.newWeb.createBatch();
-    for (let row of rows) {
-      let approverId: number = await this.findId(row.ApproverEmail);
-
-
-      let obj = {
-        Title: "",
-      };
-      if (approverId != null) {
-        obj["GRCApproverId"] = approverId;
-      }
-
-      //add an item to the list
-      // await this.state.newWeb.lists.getByTitle('Primary Approver').items.add(obj, entityTypeFullName)
-      this.state.newWeb.lists.getByTitle('EPA Role to Transaction').items.inBatch(batch).add(obj, entityTypeFullName)
-        .then((iar: ItemAddResult) => {
-
-          return;
-        })
-        .catch((err) => {
-          debugger;
-          console.error(err);
-          console.error(obj);
-          return;
-
-        });
-    }
-
-    return batch.execute();
-
-  }
-  public async uploadPrimaryApproversData(data: Array<any>): Promise<any> {
-    let entityTypeFullName = await this.state.newWeb.lists.getByTitle('Primary Approver').getListItemEntityTypeFullName();
-    var batchSize = 100;
-    var batches = Math.ceil(data.length / batchSize);
-    for (var i = 0; i < batches; i++) {
-      var thisBatchItems = data.slice(i * batchSize, ((i * batchSize) + batchSize));
-      await this.uploadPrimaryApproversBatch(thisBatchItems, entityTypeFullName)
-        .then(resp => {
-          this.setState((current) => ({ ...current, primaryApproversRowsUploaded: current.primaryApproversRowsUploaded + thisBatchItems.length }));
-        })
-        .catch(err => {
-          debugger;
-        });
-
-    }
-    this.setState((current) => ({ ...current, primaryApproversStatus: "Upload Complete" }));
-
-    return Promise.resolve();
-  }
-  public onPrimaryApproversDataParsed(error, data: Array<any>) {
-    debugger;
-    switch (this.state.process) {
-      case "Uploading":
-        this.setState((current) => ({ ...current, primaryApproversStatus: "Uploading file", primaryApproversTotalRows: data.length }));
-        this.uploadPrimaryApproversData(data);
-        break;
-      case "Validating":
-        this.setState((current) => ({ ...current, primaryApproversStatus: "Validating", primaryApproversTotalRows: data.length }));
-        this.esnurePrimaryApproversUsers(data);
-        break;
-      default:
-        alert("Invalid Process");
-
-    }
-
   }
   public extractColumnHeadersPrimaryApproversData(headerRow: Array<String>): String[] {
     debugger;
@@ -600,10 +318,10 @@ export default class GrcUpload extends React.Component<IGrcUploadProps, IGrcUplo
   }
   public onPrimaryApproversDataloaded() {
     this.setState((current) => ({ ...current, primaryApproversStatus: "Parsing file" }));
-    parse(this.reader.result, { delimiter: ',', columns: this.extractColumnHeadersPrimaryApproversData }, this.onPrimaryApproversDataParsed);
+    parse(this.reader.result, { delimiter: ',', columns: this.extractColumnHeadersPrimaryApproversData }, this.esnurePrimaryApproversUsers);
   }
 
-  public uploadPrimaryApproversFile(): Promise<any> {
+  public parsePrimaryApproversFile(): Promise<any> {
 
     //https://stackoverflow.com/questions/14446447/how-to-read-a-local-text-file
     //let file: File = e.target["files"][0];
@@ -614,25 +332,42 @@ export default class GrcUpload extends React.Component<IGrcUploadProps, IGrcUplo
     return Promise.resolve();
 
   }
+
+  public uploadPrimaryApproversFile(): Promise<any> {
+    debugger;
+    this.setState((current) => ({ ...current, primaryApproversStatus: "Uploading file" }));
+    return this.state.newWeb.lists.getByTitle("Documents").rootFolder.files
+      .addChunked("Primary Approvers List", this.state.primaryApproversFile, data => {
+        console.log({ data: data, message: "progress" });
+        this.addMessage(`(Stage ${data.stage}) Uploaded block ${data.blockNumber} of ${data.totalBlocks}`);
+
+      }, true)
+      .then((results) => {
+        return results.file.getItem().then(item => {
+          return item.update({ Title: "Primary Approvers List" }).then((r) => {
+            this.setState((current) => ({ ...current, primaryApproversStatus: "Upload complete" }));
+            return;
+          }).catch((err) => {
+            debugger;
+            this.addMessage(err.data.responseBody["odata.error"].message.value);
+            this.setState((current) => ({ ...current, primaryApproversStatus: "Upload  Error" }));
+            console.log(err);
+          });
+        });
+      })
+      .catch((err) => {
+        this.addMessage(err.data.responseBody["odata.error"].message.value);
+        this.setState((current) => ({ ...current, primaryApproversStatus: "Upload  Error" }));
+        console.log(err);
+      });
+  }
   public savePrimaryApproversFile(e: any) {
     debugger;
     //https://stackoverflow.com/questions/14446447/how-to-read-a-local-text-file
     let file: File = e.target["files"][0];
     this.setState((current) => ({ ...current, primaryApproversFile: file }));
   }
-  public validatePrimaryApproverUsers(e: any) {
 
-    this.setState((current) => ({ ...current, process: "Validating" }));// this determinse what runs after we parse the data
-    debugger;
-    this.uploadPrimaryApproversFile();
-
-  }
-  public processPrimaryApprovers(e: any) {
-
-    this.setState((current) => ({ ...current, process: "Uploading" }));// this determinse what runs after we parse the data
-    debugger;
-    this.uploadPrimaryApproversFile();
-  }
   //#endregion
 
   //#region Site  Creation Methods
@@ -853,7 +588,11 @@ export default class GrcUpload extends React.Component<IGrcUploadProps, IGrcUplo
       webServerRelativeUrl = war.data.ServerRelativeUrl;
       console.log(war.data);
       newWeb = war.web;
-      this.setState((current) => ({ ...current, newWeb: newWeb })); /// save in state so file uploads can use it
+      this.setState((current) => ({
+        ...current,
+        newWeb: newWeb,
+        newWebUrl: webServerRelativeUrl
+      })); /// save in state so file uploads can use it
 
       return;
     }).catch(error => {
@@ -876,7 +615,7 @@ export default class GrcUpload extends React.Component<IGrcUploadProps, IGrcUplo
     }).catch(error => {
       debugger;
       console.error(error);
-      this.addMessage(error);
+      this.addMessage(error.data.responseBody["odata.error"].message.value);
       return;
     });
     await primaryApproverList.contentTypes.addAvailableContentType(this.props.primaryApproverContentTypeId).then((ct) => {
@@ -885,7 +624,7 @@ export default class GrcUpload extends React.Component<IGrcUploadProps, IGrcUplo
     }).catch(error => {
       debugger;
       console.error(error);
-      this.addMessage(error);
+      this.addMessage(error.data.responseBody["odata.error"].message.value);
       return;
     });
     let roleReviewList: PNPList;
@@ -895,7 +634,7 @@ export default class GrcUpload extends React.Component<IGrcUploadProps, IGrcUplo
     }).catch(error => {
       debugger;
       console.error(error);
-      this.addMessage(error);
+      this.addMessage(error.data.responseBody["odata.error"].message.value);
       return;
     });
     await roleReviewList.contentTypes.addAvailableContentType(this.props.roleReviewContentTypeId).then((ct) => {
@@ -903,6 +642,8 @@ export default class GrcUpload extends React.Component<IGrcUploadProps, IGrcUplo
       return;
     }).catch(error => {
       debugger;
+      console.error(error);
+      this.addMessage(error.data.responseBody["odata.error"].message.value);
       return;
     });
     let roleToTransactionList: PNPList;
@@ -912,7 +653,7 @@ export default class GrcUpload extends React.Component<IGrcUploadProps, IGrcUplo
     }).catch(error => {
       debugger;
       console.error(error);
-      this.addMessage(error);
+      this.addMessage(error.data.responseBody["odata.error"].message.value);
       return;
     });
     await roleToTransactionList.contentTypes.addAvailableContentType(this.props.roleToTransactionContentTypeId).then((ct) => {
@@ -920,6 +661,8 @@ export default class GrcUpload extends React.Component<IGrcUploadProps, IGrcUplo
       return;
     }).catch(error => {
       debugger;
+      console.error(error);
+      this.addMessage(error.data.responseBody["odata.error"].message.value);
       return;
     });
     await roleToTransactionList.fields.getByInternalNameOrTitle("GRCRoleName").update({
@@ -930,10 +673,23 @@ export default class GrcUpload extends React.Component<IGrcUploadProps, IGrcUplo
 
       debugger;
       console.error(error);
-      this.addMessage(error);
+      this.addMessage(error.data.responseBody["odata.error"].message.value);
       return;
 
     });
+    // this is a list that the webjob can use to log messages
+    await newWeb.lists.add("Messages", "Messages", 100, false).then(async (listResponse: ListAddResult) => {
+      this.addMessage("Created List " + "Messages");
+      
+    }).catch(error => {
+      debugger;
+      console.error(error);
+      this.addMessage("Error creating Messages List");
+      this.addMessage(error.data.responseBody["odata.error"].message.value);
+      return;
+    });
+
+
     // customize the home paged
     let welcomePageUrl: string;
     await newWeb.rootFolder.getAs<any>().then(rootFolder => {
@@ -955,6 +711,28 @@ export default class GrcUpload extends React.Component<IGrcUploadProps, IGrcUplo
     return (
       <div>{item}</div>
     );
+  }
+  private processUploadedFiles(): void {
+    debugger;
+    // call the azure function to write the message to the queue, to start the webjob to process the files
+    //https://grctest.azurewebsites.net/api/HttpTriggerCSharp1?code=HBM82bnia7nKPC/nqVTbaCmfPaFyubQa8iY22lb0r88fdQH370CRUg==&SiteType=%27Role%20to%20Tcode%20Review%27&SiteUrl=%27jwh%27&PrimaryApproverList=%27pal%27&RoleReview=%27rr%27&RoleToTransaction=%27rtt%27
+    // query param is SiteType='Role to Tcode Review' SiteUrl='url to the new web' PrimaryApproverList='name of the file we updaded to Documents'  RoleReview='name of the file we updaded to Documents' RoleToTransaction='name of the file we updaded to Documents'
+    const requestHeaders: Headers = new Headers();
+    requestHeaders.append("Content-type", "application/json");
+    requestHeaders.append("Cache-Control", "no-cache");
+
+    const postOptions: IHttpClientOptions = {
+      headers: requestHeaders,
+    };
+    let functionUrl = `${this.props.azureFunctionUrl}&siteUrl=${this.props.siteAbsoluteUrl + "/"+this.state.siteName}
+    &siteType=Role To Ttansaction&PrimaryApproverList=Primary Approvers List&RoleReview=Role Review&RoleToTransaction=Role To Transaction`
+    this.props.httpClient.get(functionUrl, HttpClient.configurations.v1, postOptions)
+      .then((response: HttpClientResponse) => {
+        alert('Request queued');
+      })
+      .catch((error) => {
+        alert('error queuing request');
+      });
   }
   public render(): React.ReactElement<IGrcUploadProps> {
 
@@ -998,8 +776,8 @@ export default class GrcUpload extends React.Component<IGrcUploadProps, IGrcUplo
               {this.state.roleReviewRowsUploaded}
             </td>
             <td>
-              <IconButton iconProps={{ iconName: "DocumentApproval" }} onClick={this.validateRoleReviewUsers}>Upload</IconButton>
-              <IconButton iconProps={{ iconName: "Save" }} onClick={this.processRoleReview}>Upload</IconButton>
+              <IconButton iconProps={{ iconName: "DocumentApproval" }} onClick={this.parseRoleReviewFile}>Upload</IconButton>
+              <IconButton iconProps={{ iconName: "Save" }} onClick={this.uploadRoleReviewFile}>Upload</IconButton>
             </td>
 
           </tr>
@@ -1020,8 +798,8 @@ export default class GrcUpload extends React.Component<IGrcUploadProps, IGrcUplo
               {this.state.primaryApproversRowsUploaded}
             </td>
             <td>
-              <IconButton iconProps={{ iconName: "DocumentApproval" }} onClick={this.validatePrimaryApproverUsers}>Upload</IconButton>
-              <IconButton iconProps={{ iconName: "Save" }} onClick={this.processPrimaryApprovers}>Upload</IconButton>
+              <IconButton iconProps={{ iconName: "DocumentApproval" }} onClick={this.parsePrimaryApproversFile}>Upload</IconButton>
+              <IconButton iconProps={{ iconName: "Save" }} onClick={this.uploadPrimaryApproversFile}>Upload</IconButton>
             </td>
 
           </tr>
@@ -1042,8 +820,8 @@ export default class GrcUpload extends React.Component<IGrcUploadProps, IGrcUplo
               {this.state.roleToTransactionRowsUploaded}
             </td>
             <td>
-              <IconButton iconProps={{ iconName: "DocumentApproval" }} onClick={this.validateRoleToTransactionUsers}>Upload</IconButton>
-              <IconButton iconProps={{ iconName: "Save" }} onClick={this.processRoleToTransaction}>Upload</IconButton>
+              <IconButton iconProps={{ iconName: "DocumentApproval" }} onClick={this.parseRoleToTransactionFile}>Upload</IconButton>
+              <IconButton iconProps={{ iconName: "Save" }} onClick={this.uploadRoleToTransactionFile}>Upload</IconButton>
             </td>
 
           </tr>
@@ -1066,13 +844,14 @@ export default class GrcUpload extends React.Component<IGrcUploadProps, IGrcUplo
               Active Site:
             </td>
             <td>
-              {this.state.siteName}
+              {this.state.newWebUrl}
             </td>
 
           </tr>
 
         </table>
         <button onClick={this.test}>test</button>
+        <button onClick={this.processUploadedFiles}>Process Uploaded Files</button>
         <div style={{ border: '1px', borderStyle: "solid" }} >
           <IconButton iconProps={{ iconName: "Clear" }}
             onClick={
