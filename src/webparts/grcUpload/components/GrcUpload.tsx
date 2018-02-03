@@ -680,7 +680,6 @@ export default class GrcUpload extends React.Component<IGrcUploadProps, IGrcUplo
     // this is a list that the webjob can use to log messages
     await newWeb.lists.add("Messages", "Messages", 100, false).then(async (listResponse: ListAddResult) => {
       this.addMessage("Created List " + "Messages");
-      
     }).catch(error => {
       debugger;
       console.error(error);
@@ -725,7 +724,7 @@ export default class GrcUpload extends React.Component<IGrcUploadProps, IGrcUplo
       headers: requestHeaders,
     };
     let functionUrl = `${this.props.azureFunctionUrl}&siteUrl=${this.props.siteAbsoluteUrl + "/"+this.state.siteName}
-    &siteType=Role To Ttansaction&PrimaryApproverList=Primary Approvers List&RoleReview=Role Review&RoleToTransaction=Role To Transaction`
+    &siteType=Role To Ttansaction&PrimaryApproverList=Primary Approvers List&RoleReview=Role Review&RoleToTransaction=Role To Transaction`;
     this.props.httpClient.get(functionUrl, HttpClient.configurations.v1, postOptions)
       .then((response: HttpClientResponse) => {
         alert('Request queued');
@@ -850,7 +849,7 @@ export default class GrcUpload extends React.Component<IGrcUploadProps, IGrcUplo
           </tr>
 
         </table>
-        <button onClick={this.test}>test</button>
+    
         <button onClick={this.processUploadedFiles}>Process Uploaded Files</button>
         <div style={{ border: '1px', borderStyle: "solid" }} >
           <IconButton iconProps={{ iconName: "Clear" }}

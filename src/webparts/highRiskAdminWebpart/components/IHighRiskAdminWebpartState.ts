@@ -8,17 +8,14 @@ export interface IHighRiskAdminWebpartState {
 
 
   roleToTransactionTotalRows: number;
-  roleToTransactionRowsUploaded: number;
   roleToTransactionStatus: string;
   roleToTransactionFile: File;
 
   highRiskTotalRows: number;
-  highRiskRowsUploaded: number;
   highRiskStatus: string;
   highRiskFile: File;
 
   primaryApproversTotalRows: number;
-  primaryApproversRowsUploaded: number;
   primaryApproversStatus: string;
   primaryApproversFile: File;
 

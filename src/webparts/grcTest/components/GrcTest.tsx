@@ -60,7 +60,7 @@ export default class GrcTest extends React.Component<IGrcTestProps, IGrcTestStat
       for (let i: number = 0; i < buttons.length; i++) {
         if (buttons[i]) {
           // Disable the button onclick postback
-          buttons[i].onclick = function () {
+          buttons[i].onclick = ()=> {
             return false;
           };
         }

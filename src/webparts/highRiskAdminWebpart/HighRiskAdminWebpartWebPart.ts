@@ -14,9 +14,7 @@ import { IHighRiskAdminWebpartProps } from './components/IHighRiskAdminWebpartPr
 
 export interface IHighRiskAdminWebpartWebPartProps {
   templateName:string;
-  primaryApproverContentTypeId:string;
-  roleToTransactionContentTypeId:string;
-  highRiskContentTypeId:string;
+  azureFunctionUrl:string;
   webPartXml:string;
 }
 
@@ -32,17 +30,15 @@ export default class HighRiskAdminWebpartWebPart extends BaseClientSideWebPart<I
     return Promise.resolve();
   }
   public render(): void {
+    debugger;
     const element: React.ReactElement<IHighRiskAdminWebpartProps > = React.createElement(
       HighRiskAdminWebpart,
       {
         siteUrl:this.context.pageContext.site.serverRelativeUrl,
         siteAbsoluteUrl:this.context.pageContext.site.absoluteUrl,
         templateName:this.properties.templateName,
-        primaryApproverContentTypeId: this.properties.primaryApproverContentTypeId,
-        roleToTransactionContentTypeId: this.properties.roleToTransactionContentTypeId,
-        highRiskContentTypeId: this.properties.highRiskContentTypeId,
         webPartXml:this.properties.webPartXml,
-        azureFunctionUrl:"https://grctest.azurewebsites.net/api/HttpTriggerCSharp1?code=HBM82bnia7nKPC/nqVTbaCmfPaFyubQa8iY22lb0r88fdQH370CRUg==",
+        azureFunctionUrl:this.properties.azureFunctionUrl,
         httpClient:this.context.httpClient
       }
     );
@@ -65,9 +61,16 @@ export default class HighRiskAdminWebpartWebPart extends BaseClientSideWebPart<I
             {
               groupName: strings.BasicGroupName,
               groupFields: [
-                PropertyPaneTextField('description', {
-                  label: strings.DescriptionFieldLabel
+                PropertyPaneTextField('templateName', {
+                  label: "Template user to create subsite (STS#0)"
+                }),
+                PropertyPaneTextField('webPartXml', {
+                  label: "Webpart xml for custom webpart on home page"
+                }),
+                PropertyPaneTextField('azureFunctionUrl', {
+                  label: "url to call to start processing batch files"
                 })
+
               ]
             }
           ]

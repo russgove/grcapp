@@ -20,7 +20,9 @@
     "description": { "default": "HighRiskUserWebpart description" },
     "officeFabricIconFontName": "Page",
     "properties": {
-      "description": "HighRiskUserWebpart"
+        "primaryApproversListName":"Primary Approvers",
+        "highRiskListName": "High Risk",
+        "roleToTransactionListName":"Role To Transaction",
     }
   }]
 }

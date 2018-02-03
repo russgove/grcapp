@@ -26,22 +26,6 @@ export default class GrcTestWebPart extends BaseClientSideWebPart<IGrcTestWebPar
   private roleReviews: Array<RoleReview>;
   private reactElement: React.ReactElement<IGrcTestProps>;
   private formComponent: GrcTest;
-  private async testmethod(): Promise<any> {
-    class CustomListItem extends Item {
-      public Id: number;
-      public Title: string;
-    }
-    let listItems: Array<CustomListItem>;
-
-    await pnp.sp.web.lists.getByTitle("CustomList").items.getAs<Array<CustomListItem>>()
-      .then(response => {
-        listItems = response;
-      });
-
-    for (let listItem of listItems) {
-      listItem.update({ "Title": "NewTitle" });
-    }
-  }
 
   private async fetchRoleReviews(): Promise<Array<RoleReview>> {
     debugger;
@@ -104,19 +88,6 @@ export default class GrcTestWebPart extends BaseClientSideWebPart<IGrcTestWebPar
     debugger;
     return batch.execute();
 
-    // let batch = pnp.sp.createBatch();
-    // let promises:Array<Promise<any>>=[];
-    // for (let item of itemsToSave) {
-    //   let promise=item.update({ "Approval": item.Approval })
-    //     .then((x) => {
-    //       debugger;
-    //     })
-    //     .catch((err) => {
-    //       debugger;
-    //     })
-    //     promises.push(promise)
-    // }
-    // return Promise.all(promises);
   }
 
   public getRoleToTransaction(roleName: string): Promise<RoleToTransaction> {

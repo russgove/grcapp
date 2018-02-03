@@ -21,11 +21,11 @@ export async function findId(web: Web, cachedIds: Array<CachedId>, upn: string):
     await web.ensureUser(upn)
         .then((response) => {
             id = response.data.Id;
-            this.cachedIds.push({ upn: upn, id: id });
+            cachedIds.push({ upn: upn, id: id });
             return;
         })
         .catch((err) => {
-            this.cachedIds.push({ upn: upn, id: null });
+            cachedIds.push({ upn: upn, id: null });
             return;
         });
     return id;
@@ -35,17 +35,17 @@ export async function esnureUsers(web: Web, cachedIds: Array<CachedId>,
     let rowNumber = 0;
     for (let row of data) {
         rowNumber++;
-        let approverId: number = await findId(web, cachedIds, row["columnName"]);
+        let approverId: number = await findId(web, cachedIds, row[columnName]);
         if (!approverId) {
-            addMessage(`Approver  ${row.ApproverEmail} on row ${rowNumber} of the Role To Transaction File is invalid`);
+            addMessage(`Approver  ${row.ApproverEmail} on row ${rowNumber} is invalid`);
         }
     }
     return Promise.resolve();
 }
 export function uploadFile(web: Web, libraryName: string, file: File, saveAsFileName: string, addMessage: (message: string) => void): Promise<any> {
-    debugger;
+
     return web.lists.getByTitle(libraryName).rootFolder.files
-        .addChunked(saveAsFileName, this.state.file, data => {
+        .addChunked(saveAsFileName, file, data => {
             addMessage(`(Stage ${data.stage}) Uploaded block ${data.blockNumber} of ${data.totalBlocks}`);
         }, true)
         .then((results) => {
@@ -53,7 +53,7 @@ export function uploadFile(web: Web, libraryName: string, file: File, saveAsFile
                 return item.update({ Title: saveAsFileName }).then((r) => {
                     return;
                 }).catch((err) => {
-                    debugger;
+                 
                     addMessage(err.data.responseBody["odata.error"].message.value);
                     console.log(err);
                 });
@@ -151,7 +151,7 @@ export async function RemoveQuickLaunchItem(webUrl: string, titlesToRemove: stri
             reject();
         });
     });
-    debugger;
+  
     let itemsToDelete = [];
     let itemCount = ql.get_count();
     for (let x = 0; x < itemCount; x++) {
@@ -172,10 +172,10 @@ export async function RemoveQuickLaunchItem(webUrl: string, titlesToRemove: stri
             reject();
         });
     });
-    debugger;
+   
 }
 export async function fixUpLeftNav(webUrl: string, homeUrl: string) {
-    debugger;
+   
     await AddQuickLaunchItem(webUrl, "EFR Home", homeUrl, true);
     await RemoveQuickLaunchItem(webUrl, ["Pages", "Documents"]);
 }
@@ -229,26 +229,40 @@ export async function AddWebPartToEditForm(webRelativeUrl: string, editformUrl, 
         });
     });
 }
-export async function addCustomListWithContentType(web: Web, listTitle: string,
-    listdDescription: string, contentTypeId: string,
+export function getContentTypeByName(web: Web, contentTypeName: string): Promise<any> {
+
+    return web.contentTypes.filter(`Name eq '${contentTypeName}'`).get();
+}
+export async function addCustomListWithContentType(web: Web,rootweb:Web, listTitle: string,
+    listdDescription: string, contentTypeName: string,
     addMessage: (message: string) => void): Promise<List> {
+
+// content types are on the rootweb
+        let contentTypes = await getContentTypeByName(rootweb, contentTypeName);
+    if (contentTypes.length !== 1) {
+        addMessage(`Error.. content type ${contentTypeName} was not found`);
+        addMessage(`List ${listTitle} could not be created`);
+return;
+    }
+
     let list: List;
-    await web.lists.add(listTitle, listdDescription, 100, false).then(async (listResponse: ListAddResult) => {
-        addMessage("Created List " + "Primary Approver");
-        list = listResponse.list;
+    await web.lists.add(listTitle, listdDescription, 100, false)
+        .then(async (listResponse: ListAddResult) => {
+            addMessage("Created List " + listTitle);
+            list = listResponse.list;
+        }).catch(error => {
+            debugger;
+            console.error(error);
+            addMessage(error.data.responseBody["odata.error"].message.value);
+            return;
+        });
+    await list.contentTypes.addAvailableContentType(contentTypes[0].Id.StringValue).then((ct) => {
+        addMessage("Added content type" + contentTypeName + " to list ");
+        return;
     }).catch(error => {
         debugger;
         console.error(error);
         addMessage(error.data.responseBody["odata.error"].message.value);
-        return;
-    });
-    await list.contentTypes.addAvailableContentType(contentTypeId).then((ct) => {
-        addMessage("Added Primary Approver content type");
-        return;
-    }).catch(error => {
-        debugger;
-        console.error(error);
-        this.addMessage(error.data.responseBody["odata.error"].message.value);
         return;
     });
     return Promise.resolve(list);

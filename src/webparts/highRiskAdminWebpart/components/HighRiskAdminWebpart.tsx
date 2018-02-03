@@ -18,15 +18,42 @@ require('sharepoint');
 require('sp-workflow');
 import {
   CachedId, findId, uploadFile, esnureUsers, extractColumnHeaders, processUploadedFiles
-  , setWebToUseSharedNavigation, fixUpLeftNav, addCustomListWithContentType, cleanupHomePage
-} from "../../../utilities/Utilities";
+  , setWebToUseSharedNavigation, fixUpLeftNav, addCustomListWithContentType, cleanupHomePage, getContentTypeByName
+} from "../../../utilities/utilities";
 export default class HighRiskAdminWebpart extends React.Component<IHighRiskAdminWebpartProps, IHighRiskAdminWebpartState> {
-  cachedIds: Array<CachedId> = []
+  private cachedIds: Array<CachedId> = [];
   private reader;
   private counter = 0;
   constructor(props: IHighRiskAdminWebpartProps) {
-
     super(props);
+
+    this.addMessage = this.addMessage.bind(this);
+    this.processUploadedFiles= this.processUploadedFiles.bind(this);
+
+    this.parseHighRiskFile = this.parseHighRiskFile.bind(this);
+    this.esnureHighRisk = this.esnureHighRisk.bind(this);
+    this.extractColumnHeadersHighRisk = this.extractColumnHeadersHighRisk.bind(this);
+    this.onHighRiskDataloaded = this.onHighRiskDataloaded.bind(this);
+    this.uploadHighRiskFile = this.uploadHighRiskFile.bind(this);
+    this.saveHighRiskFile = this.saveHighRiskFile.bind(this);
+
+
+    this.parsePrimaryApproversFile = this.parsePrimaryApproversFile.bind(this);
+    this.esnurePrimaryApprovers = this.esnurePrimaryApprovers.bind(this);
+    this.extractColumnHeadersPrimaryApprovers = this.extractColumnHeadersPrimaryApprovers.bind(this);
+    this.onPrimaryApproversDataloaded = this.onPrimaryApproversDataloaded.bind(this);
+    this.uploadPrimaryApproversFile = this.uploadPrimaryApproversFile.bind(this);
+    this.savePrimaryApproversFile = this.savePrimaryApproversFile.bind(this);
+
+    
+    this.parseRoleToTCodeFile = this.parseRoleToTCodeFile.bind(this);
+    this.esnureRoleToTCode = this.esnureRoleToTCode.bind(this);
+    this.extractColumnHeadersRoleToTCode = this.extractColumnHeadersRoleToTCode.bind(this);
+    this.onRoleToTCodeDataloaded = this.onRoleToTCodeDataloaded.bind(this);
+    this.uploadRoleToTCodeFile = this.uploadRoleToTCodeFile.bind(this);
+    this.saveRoleToTCodeFile = this.saveRoleToTCodeFile.bind(this);
+
+
 
 
     this.state = {
@@ -34,80 +61,182 @@ export default class HighRiskAdminWebpart extends React.Component<IHighRiskAdmin
       newWeb: null,
       newWebUrl: null,
 
-
       messages: [],
-      roleToTransactionRowsUploaded: 0,
+
       roleToTransactionTotalRows: 0,
       roleToTransactionStatus: "",
       roleToTransactionFile: null,
 
       highRiskTotalRows: 0,
-      highRiskRowsUploaded: 0,
       highRiskStatus: "",
       highRiskFile: null,
 
       primaryApproversTotalRows: 0,
-      primaryApproversRowsUploaded: 0,
       primaryApproversStatus: "",
       primaryApproversFile: null,
     };
+  }
 
 
-  }
-  private addMessage(message: string) {
-    let messages = this.state.messages;
-    var copy = map(this.state.messages, clone);
-    copy.push(message);
-    this.setState((current) => ({ ...current, messages: copy }));
-  }
   // #region High Risk Users
-  public async esnureHighRiskUsers(error, data: Array<any>): Promise<any> {
-    debugger;
-    this.setState((current) => ({ ...current, roleReviewStatus: "Validating users" }));
-    esnureUsers(pnp.sp.web, this.cachedIds, data, "ApproverEmail", this.addMessage);
-    this.addMessage("Done validating RoleReviewUsers");
-    this.setState((current) => ({ ...current, roleReviewStatus: "Completed Validation" }));
+  public async esnureHighRisk(error, data: Array<any>): Promise<any> {
+
+    this.setState((current) => ({ ...current, highRiskStatus: "Validating users", highRiskTotalRows: data.length }));
+    await esnureUsers(pnp.sp.web, this.cachedIds, data, "ApproverEmail", this.addMessage);
+    this.addMessage("Done validating High Risk Users");
+    this.setState((current) => ({ ...current, highRiskStatus: "Completed Validation" }));
     return Promise.resolve();
   }
-  public extractColumnHeadersHighRiskUsers(headerRow: Array<String>): String[] {
-    debugger;
-    const requiredColumns = ["ApproverEmail", "AlternateApproverEmail", "Role Name"];
+  public extractColumnHeadersHighRisk(headerRow: Array<String>): String[] {
+
+    const requiredColumns = ["ApproverEmail", "AlternateApproverEmail", "Role Name", "User ID", "User Full Name"];
     for (let requiredColumn of requiredColumns) {
       if (headerRow.indexOf(requiredColumn) === -1) {
         this.addMessage(`Column ${requiredColumn} is missing on Role Review Data File`);
       }
     }
-
     return extractColumnHeaders(headerRow);
-
   }
-  public onHighRiskUsersDataloaded() {
-    this.setState((current) => ({ ...current, roleReviewStatus: "Parsing file" }));
-    parse(this.reader.result, { delimiter: ',', columns: this.extractColumnHeadersHighRiskUsers }, this.esnureHighRiskUsers);
+  public onHighRiskDataloaded() {
+    this.setState((current) => ({ ...current, highRiskStatus: "Parsing file" }));
+    parse(this.reader.result, { delimiter: ',', columns: this.extractColumnHeadersHighRisk }, this.esnureHighRisk);
   }
-  public parseHighRiskUsersFile(): Promise<any> {
-
-    //https://stackoverflow.com/questions/14446447/how-to-read-a-local-text-file
-    //let file: File = e.target["files"][0];
-    this.setState((current) => ({ ...current, roleReviewStatus: "Reading file" }));
+  public parseHighRiskFile(): Promise<any> {
+    this.setState((current) => ({ ...current, highRiskStatus: "Reading file" }));
     this.reader = new FileReader();
-    this.reader.onload = this.onHighRiskUsersDataloaded;
+    this.reader.onload = this.onHighRiskDataloaded;
     this.reader.readAsText(this.state.highRiskFile);
     return Promise.resolve();
-
   }
-  public uploadHighRiskUsersFile(): Promise<any> {
+  public uploadHighRiskFile(): void {
     debugger;
-    this.setState((current) => ({ ...current, roleReviewStatus: "Uploading file" }));
-    return uploadFile(this.state.newWeb, "Documents", this.state.highRiskFile, "High Risk", this.addMessage);
-
+    this.setState((current) => ({ ...current, highRiskStatus: "Uploading file" }));
+    uploadFile(this.state.newWeb, "Documents", this.state.highRiskFile, "High Risk", this.addMessage) 
+     .then((resp)=>{
+      this.setState((current) => ({ ...current, highRiskStatus: "Uploaded file" }));
+     })
+     .catch((error)=>{
+      this.addMessage(error.data.responseBody["odata.error"].message.value);
+      this.setState((current) => ({ ...current, highRiskStatus: "Error Uploading file" }));
+     });
+    
+   
   }
   public saveHighRiskFile(e: any) {
-
-    //https://stackoverflow.com/questions/14446447/how-to-read-a-local-text-file
+    debugger;
     let file: File = e.target["files"][0];
     this.setState((current) => ({ ...current, highRiskFile: file }));
   }
+  // #endregion High Risk Users
+
+
+  // #region Primary Approvers
+  public async esnurePrimaryApprovers(error, data: Array<any>): Promise<any> {
+
+    this.setState((current) => ({ ...current, primaryApproversStatus: "Validating users", primaryApproversTotalRows: data.length }));
+    await esnureUsers(pnp.sp.web, this.cachedIds, data, "ApproverEmail", this.addMessage);
+    this.addMessage("Done validating Primary Approvers Users");
+    this.setState((current) => ({ ...current, primaryApproversStatus: "Completed Validation" }));
+    return Promise.resolve();
+  }
+  public extractColumnHeadersPrimaryApprovers(headerRow: Array<String>): String[] {
+
+    const requiredColumns = ["ApproverEmail"];
+    for (let requiredColumn of requiredColumns) {
+      if (headerRow.indexOf(requiredColumn) === -1) {
+        this.addMessage(`Column ${requiredColumn} is missing on Primary Approvers File`);
+      }
+    }
+    return extractColumnHeaders(headerRow);
+  }
+  public onPrimaryApproversDataloaded() {
+    this.setState((current) => ({ ...current, primaryApproversStatus: "Parsing file" }));
+    parse(this.reader.result, { delimiter: ',', columns: this.extractColumnHeadersPrimaryApprovers }, this.esnurePrimaryApprovers);
+  }
+  public parsePrimaryApproversFile(): Promise<any> {
+    this.setState((current) => ({ ...current, primaryApproversStatus: "Reading file" }));
+    this.reader = new FileReader();
+    this.reader.onload = this.onPrimaryApproversDataloaded;
+    this.reader.readAsText(this.state.primaryApproversFile);
+    return Promise.resolve();
+  }
+  public uploadPrimaryApproversFile(): void {
+    debugger;
+    this.setState((current) => ({ ...current, primaryApproversStatus: "Uploading file" }));
+     uploadFile(this.state.newWeb, "Documents", this.state.primaryApproversFile, "Primary Approvers", this.addMessage)
+     .then((resp)=>{
+      this.setState((current) => ({ ...current, primaryApproversStatus: "Uploaded file" }));
+     })
+     .catch((error)=>{
+      this.addMessage(error.data.responseBody["odata.error"].message.value);
+      this.setState((current) => ({ ...current, primaryApproversStatus: "Error Uploading file" }));
+     });
+
+  
+  }
+  public savePrimaryApproversFile(e: any) {
+    debugger;
+    let file: File = e.target["files"][0];
+    this.setState((current) => ({ ...current, primaryApproversFile: file }));
+  }
+  // #endregion Primary Approvers
+
+
+  // #region RoleToTcode
+  public async esnureRoleToTCode(error, data: Array<any>): Promise<any> {
+
+    this.setState((current) => ({ ...current, roleToTransactionStatus: "Validating users", roleToTransactionTotalRows: data.length }));
+    await esnureUsers(pnp.sp.web, this.cachedIds, data, "ApproverEmail", this.addMessage);
+    this.addMessage("Done validating Primary Approvers Users");
+    this.setState((current) => ({ ...current, roleToTransactionStatus: "Completed Validation" }));
+    return Promise.resolve();
+  }
+  public extractColumnHeadersRoleToTCode(headerRow: Array<String>): String[] {
+
+    const requiredColumns = ["ApproverEmail", "Alternate Email", "Role", "Composite Role", "TCode", "Transaction Text"];
+    for (let requiredColumn of requiredColumns) {
+      if (headerRow.indexOf(requiredColumn) === -1) {
+        this.addMessage(`Column ${requiredColumn} is missing on Role To Tcode File`);
+      }
+    }
+    return extractColumnHeaders(headerRow);
+  }
+  public onRoleToTCodeDataloaded() {
+    this.setState((current) => ({ ...current, roleToTransactionStatus: "Parsing file" }));
+    parse(this.reader.result, { delimiter: ',', columns: this.extractColumnHeadersRoleToTCode }, this.esnureRoleToTCode);
+  }
+  public parseRoleToTCodeFile(): Promise<any> {
+    this.setState((current) => ({ ...current, roleToTransactionStatus: "Reading file" }));
+    this.reader = new FileReader();
+    this.reader.onload = this.onRoleToTCodeDataloaded;
+    this.reader.readAsText(this.state.roleToTransactionFile);
+    return Promise.resolve();
+  }
+  public uploadRoleToTCodeFile(): void {
+    debugger;
+    this.setState((current) => ({ ...current, roleToTransactionStatus: "Uploading file" }));
+     uploadFile(this.state.newWeb, "Documents", this.state.roleToTransactionFile, "Role To Transaction", this.addMessage)
+     .then((resp)=>{
+      this.setState((current) => ({ ...current, roleToTransactionStatus: "Uploaded file" }));
+     })
+     .catch((error)=>{
+      this.addMessage(error.data.responseBody["odata.error"].message.value);
+      this.setState((current) => ({ ...current, roleToTransactionStatus: "Error Uploading file" }));
+     });
+
+
+  }
+  public saveRoleToTCodeFile(e: any) {
+    debugger;
+    let file: File = e.target["files"][0];
+    this.setState((current) => ({ ...current, roleToTransactionFile: file }));
+  }
+  // #endregion roletotcode
+
+
+
+  // #region Site creation
+
   public async createSite() {
     let newWeb: Web;  // the web that gets created
     let libraryList: Array<any>; // the list of libraries we need to create in the new site. has the library name and the name of the group that should get access
@@ -120,7 +249,6 @@ export default class HighRiskAdminWebpart extends React.Component<IHighRiskAdmin
     let webServerRelativeUrl: string; // the url of the subweb
     let contextInfo: ContextInfo;
     let editformurl: string;
-
 
 
     this.addMessage("CreatingSite");
@@ -150,22 +278,22 @@ export default class HighRiskAdminWebpart extends React.Component<IHighRiskAdmin
     });
 
     await setWebToUseSharedNavigation(webServerRelativeUrl);
-    debugger;
+
     await fixUpLeftNav(webServerRelativeUrl, this.props.siteUrl);
 
     // create the lists and assign permissions
-    let highRiskList: PNPList = await addCustomListWithContentType(newWeb, 'High Risk', "High Risk Transactions"
-      , this.props.highRiskContentTypeId, this.addMessage);
+    let highRiskList: PNPList = await addCustomListWithContentType(newWeb, pnp.sp.web, 'High Risk', "High Risk Transactions"
+      , "High Risk", this.addMessage);
 
-    let primaryAppproversList: PNPList = await addCustomListWithContentType(newWeb, 'Primary Approvers', "Primary Approvers of High Risk Transactions"
-      , this.props.primaryApproverContentTypeId, this.addMessage);
+    let primaryAppproversList: PNPList = await addCustomListWithContentType(newWeb, pnp.sp.web, 'Primary Approvers', "Primary Approvers of High Risk Transactions"
+      , "Primary Approver List", this.addMessage);
 
-    let roleToTransactionList: PNPList = await addCustomListWithContentType(newWeb, 'Role To Transaction', "Role To Transaction DETAILS"
-      , this.props.roleToTransactionContentTypeId, this.addMessage);
+    let roleToTransactionList: PNPList = await addCustomListWithContentType(newWeb, pnp.sp.web, 'Role To Transaction', "Role To Transaction DETAILS"
+      , "Role To Transaction", this.addMessage);
     await roleToTransactionList.fields.getByInternalNameOrTitle("GRCRoleName").update({
       Indexed: true
     }).then((resp) => {
-      debugger;
+
     }).catch((error) => {
       debugger;
       console.error(error);
@@ -174,37 +302,55 @@ export default class HighRiskAdminWebpart extends React.Component<IHighRiskAdmin
 
     });
     // this is a list that the webjob can use to log messages
-    let messageList: PNPList = await addCustomListWithContentType(newWeb, 'Messages', "Messages from the provsioning Web Job"
-      , "0x01", this.addMessage);
+    await newWeb.lists.add("Messages", "Messages", 100, false).then(async (listResponse: ListAddResult) => {
+      this.addMessage("Created List " + "Messages");
+    }).catch(error => {
+      debugger;
+      console.error(error);
+      this.addMessage("Error creating Messages List");
+      this.addMessage(error.data.responseBody["odata.error"].message.value);
+      return;
+    });
+
 
     // customize the home paged
     let welcomePageUrl: string;
     await newWeb.rootFolder.getAs<any>().then(rootFolder => {
-      debugger;
+
       welcomePageUrl = rootFolder.ServerRelativeUrl + rootFolder.WelcomePage;
     });
     this.addMessage("Customizing Home Page");
+    debugger;
     await cleanupHomePage(webServerRelativeUrl, welcomePageUrl, this.props.webPartXml);
     this.addMessage("Customized Home Page");
 
     this.addMessage("DONE!!");
 
   }
+  // #endregion Site creation
+
   private processUploadedFiles(): void {
     debugger;
-
+    //! Can't have spaces ini the URL!!!
+    // the parameters are the file names we uploaded.
     let functionUrl = `${this.props.azureFunctionUrl}
-       &siteUrl=${this.props.siteAbsoluteUrl + "/" + this.state.siteName}
-       &siteType=Role To Ttansaction
-       &PrimaryApproverList=Primary Approvers List
-       &RoleReview=Role Review
-       &RoleToTransaction=Role To Transaction`
+&siteUrl=${this.props.siteAbsoluteUrl + "/" + this.state.siteName}
+&siteType=High Risk
+&PrimaryApproverList=Primary Approvers
+&HighRisk=High Risk
+&RoleToTransaction=Role To Transaction`;
     processUploadedFiles(this.props.httpClient, functionUrl);
+  }
+  private addMessage(message: string) {
+    let messages = this.state.messages;
+    var copy = map(this.state.messages, clone);
+    copy.push(message);
+    this.setState((current) => ({ ...current, messages: copy }));
   }
   public render(): React.ReactElement<IHighRiskAdminWebpartProps> {
 
     return (
-      <div className={styles.grcUpload} >
+      <div className={styles.highRiskAdminWebpart} >
 
 
         <table>
@@ -218,17 +364,19 @@ export default class HighRiskAdminWebpart extends React.Component<IHighRiskAdmin
             <th>
               Status
           </th>
-            <th>
+          <th>
               Total Rows
           </th>
-            <th>
-              Rows Uploaded
+          <th>
+              Validate
           </th>
-
+          <th>
+              Upload
+          </th>
           </thead>
           <tr>
             <td>
-              Role Review
+              High Risk
             </td>
             <td>
               <input type="file" id="uploadrttfile" onChange={e => { this.saveHighRiskFile(e); }} />
@@ -240,11 +388,52 @@ export default class HighRiskAdminWebpart extends React.Component<IHighRiskAdmin
               {this.state.highRiskTotalRows}
             </td>
             <td>
-              {this.state.highRiskRowsUploaded}
+              <IconButton iconProps={{ iconName: "DocumentApproval" }} onClick={this.parseHighRiskFile}>Upload</IconButton>
             </td>
             <td>
-              <IconButton iconProps={{ iconName: "DocumentApproval" }} onClick={this.parseHighRiskUsersFile}>Upload</IconButton>
-              <IconButton iconProps={{ iconName: "Save" }} onClick={this.uploadHighRiskUsersFile}>Upload</IconButton>
+              <IconButton iconProps={{ iconName: "Save" }} onClick={this.uploadHighRiskFile}>Upload</IconButton>
+            </td>
+
+          </tr>
+          <tr>
+            <td>
+              Primary Approvers
+            </td>
+            <td>
+              <input type="file" id="uploadrttfile" onChange={e => { this.savePrimaryApproversFile(e); }} />
+            </td>
+            <td>
+              {this.state.primaryApproversStatus}
+            </td>
+            <td>
+              {this.state.primaryApproversTotalRows}
+            </td>
+            <td>
+              <IconButton iconProps={{ iconName: "DocumentApproval" }} onClick={this.parsePrimaryApproversFile}></IconButton>
+            </td>
+            <td>
+              <IconButton iconProps={{ iconName: "Save" }} onClick={this.uploadPrimaryApproversFile}></IconButton>
+            </td>
+
+          </tr>
+          <tr>
+            <td>
+              Role To TCode
+            </td>
+            <td>
+              <input type="file" id="uploadrttfile" onChange={e => { this.saveRoleToTCodeFile(e); }} />
+            </td>
+            <td>
+              {this.state.roleToTransactionStatus}
+            </td>
+            <td>
+              {this.state.roleToTransactionTotalRows}
+            </td>
+            <td>
+              <IconButton iconProps={{ iconName: "DocumentApproval" }} onClick={this.parseRoleToTCodeFile}></IconButton>
+            </td>
+            <td>
+              <IconButton iconProps={{ iconName: "Save" }} onClick={this.uploadRoleToTCodeFile}></IconButton>
             </td>
 
           </tr>
