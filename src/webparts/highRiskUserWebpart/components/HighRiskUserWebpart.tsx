@@ -35,7 +35,7 @@ export default class HighRiskUserWebpart extends React.Component<IHighRiskUserWe
     this.selection.getKey = (item => { return item["Id"]; });
     this.save = this.save.bind(this);
     this.setComplete = this.setComplete.bind(this);
-    this.changeAll = this.changeAll.bind(this);
+    this.changeUnSelected = this.changeUnSelected.bind(this);
     this.changeSelected = this.changeSelected.bind(this);
     this.fetchHighRisks = this.fetchHighRisks.bind(this);
     this.state = {
@@ -159,14 +159,12 @@ export default class HighRiskUserWebpart extends React.Component<IHighRiskUserWe
     });
   }
   public changeSelected(ev?: React.MouseEvent<HTMLElement>, item?: IContextualMenuItem): void {
-
     var tempArray = map(this.state.highRisk, (rr) => {
       if (this.selection.isKeySelected(rr.Id.toString())) {
         return {
           ...rr,
           GRCApproval: item.data, hasBeenUpdated: true
         };
-
       }
       else {
         return {
@@ -175,18 +173,31 @@ export default class HighRiskUserWebpart extends React.Component<IHighRiskUserWe
       }
     });
     this.setState((current) => ({ ...current, highRisk: tempArray }));
-
-
-
   }
-  public changeAll(ev?: React.MouseEvent<HTMLElement>, item?: IContextualMenuItem): void {
-
+  public changeUnSelected(ev?: React.MouseEvent<HTMLElement>, item?: IContextualMenuItem): void {
     var tempArray = map(this.state.highRisk, (rr) => {
-      return { ...rr, GRCApproval: item.data, hasBeenUpdated: true };
+      if (!this.selection.isKeySelected(rr.Id.toString())) {
+        return {
+          ...rr,
+          GRCApproval: item.data, hasBeenUpdated: true
+        };
+      }
+      else {
+        return {
+          ...rr
+        };
+      }
     });
     this.setState((current) => ({ ...current, highRisk: tempArray }));
-
   }
+  // public changeAll(ev?: React.MouseEvent<HTMLElement>, item?: IContextualMenuItem): void {
+
+  //   var tempArray = map(this.state.highRisk, (rr) => {
+  //     return { ...rr, GRCApproval: item.data, hasBeenUpdated: true };
+  //   });
+  //   this.setState((current) => ({ ...current, highRisk: tempArray }));
+
+  // }
   public showPopup(item: HighRisk) {
 
     this.props.getRoleToTransaction(item.GRCRoleName)
@@ -215,37 +226,6 @@ export default class HighRiskUserWebpart extends React.Component<IHighRiskUserWe
 
   public render(): React.ReactElement<IHighRiskUserWebpartProps> {
     let itemsNonFocusable: IContextualMenuItem[] = [
-      {
-        key: "Change All",
-        name: "Change All",
-        icon: "TriggerAuto",
-        disabled: this.props.primaryApproverList[0].GRCCompleted === "Yes",
-        subMenuProps: {
-          items: [
-            {
-              key: 'yup',
-              name: 'Yup',
-              data: "0",
-              onClick: this.changeAll,
-              disabled: this.props.primaryApproverList[0].GRCCompleted === "Yes"
-            },
-            {
-              key: 'Nope',
-              name: 'Nope',
-              data: "1",
-              onClick: this.changeAll
-            },
-            {
-              key: "no f'in way",
-              name: "no f'in way",
-              data: "2",
-              onClick: this.changeAll
-
-            }
-
-          ]
-        }
-      },
       {
         key: "Change Selected",
         name: "Change Selected",
@@ -279,6 +259,38 @@ export default class HighRiskUserWebpart extends React.Component<IHighRiskUserWe
           ]
         }
       },
+      {
+        key: "Change Unselected",
+        name: "Change Unselected",
+        icon: "TriggerAuto",
+        disabled: this.props.primaryApproverList[0].GRCCompleted === "Yes",
+        subMenuProps: {
+          items: [
+            {
+              key: 'yup',
+              name: 'Yup',
+              data: "0",
+              onClick: this.changeUnSelected,
+              disabled: this.props.primaryApproverList[0].GRCCompleted === "Yes"
+            },
+            {
+              key: 'Nope',
+              name: 'Nope',
+              data: "1",
+              onClick: this.changeUnSelected
+            },
+            {
+              key: "no f'in way",
+              name: "no f'in way",
+              data: "2",
+              onClick: this.changeUnSelected
+
+            }
+
+          ]
+        }
+      },
+   
       {
         key: "Undo", name: "Undo", icon: "Undo", onClick: this.fetchHighRisks,
         disabled: !(filter(this.state.highRisk, (rr) => { return rr
