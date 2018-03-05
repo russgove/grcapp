@@ -31,7 +31,7 @@ export default class HighRiskUserWebpartWebPart extends BaseClientSideWebPart<IH
   private async fetchHighRisks(): Promise<Array<HighRisk>> {
     debugger;
     let userId = this.context.pageContext.legacyPageContext.userId;
-    let select = `Id,GRCRoleName,GRCApproverId,GRCApprover/Title,
+    let select = `Id,GRCRole,GRCRoleName,GRCApproverId,GRCApprover/Title,
     GRCApproval,GRCApprovedById, GRCDateReview, GRCUserId,GRCUserFullName,
     GRCComments, GRCRemediation`;
     let expands = "GRCApprover";
@@ -91,12 +91,12 @@ export default class HighRiskUserWebpartWebPart extends BaseClientSideWebPart<IH
     return batch.execute();
 
   }
-  public getRoleToTransaction(roleName: string): Promise<RoleToTransaction> {
+  public getRoleToTransaction(role: string): Promise<RoleToTransaction> {
     debugger;
 
 
     return pnp.sp.web.lists.getByTitle(this.properties.roleToTransactionListName)
-      .items.filter(`GRCRoleName eq '${roleName}'`).getAs<RoleToTransaction>();
+      .items.filter(`GRCRole eq '${role}'`).getAs<RoleToTransaction>();
 
 
   }

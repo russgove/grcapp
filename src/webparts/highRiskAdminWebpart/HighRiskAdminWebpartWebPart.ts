@@ -5,7 +5,8 @@ import pnp from "sp-pnp-js";
 import {
   BaseClientSideWebPart,
   IPropertyPaneConfiguration,
-  PropertyPaneTextField
+  PropertyPaneTextField,
+  PropertyPaneSlider
 } from '@microsoft/sp-webpart-base';
 
 import * as strings from 'HighRiskAdminWebpartWebPartStrings';
@@ -14,8 +15,12 @@ import { IHighRiskAdminWebpartProps } from './components/IHighRiskAdminWebpartPr
 
 export interface IHighRiskAdminWebpartWebPartProps {
   templateName:string;
-  azureFunctionUrl:string;
+  azureHighRiskUrl:string;
+  azurePrimaryApproverUrl:string;// url to initiate processing of a Primary Approver  File
+  azureRoleToCodeUrl:string;// url to initiate processing of a roleto transaction File
   webPartXml:string;
+  batchSize:number;
+  pauseBeforeBatchExecution:number;
 }
 
 export default class HighRiskAdminWebpartWebPart extends BaseClientSideWebPart<IHighRiskAdminWebpartWebPartProps> {
@@ -27,23 +32,30 @@ export default class HighRiskAdminWebpartWebPart extends BaseClientSideWebPart<I
       });
       return;
     });
+    debugger;
     return Promise.resolve();
+
   }
   public render(): void {
     debugger;
-    const element: React.ReactElement<IHighRiskAdminWebpartProps > = React.createElement(
-      HighRiskAdminWebpart,
-      {
-        siteUrl:this.context.pageContext.site.serverRelativeUrl,
-        siteAbsoluteUrl:this.context.pageContext.site.absoluteUrl,
-        templateName:this.properties.templateName,
-        webPartXml:this.properties.webPartXml,
-        azureFunctionUrl:this.properties.azureFunctionUrl,
-        httpClient:this.context.httpClient
-      }
-    );
+    // const element: React.ReactElement<IHighRiskAdminWebpartProps > = React.createElement(
+    //   HighRiskAdminWebpart,
+    //   {
+    //     siteUrl:this.context.pageContext.site.serverRelativeUrl,
+    //     siteAbsoluteUrl:this.context.pageContext.site.absoluteUrl,
+    //     templateName:this.properties.templateName,
+    //     webPartXml:this.properties.webPartXml,
+    //     httpClient:this.context.httpClient,
+    //     azureRoleToCodeUrl: this.properties.azureRoleToCodeUrl,
+    //     azurePrimaryApproverUrl:this.properties.azurePrimaryApproverUrl,
+    //     azureHighRiskUrl:this.properties.azureHighRiskUrl,
+    //     batchSize:this.properties.batchSize,
+    //     pauseBeforeBatchExecution:this.properties.pauseBeforeBatchExecution
+        
+    //   }
+    // );
 
-    ReactDom.render(element, this.domElement);
+   // ReactDom.render(element, this.domElement);
   }
 
   protected get dataVersion(): Version {
@@ -69,7 +81,24 @@ export default class HighRiskAdminWebpartWebPart extends BaseClientSideWebPart<I
                 }),
                 PropertyPaneTextField('azureFunctionUrl', {
                   label: "url to call to start processing batch files"
+                }),
+                PropertyPaneTextField('azureRoleToTransactionFunctionUrl', {
+                  label: "url to call to process rtc"
+                }),
+                PropertyPaneSlider('batchSize', {
+                  min:1,
+                  max:100
+
+
+                }),
+                PropertyPaneSlider('pauseBeforeBatchExecution', {
+                  min:0,
+                  max:60000,
+                  step:1000
                 })
+
+
+
 
               ]
             }

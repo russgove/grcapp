@@ -5,6 +5,7 @@ export default class HighRisk extends Item {
     public Id: number;
     public GRCUserId: string;
     public GRCUserFullName: string;
+    public GRCRole: string;
     public GRCRoleName: string;
     public GRCApproverId: string;
     public GRCApprover: {

@@ -1,7 +1,7 @@
 {
   "$schema": "https://dev.office.com/json-schemas/spfx/client-side-web-part-manifest.schema.json",
-  "id": "22420ac0-d811-4aad-bc3a-e3cbe7a7ee1a",
-  "alias": "GrcTestWebPart",
+  "id": "746860a8-18c2-4110-bd12-62ce3e2fc801",
+  "alias": "MitigatingControlsWebPart",
   "componentType": "WebPart",
 
   // The "*" signifies that the version should be taken from the package.json
@@ -15,14 +15,14 @@
 
   "preconfiguredEntries": [{
     "groupId": "5c03119e-3074-46fd-976b-c60198311f70", // Other
-    "group": { "default": "GRC" },
-    "title": { "default": "GRC Test" },
-    "description": { "default": "GRC Test description" },
+    "group": { "default": "Other" },
+    "title": { "default": "MitigatingControls" },
+    "description": { "default": "mitigating controls user webpart" },
     "officeFabricIconFontName": "Page",
     "properties": {
-      "primaryApproverListName":"Primary Approver",
-      "roleToTCodeReviewListName": "Role Review",
-      "roleToTransactionListName":"Role To Transaction",
+      "description": "MitigatingControls",
+      "primaryApproversListName":"Primary Approver List",
+      "mitigatingControlsListName":"High Risk with Mitigating Controls"
     }
   }]
 }

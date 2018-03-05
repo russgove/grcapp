@@ -33,6 +33,30 @@
           "manifest": "./src/webparts/highRiskUserWebpart/HighRiskUserWebpartWebPart.manifest.json"
         }
       ]
+    },
+    "grc-azure-management-web-part": {
+      "components": [
+        {
+          "entrypoint": "./lib/webparts/grcAzureManagement/GrcAzureManagementWebPart.js",
+          "manifest": "./src/webparts/grcAzureManagement/GrcAzureManagementWebPart.manifest.json"
+        }
+      ]
+    },
+    "mitigating-controls-site-setup-web-part": {
+      "components": [
+        {
+          "entrypoint": "./lib/webparts/mitigatingControlsSiteSetup/MitigatingControlsSiteSetupWebPart.js",
+          "manifest": "./src/webparts/mitigatingControlsSiteSetup/MitigatingControlsSiteSetupWebPart.manifest.json"
+        }
+      ]
+    },
+    "mitigating-controls-web-part": {
+      "components": [
+        {
+          "entrypoint": "./lib/webparts/mitigatingControls/MitigatingControlsWebPart.js",
+          "manifest": "./src/webparts/mitigatingControls/MitigatingControlsWebPart.manifest.json"
+        }
+      ]
     }
   },
   "externals": {
@@ -73,6 +97,9 @@
     "GrcTestWebPartStrings": "lib/webparts/grcTest/loc/{locale}.js",
     "GrcUploadWebPartStrings": "lib/webparts/grcUpload/loc/{locale}.js",
     "HighRiskAdminWebpartWebPartStrings": "lib/webparts/highRiskAdminWebpart/loc/{locale}.js",
-    "HighRiskUserWebpartWebPartStrings": "lib/webparts/highRiskUserWebpart/loc/{locale}.js"
+    "HighRiskUserWebpartWebPartStrings": "lib/webparts/highRiskUserWebpart/loc/{locale}.js",
+    "GrcAzureManagementWebPartStrings": "lib/webparts/grcAzureManagement/loc/{locale}.js",
+    "MitigatingControlsSiteSetupWebPartStrings": "lib/webparts/mitigatingControlsSiteSetup/loc/{locale}.js",
+    "MitigatingControlsWebPartStrings": "lib/webparts/mitigatingControls/loc/{locale}.js"
   }
 }

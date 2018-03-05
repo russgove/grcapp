@@ -4,6 +4,11 @@ export interface IHighRiskAdminWebpartProps {
   siteAbsoluteUrl: string;
   templateName: string;
   webPartXml: string; // the webpart to be added to the Home page of the subsite
-  azureFunctionUrl: string;// the url of the azure function we post to to kick off the webjob
   httpClient: HttpClient;
+  azureHighRiskUrl:string;// url to initiate processing of a roletotransaction File
+  azurePrimaryApproverUrl:string;// url to initiate processing of a Primary Approver  File
+  azureRoleToCodeUrl:string;// url to initiate processing of a roleto transaction File
+  batchSize:number;
+  pauseBeforeBatchExecution:number;
+
 }

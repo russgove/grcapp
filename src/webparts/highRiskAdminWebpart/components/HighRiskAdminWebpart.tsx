@@ -28,7 +28,7 @@ export default class HighRiskAdminWebpart extends React.Component<IHighRiskAdmin
     super(props);
 
     this.addMessage = this.addMessage.bind(this);
-    this.processUploadedFiles= this.processUploadedFiles.bind(this);
+    // this.processUploadedFiles = this.processUploadedFiles.bind(this);
 
     this.parseHighRiskFile = this.parseHighRiskFile.bind(this);
     this.esnureHighRisk = this.esnureHighRisk.bind(this);
@@ -45,7 +45,7 @@ export default class HighRiskAdminWebpart extends React.Component<IHighRiskAdmin
     this.uploadPrimaryApproversFile = this.uploadPrimaryApproversFile.bind(this);
     this.savePrimaryApproversFile = this.savePrimaryApproversFile.bind(this);
 
-    
+
     this.parseRoleToTCodeFile = this.parseRoleToTCodeFile.bind(this);
     this.esnureRoleToTCode = this.esnureRoleToTCode.bind(this);
     this.extractColumnHeadersRoleToTCode = this.extractColumnHeadersRoleToTCode.bind(this);
@@ -111,16 +111,24 @@ export default class HighRiskAdminWebpart extends React.Component<IHighRiskAdmin
   public uploadHighRiskFile(): void {
     debugger;
     this.setState((current) => ({ ...current, highRiskStatus: "Uploading file" }));
-    uploadFile(this.state.newWeb, "Documents", this.state.highRiskFile, "High Risk", this.addMessage) 
-     .then((resp)=>{
-      this.setState((current) => ({ ...current, highRiskStatus: "Uploaded file" }));
-     })
-     .catch((error)=>{
-      this.addMessage(error.data.responseBody["odata.error"].message.value);
-      this.setState((current) => ({ ...current, highRiskStatus: "Error Uploading file" }));
-     });
-    
-   
+    uploadFile(this.state.newWeb, "Documents", this.state.highRiskFile, "High Risk", this.addMessage)
+      .then((resp) => {
+        this.setState((current) => ({ ...current, highRiskStatus: "Uploaded file" }));
+        let functionUrl = `${this.props.azureHighRiskUrl}&siteUrl=${this.props.siteAbsoluteUrl}/${this.state.siteName}&listName=High Risk&fileName=High Risk&batchSize=${this.props.batchSize}&pauseBeforeBatchExecution=${this.props.pauseBeforeBatchExecution}`;
+        this.addMessage(functionUrl);
+        processUploadedFiles(this.props.httpClient, functionUrl).then(() => {
+          this.setState((current) => ({ ...current, highRiskStatus: "Job Scheduled" }));
+        }).catch(e => {
+          this.setState((current) => ({ ...current, highRiskStatus: "Job Schedule Failed" }));
+        });
+
+      })
+      .catch((error) => {
+        this.addMessage(error.data.responseBody["odata.error"].message.value);
+        this.setState((current) => ({ ...current, highRiskStatus: "Error Uploading file" }));
+      });
+
+
   }
   public saveHighRiskFile(e: any) {
     debugger;
@@ -163,16 +171,23 @@ export default class HighRiskAdminWebpart extends React.Component<IHighRiskAdmin
   public uploadPrimaryApproversFile(): void {
     debugger;
     this.setState((current) => ({ ...current, primaryApproversStatus: "Uploading file" }));
-     uploadFile(this.state.newWeb, "Documents", this.state.primaryApproversFile, "Primary Approvers", this.addMessage)
-     .then((resp)=>{
-      this.setState((current) => ({ ...current, primaryApproversStatus: "Uploaded file" }));
-     })
-     .catch((error)=>{
-      this.addMessage(error.data.responseBody["odata.error"].message.value);
-      this.setState((current) => ({ ...current, primaryApproversStatus: "Error Uploading file" }));
-     });
+    uploadFile(this.state.newWeb, "Documents", this.state.primaryApproversFile, "Primary Approvers", this.addMessage)
+      .then((resp) => {
+        this.setState((current) => ({ ...current, primaryApproversStatus: "Uploaded file" }));
+        let functionUrl = `${this.props.azurePrimaryApproverUrl}&siteUrl=${this.props.siteAbsoluteUrl}/${this.state.siteName}&listName=Primary Approvers&fileName=Primary Approvers&batchSize=${this.props.batchSize}&pauseBeforeBatchExecution=${this.props.pauseBeforeBatchExecution}`;
+        this.addMessage(functionUrl);
+        processUploadedFiles(this.props.httpClient, functionUrl).then(() => {
+          this.setState((current) => ({ ...current, primaryApproversStatus: "Job Scheduled" }));
+        }).catch(e => {
+          this.setState((current) => ({ ...current, primaryApproversStatus: "Job Schedule Failed" }));
+        });
+      })
+      .catch((error) => {
+        this.addMessage(error.data.responseBody["odata.error"].message.value);
+        this.setState((current) => ({ ...current, primaryApproversStatus: "Error Uploading file" }));
+      });
 
-  
+
   }
   public savePrimaryApproversFile(e: any) {
     debugger;
@@ -193,7 +208,7 @@ export default class HighRiskAdminWebpart extends React.Component<IHighRiskAdmin
   }
   public extractColumnHeadersRoleToTCode(headerRow: Array<String>): String[] {
 
-    const requiredColumns = ["ApproverEmail", "Alternate Email", "Role", "Composite Role", "TCode", "Transaction Text"];
+    const requiredColumns = ["Role", "Composite Role", "TCode", "Transaction Text"];
     for (let requiredColumn of requiredColumns) {
       if (headerRow.indexOf(requiredColumn) === -1) {
         this.addMessage(`Column ${requiredColumn} is missing on Role To Tcode File`);
@@ -215,14 +230,23 @@ export default class HighRiskAdminWebpart extends React.Component<IHighRiskAdmin
   public uploadRoleToTCodeFile(): void {
     debugger;
     this.setState((current) => ({ ...current, roleToTransactionStatus: "Uploading file" }));
-     uploadFile(this.state.newWeb, "Documents", this.state.roleToTransactionFile, "Role To Transaction", this.addMessage)
-     .then((resp)=>{
-      this.setState((current) => ({ ...current, roleToTransactionStatus: "Uploaded file" }));
-     })
-     .catch((error)=>{
-      this.addMessage(error.data.responseBody["odata.error"].message.value);
-      this.setState((current) => ({ ...current, roleToTransactionStatus: "Error Uploading file" }));
-     });
+    uploadFile(this.state.newWeb, "Documents", this.state.roleToTransactionFile, "Role To Transaction", this.addMessage)
+      .then((resp) => {
+        this.setState((current) => ({ ...current, roleToTransactionStatus: "Uploaded file" }));
+        debugger;
+        // the RoleToTransaction parameter name must match the parameter name in the azure function
+        let functionUrl = `${this.props.azureRoleToCodeUrl}&siteUrl=${this.props.siteAbsoluteUrl}/${this.state.siteName}&listName=Role To Transaction&fileName=Role To Transaction&batchSize=${this.props.batchSize}&pauseBeforeBatchExecution=${this.props.pauseBeforeBatchExecution}`;
+        this.addMessage(functionUrl);
+        processUploadedFiles(this.props.httpClient, functionUrl).then(() => {
+          this.setState((current) => ({ ...current, roleToTransactionStatus: "Job Scheduled" }));
+        }).catch(e => {
+          this.setState((current) => ({ ...current, roleToTransactionStatus: "Job Schedule Failed" }));
+        });
+      })
+      .catch((error) => {
+        this.addMessage(error.data.responseBody["odata.error"].message.value);
+        this.setState((current) => ({ ...current, roleToTransactionStatus: "Error Uploading file" }));
+      });
 
 
   }
@@ -290,7 +314,7 @@ export default class HighRiskAdminWebpart extends React.Component<IHighRiskAdmin
 
     let roleToTransactionList: PNPList = await addCustomListWithContentType(newWeb, pnp.sp.web, 'Role To Transaction', "Role To Transaction DETAILS"
       , "Role To Transaction", this.addMessage);
-    await roleToTransactionList.fields.getByInternalNameOrTitle("GRCRoleName").update({
+    await roleToTransactionList.fields.getByInternalNameOrTitle("GRCRole").update({
       Indexed: true
     }).then((resp) => {
 
@@ -329,18 +353,18 @@ export default class HighRiskAdminWebpart extends React.Component<IHighRiskAdmin
   }
   // #endregion Site creation
 
-  private processUploadedFiles(): void {
-    debugger;
-    //! Can't have spaces ini the URL!!!
-    // the parameters are the file names we uploaded.
-    let functionUrl = `${this.props.azureFunctionUrl}
-&siteUrl=${this.props.siteAbsoluteUrl + "/" + this.state.siteName}
-&siteType=High Risk
-&PrimaryApproverList=Primary Approvers
-&HighRisk=High Risk
-&RoleToTransaction=Role To Transaction`;
-    processUploadedFiles(this.props.httpClient, functionUrl);
-  }
+  //   private processUploadedFiles(): void {
+  //     debugger;
+  //     //! Can't have spaces ini the URL!!!
+  //     // the parameters are the file names we uploaded.
+  //     let functionUrl = `${this.props.azureFunctionUrl}
+  // &siteUrl=${this.props.siteAbsoluteUrl + "/" + this.state.siteName}
+  // &siteType=High Risk
+  // &PrimaryApproverList=Primary Approvers
+  // &HighRisk=High Risk
+  // &RoleToTransaction=Role To Transaction`;
+  //     processUploadedFiles(this.props.httpClient, functionUrl);
+  //   }
   private addMessage(message: string) {
     let messages = this.state.messages;
     var copy = map(this.state.messages, clone);
@@ -364,13 +388,13 @@ export default class HighRiskAdminWebpart extends React.Component<IHighRiskAdmin
             <th>
               Status
           </th>
-          <th>
+            <th>
               Total Rows
           </th>
-          <th>
+            <th>
               Validate
           </th>
-          <th>
+            <th>
               Upload
           </th>
           </thead>
@@ -463,7 +487,6 @@ export default class HighRiskAdminWebpart extends React.Component<IHighRiskAdmin
           </tr>
 
         </table>
-        <button onClick={this.processUploadedFiles}>Process Uploaded Files</button>
         <div style={{ border: '1px', borderStyle: "solid" }} >
           <IconButton iconProps={{ iconName: "Clear" }}
             onClick={

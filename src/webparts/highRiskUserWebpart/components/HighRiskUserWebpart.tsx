@@ -200,7 +200,7 @@ export default class HighRiskUserWebpart extends React.Component<IHighRiskUserWe
   // }
   public showPopup(item: HighRisk) {
 
-    this.props.getRoleToTransaction(item.GRCRoleName)
+    this.props.getRoleToTransaction(item.GRCRole)
       .then((roleToTransactions) => {
 
         this.setState((current) => ({ ...current, roleToTransaction: roleToTransactions, showPopup: true }));
@@ -225,6 +225,8 @@ export default class HighRiskUserWebpart extends React.Component<IHighRiskUserWe
   }
 
   public render(): React.ReactElement<IHighRiskUserWebpartProps> {
+   
+    debugger;
     let itemsNonFocusable: IContextualMenuItem[] = [
       {
         key: "Change Selected",
@@ -263,7 +265,8 @@ export default class HighRiskUserWebpart extends React.Component<IHighRiskUserWe
         key: "Change Unselected",
         name: "Change Unselected",
         icon: "TriggerAuto",
-        disabled: this.props.primaryApproverList[0].GRCCompleted === "Yes",
+        disabled: this.props.primaryApproverList[0].GRCCompleted === "Yes"  ,
+        
         subMenuProps: {
           items: [
             {
@@ -271,7 +274,8 @@ export default class HighRiskUserWebpart extends React.Component<IHighRiskUserWe
               name: 'Yup',
               data: "0",
               onClick: this.changeUnSelected,
-              disabled: this.props.primaryApproverList[0].GRCCompleted === "Yes"
+              disabled: this.props.primaryApproverList[0].GRCCompleted === "Yes" 
+            
             },
             {
               key: 'Nope',
@@ -355,17 +359,14 @@ export default class HighRiskUserWebpart extends React.Component<IHighRiskUserWe
             {
               key: "Approval", name: "Approval",
               fieldName: "GRCApproval", minWidth: 90, maxWidth: 90,
-              onRender: (item?: any, index?: number, column?: IColumn) => { return this.RenderApproval(item, index, column); },
-            },
+                onRender: (item?: any, index?: number, column?: IColumn) => { return this.RenderApproval(item, index, column); },
+              },
             {
               key: "Comments", name: "Comments",
               fieldName: "GRCComments", minWidth: 150, maxWidth: 150,
               onRender: (item?: any, index?: number, column?: IColumn) => { return this.RenderComments(item, index, column); },
             },
-            {
-              key: "Remediation", name: "Remediation",
-              fieldName: "GRCRemediation", minWidth: 150, maxWidth: 150,
-            },
+       
 
           ]}
         />
