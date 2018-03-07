@@ -13,4 +13,6 @@ export interface IMitigatingControlsSiteSetupState {
   primaryApproversList?: List; //does the list exist?
   primaryApproversCount?: number; // the number of rows in the list
   primaryApproversFieldsFound?: boolean;// are the required fields present in the list
+  messages: Array<string>;
+
 }

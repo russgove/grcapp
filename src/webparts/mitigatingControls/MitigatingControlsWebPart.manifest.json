@@ -15,14 +15,17 @@
 
   "preconfiguredEntries": [{
     "groupId": "5c03119e-3074-46fd-976b-c60198311f70", // Other
-    "group": { "default": "Other" },
+    "group": { "default": "GRC User Webparts" },
     "title": { "default": "MitigatingControls" },
     "description": { "default": "mitigating controls user webpart" },
     "officeFabricIconFontName": "Page",
     "properties": {
       "description": "MitigatingControls",
       "primaryApproversListName":"Primary Approver List",
-      "mitigatingControlsListName":"High Risk with Mitigating Controls"
+      "mitigatingControlsListName":"High Risk with Mitigating Controls",
+      "effectiveLabel":"Does the mitigating control effectively remediate the assiciated risk?",
+      "continuesLabel":"Does the mitigating control continue to be performed?",
+      "correctPersonLabel":"Is the mitigating control monitor the correct person to perform control?"
     }
   }]
 }

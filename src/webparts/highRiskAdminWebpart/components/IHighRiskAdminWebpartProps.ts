@@ -10,5 +10,7 @@ export interface IHighRiskAdminWebpartProps {
   azureRoleToCodeUrl:string;// url to initiate processing of a roleto transaction File
   batchSize:number;
   pauseBeforeBatchExecution:number;
+  messages?: Array<string>;
+
 
 }

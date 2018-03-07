@@ -18,7 +18,7 @@ require('sharepoint');
 require('sp-workflow');
 import {
   CachedId, findId, uploadFile, esnureUsers, extractColumnHeaders, processUploadedFiles
-  , setWebToUseSharedNavigation, fixUpLeftNav, addCustomListWithContentType, cleanupHomePage, getContentTypeByName
+  , setWebToUseSharedNavigation,  addCustomListWithContentType, cleanupHomePage, getContentTypeByName
 } from "../../../utilities/utilities";
 export default class HighRiskAdminWebpart extends React.Component<IHighRiskAdminWebpartProps, IHighRiskAdminWebpartState> {
   private cachedIds: Array<CachedId> = [];
@@ -301,9 +301,9 @@ export default class HighRiskAdminWebpart extends React.Component<IHighRiskAdmin
       return;
     });
 
-    await setWebToUseSharedNavigation(webServerRelativeUrl);
+    await setWebToUseSharedNavigation(webServerRelativeUrl,this.addMessage);
 
-    await fixUpLeftNav(webServerRelativeUrl, this.props.siteUrl);
+   // await fixUpLeftNav(webServerRelativeUrl, this.props.siteUrl);
 
     // create the lists and assign permissions
     let highRiskList: PNPList = await addCustomListWithContentType(newWeb, pnp.sp.web, 'High Risk', "High Risk Transactions"
@@ -345,7 +345,7 @@ export default class HighRiskAdminWebpart extends React.Component<IHighRiskAdmin
     });
     this.addMessage("Customizing Home Page");
     debugger;
-    await cleanupHomePage(webServerRelativeUrl, welcomePageUrl, this.props.webPartXml);
+    await cleanupHomePage(webServerRelativeUrl, welcomePageUrl, this.props.webPartXml,this.addMessage);
     this.addMessage("Customized Home Page");
 
     this.addMessage("DONE!!");

@@ -10,10 +10,12 @@ import {
 import * as strings from 'MitigatingControlsSiteSetupWebPartStrings';
 import MitigatingControlsSiteSetup from './components/MitigatingControlsSiteSetup';
 import { IMitigatingControlsSiteSetupProps } from './components/IMitigatingControlsSiteSetupProps';
+import { PropertyFieldCodeEditor,PropertyFieldCodeEditorLanguages } from '@pnp/spfx-property-controls/lib/PropertyFieldCodeEditor';
 import pnp from "sp-pnp-js";
 export interface IMitigatingControlsSiteSetupWebPartProps {
   mitigatingControlsListName:string;
   primaryApproversListName:string;
+  webPartXml:string;
 }
 
 export default class MitigatingControlsSiteSetupWebPart extends BaseClientSideWebPart<IMitigatingControlsSiteSetupWebPartProps> {
@@ -33,7 +35,9 @@ export default class MitigatingControlsSiteSetupWebPart extends BaseClientSideWe
       MitigatingControlsSiteSetup,
       {
         mitigatingControlsListName:this.properties.mitigatingControlsListName,
-        primaryApproversListName:this.properties.primaryApproversListName
+        primaryApproversListName:this.properties.primaryApproversListName,
+        siteUrl:this.context.pageContext.site.absoluteUrl,
+        webPartXml:this.properties.webPartXml
       }
     );
 
@@ -60,6 +64,16 @@ export default class MitigatingControlsSiteSetupWebPart extends BaseClientSideWe
                 }),
                 PropertyPaneTextField('primaryApproversListName', {
                   label: "Primary Approvers List Name"
+                }),
+                PropertyFieldCodeEditor('webPartXml', {
+                  key:"webPartXml",
+                  properties:this.properties,
+                  label: "Webpart XML to add to site homepage",
+                  panelTitle:"WebpartXML",
+                  language: PropertyFieldCodeEditorLanguages.XML,
+                  onPropertyChange: (propertyPath: string, oldValue: any, newValue: any)=>{
+                    debugger;
+                  }
                 })
               ]
             }

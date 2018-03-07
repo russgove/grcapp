@@ -100,6 +100,7 @@
     "HighRiskUserWebpartWebPartStrings": "lib/webparts/highRiskUserWebpart/loc/{locale}.js",
     "GrcAzureManagementWebPartStrings": "lib/webparts/grcAzureManagement/loc/{locale}.js",
     "MitigatingControlsSiteSetupWebPartStrings": "lib/webparts/mitigatingControlsSiteSetup/loc/{locale}.js",
-    "MitigatingControlsWebPartStrings": "lib/webparts/mitigatingControls/loc/{locale}.js"
+    "MitigatingControlsWebPartStrings": "lib/webparts/mitigatingControls/loc/{locale}.js",
+    "PropertyControlStrings": "./node_modules/@pnp/spfx-property-controls/lib/loc/{locale}.js"
   }
 }

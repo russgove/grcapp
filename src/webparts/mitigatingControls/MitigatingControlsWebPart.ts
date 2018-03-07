@@ -6,7 +6,10 @@ import {
   IPropertyPaneConfiguration,
   PropertyPaneTextField
 } from '@microsoft/sp-webpart-base';
-
+import{
+Environment,
+EnvironmentType
+} from '@microsoft/sp-core-library';
 import * as strings from 'MitigatingControlsWebPartStrings';
 import MitigatingControls from './components/MitigatingControls';
 import { IMitigatingControlsProps } from './components/IMitigatingControlsProps';
@@ -16,7 +19,10 @@ import { find, filter } from "lodash";
 import { MitigatingControlsItem, PrimaryApproverItem } from "./dataModel";
 export interface IMitigatingControlsWebPartProps {
   primaryApproversListName: string;
-  mitigatingControlsListName: string
+  mitigatingControlsListName: string;
+  effectiveLabel:string;
+  continuesLabel:string;
+  correctPersonLabel:string;
 }
 
 export default class MitigatingControlsWebPart extends BaseClientSideWebPart<IMitigatingControlsWebPartProps> {
@@ -67,6 +73,7 @@ export default class MitigatingControlsWebPart extends BaseClientSideWebPart<IMi
       .getAs<Array<MitigatingControlsItem>>();
   }
   public render(): void {
+
     this.reactElement = React.createElement(
       MitigatingControls,
       {
@@ -74,11 +81,29 @@ export default class MitigatingControlsWebPart extends BaseClientSideWebPart<IMi
         save: this.save.bind(this),
         fetchMitigatingControls: this.fetchMitigatingControls.bind(this),
         setComplete: this.setComplete.bind(this),
-        domElement: this.domElement
+        domElement: this.domElement,
+        effectiveLabel:this.properties.effectiveLabel,
+        continuesLabel:this.properties.continuesLabel,
+        correctPersonLabel:this.properties.correctPersonLabel
+
       }
     );
 
     this.formComponent = ReactDom.render(this.reactElement, this.domElement) as MitigatingControls;
+
+    if (Environment.type === EnvironmentType.ClassicSharePoint) {
+      const buttons: NodeListOf<HTMLButtonElement> = this.domElement.getElementsByTagName('button');
+      if (buttons && buttons.length) {
+        for (let i: number = 0; i < buttons.length; i++) {
+          if (buttons[i]) {
+            /* tslint:disable */
+            // Disable the button onclick postback
+            buttons[i].onclick = function () { return false; };
+            /* tslint:enable */
+          }
+        }
+      }
+    }
   }
   public setComplete(primaryApproverList: any): Promise<any> {
 
@@ -109,6 +134,8 @@ export default class MitigatingControlsWebPart extends BaseClientSideWebPart<IMi
       
         })
         .catch((err) => {
+          console.error(err);
+          alert(err);
           debugger;
         });
 
@@ -135,7 +162,13 @@ export default class MitigatingControlsWebPart extends BaseClientSideWebPart<IMi
                   label: "Primary Approvers List"
                 }),
                 PropertyPaneTextField('mitigatingControlsListName', {
-                  label: "High Risk with Mitigating Controls List"
+                  label: "Label For:High Risk with Mitigating Controls List"
+                }),
+                PropertyPaneTextField('effectiveLabel', {
+                  label: "Label For:Does the mitigating control effectively remediate the assiciated risk?"
+                }),
+                PropertyPaneTextField('correctPersonLabel', {
+                  label: "Label For:Is the mitigating control monitor the correct person to perform control?"
                 })
 
               ]

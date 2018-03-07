@@ -5,4 +5,8 @@ export interface IMitigatingControlsProps {
   fetchMitigatingControls: () => Promise<Array<MitigatingControlsItem>>;
   setComplete: (PrimaryApprover: PrimaryApproverItem) => Promise<any>;
   domElement: any; // needed to disable button postback after render on classic pages
+  effectiveLabel:string;
+  continuesLabel:string;
+  correctPersonLabel:string;
+
 }

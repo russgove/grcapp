@@ -7,6 +7,7 @@ import {
   DetailsList, DetailsListLayoutMode, IColumn, SelectionMode, Selection,
   ColumnActionsMode
 } from "office-ui-fabric-react/lib/DetailsList";
+import { List } from "office-ui-fabric-react/lib/List";
 import { Dropdown, IDropdownOption, IDropdownProps } from "office-ui-fabric-react/lib/Dropdown";
 import { Modal, IModalProps } from "office-ui-fabric-react/lib/Modal";
 import { Panel, IPanelProps, PanelType } from "office-ui-fabric-react/lib/Panel";
@@ -17,17 +18,21 @@ import { PrimaryButton, ButtonType, Button, DefaultButton, ActionButton, IconBut
 import { Dialog } from "office-ui-fabric-react/lib/Dialog";
 import { TextField } from "office-ui-fabric-react/lib/TextField";
 import pnp, { TypedHash, ItemAddResult, ListAddResult, ContextInfo, Web, WebAddResult, List as PNPList } from "sp-pnp-js";
-import { map } from "lodash";
+import { map, clone } from "lodash";
 import {
-  addPeopleFieldToList, convertEmailColumnsToUser,
+  addPeopleFieldToList, convertEmailColumnsToUser, AddQuickLaunchItem, RemoveQuickLaunchItem, AddUsersInListToGroup,
   CachedId, findId, uploadFile, esnureUsers, extractColumnHeaders, processUploadedFiles, getListFromWeb, ensureFieldsAreInList
-  , setWebToUseSharedNavigation, fixUpLeftNav, addCustomListWithContentType, cleanupHomePage, getContentTypeByName
+  , setWebToUseSharedNavigation, addCustomListWithContentType, cleanupHomePage, getContentTypeByName
 } from "../../../utilities/utilities";
-
+require('sp-init');
+require('microsoft-ajax');
+require('sp-runtime');
+require('sharepoint');
+require('sp-workflow');
 export default class MitigatingControlsSiteSetup extends React.Component<IMitigatingControlsSiteSetupProps, IMitigatingControlsSiteSetupState> {
   constructor(props: IMitigatingControlsSiteSetupProps) {
     super(props);
-    // this.processUploadedFiles = this.processUploadedFiles.bind(this);
+    this.addMessage = this.addMessage.bind(this);
 
 
     this.state = {
@@ -36,6 +41,7 @@ export default class MitigatingControlsSiteSetup extends React.Component<IMitiga
       siteDropDownOptions: [],
       mitigatingControlsListExists: false,
       primaryApproversListExists: false,
+      messages: []
     };
   }
   public componentDidMount() {
@@ -60,19 +66,39 @@ export default class MitigatingControlsSiteSetup extends React.Component<IMitiga
 
     // test the mitigating controls list, ensure the list exists and has required fields
     getListFromWeb(option.key as string, this.props.mitigatingControlsListName).then(list => {
+      this.addMessage(`Required List ${this.props.mitigatingControlsListName} was found on that site`);
       this.setState((current) => ({
         ...current,
         mitigatingControlsListExists: true,
         mitigatingControlsCount: list["ItemCount"],
         mitigatingControlsList: list
       }));
-      let fieldsfound = ensureFieldsAreInList(list, ["Control_x0020_ID", "Risk_x0020_ID", "ApproverEmail"]);
+      let fieldsfound = ensureFieldsAreInList(list, [
+        "Control_x0020_ID",
+        "Risk_x0020_ID",
+        "Risk_x0020_Description",
+        "Description",
+        "Owner_x0020_ID",
+        "Control_x0020_Owner_x0020_Name",
+        "Control_x0020_Monitor_x0020_ID",
+        "Control_x0020_Monitor_x0020_Name",
+        "Effective",
+        "Continues",
+        "Right_x0020_Monitor_x003f_",
+        "Comments",
+        "Continues",
+
+      ], this.addMessage);
+      if (fieldsfound) {
+        this.addMessage(`Required fields found on List ${this.props.mitigatingControlsListName} `);
+
+      }
       this.setState((current) => ({
         ...current,
         mitigatingControlsFieldsFound: fieldsfound
       }));
     }).catch(err => {
-      alert(`List ${this.props.mitigatingControlsListName} was not found on that site`);
+      this.addMessage(`<h1>List ${this.props.mitigatingControlsListName} was not found on that site</h1>`);
       this.setState((current) => ({
         ...current,
         mitigatingControlsListExists: false,
@@ -80,26 +106,28 @@ export default class MitigatingControlsSiteSetup extends React.Component<IMitiga
         mitigatingControlsList: null
       }));
     });
-    debugger;
+
 
     // test the primary approverslist, ensure the list exists and has required fields
     getListFromWeb(option.key as string, this.props.primaryApproversListName).then(list => {
-      debugger;// why no list???
+      this.addMessage(`Required List ${this.props.primaryApproversListName} was found on that site`);
       this.setState((current) => ({
         ...current,
         primaryApproversListExists: true,
         primaryApproversCount: list["ItemCount"],
         primaryApproversList: list
       }));
-      let fieldsfound = ensureFieldsAreInList(list, ["ApproverEmail"]);
+      let fieldsfound = ensureFieldsAreInList(list, ["ApproverEmail", "Completed"], this.addMessage);
+      if (fieldsfound) {
+        this.addMessage(`Required fields found on List ${this.props.primaryApproversListName} `);
+
+      }
       this.setState((current) => ({
         ...current,
         primaryApproversFieldsFound: fieldsfound,
-
-
       }));
     }).catch(err => {
-      alert(`List ${this.props.primaryApproversListName} was not found on that site`);
+      this.addMessage(`<h1>List ${this.props.primaryApproversListName} was not found on that site</h1>`);
       this.setState((current) => ({
         ...current,
         primaryApproversListExists: false,
@@ -114,18 +142,22 @@ export default class MitigatingControlsSiteSetup extends React.Component<IMitiga
     // first we'll check if the user COLUMN is not prensent and If not Add it. (nah, do this later)
     // then , we'll repeatedly get 100 rows wher the user COLUMN  is empty.
     // for each of those rows, we'll call ensureUser and then update the row with the users ID.
-    debugger;
-    if (!ensureFieldsAreInList(this.state.mitigatingControlsList, ["PrimaryApprover"])) {
+    if (!ensureFieldsAreInList(this.state.mitigatingControlsList, ["PrimaryApprover"], this.addMessage)) {
+      this.addMessage(`Creating PrimaryApprover Column in '${this.state.mitigatingControlsList["Title"]}'`);
       await addPeopleFieldToList(this.state.webUrl, this.props.mitigatingControlsListName, "PrimaryApprover", "PrimaryApprover").then(d => {
-
+        this.addMessage(`Created PrimaryApprover Column  in '${this.state.mitigatingControlsList["Title"]}'`);
 
       }).catch(err => {
-
+        this.addMessage(`<h1>There was an error adding the PrimaryApprover column to the ${this.state.mitigatingControlsList["Title"]} list</h1>`)
       });
+
+    } else {
+      this.addMessage(`PrimaryApprover Column already exists in '${this.state.mitigatingControlsList["Title"]}'`);
     }
 
-    await convertEmailColumnsToUser(this.state.webUrl, this.props.mitigatingControlsListName, [["ApproverEmail", "PrimaryApproverId"]]);
-
+    this.addMessage(`Updating PrimaryApprover column from ApproverEmail  in '${this.state.mitigatingControlsList["Title"]}'`);
+    await convertEmailColumnsToUser(this.state.webUrl, this.props.mitigatingControlsListName, [["ApproverEmail", "PrimaryApproverId"]], this.addMessage);
+    this.addMessage(`Updated PrimaryApprover column from ApproverEmail  in '${this.state.mitigatingControlsList["Title"]}'`);
 
 
 
@@ -135,22 +167,81 @@ export default class MitigatingControlsSiteSetup extends React.Component<IMitiga
     // first we'll check if the user COLUMN is not prensent and If not Add it. (nah, do this later)
     // then , we'll repeatedly get 100 (well , getem all for now....) rows wher the user COLUMN  is empty.(user column CANNOT be indexed)
     // for each of those rows, we'll call ensureUser and then update the row with the users ID.
-    debugger;
-    if (!ensureFieldsAreInList(this.state.primaryApproversList, ["PrimaryApprover"])) {
-      await addPeopleFieldToList(this.state.webUrl, this.props.primaryApproversListName, "PrimaryApprover", "PrimaryApprover").then(d => {
-        debugger;
 
+    if (!ensureFieldsAreInList(this.state.primaryApproversList, ["PrimaryApprover"], this.addMessage)) {
+      this.addMessage(`Creating PrimaryApprover Column in '${this.state.primaryApproversList["Title"]}'`);
+      await addPeopleFieldToList(this.state.webUrl, this.props.primaryApproversListName, "PrimaryApprover", "PrimaryApprover").then(d => {
+        this.addMessage(`Created PrimaryApprover Column in '${this.state.primaryApproversList["Title"]}'`);
       }).catch(err => {
+        this.addMessage(`<h1>Error Creating PrimaryApprover Column in '${this.state.primaryApproversList["Title"]}'</h1>`);
+        console.error(err);
         debugger;
       });
+    } else {
+      this.addMessage(`PrimaryApprover Column already exists in '${this.state.primaryApproversList["Title"]}'`);
     }
-    debugger;
-    await convertEmailColumnsToUser(this.state.webUrl, this.props.primaryApproversListName, [["ApproverEmail", "PrimaryApproverId"]]);
+
+    this.addMessage(`Updating PrimaryApprover column from ApproverEmail  in '${this.state.primaryApproversList["Title"]}'`);
+    await convertEmailColumnsToUser(this.state.webUrl, this.props.primaryApproversListName, [["ApproverEmail", "PrimaryApproverId"]], this.addMessage);
+    this.addMessage(`Updated PrimaryApprover column from ApproverEmail  in '${this.state.primaryApproversList["Title"]}'`);
 
 
 
 
   }
+  private addMessage(message: string) {
+    let messages = this.state.messages;
+    var copy = map(this.state.messages, clone);
+    copy.push(message);
+    this.setState((current) => ({ ...current, messages: copy }));
+  }
+  private displayMessages(): any {
+    const messages = map(this.state.messages, (m) => {
+      return "<div>" + m + "</div>";
+    });
+    return { __html: messages.join('') };
+  }
+  // #region Site creation
+
+  public async setupWeb() {
+
+    let newWeb = new Web(window.location.origin + this.state.webUrl);
+
+
+
+    this.addMessage(`Origin is ${window.location.origin}`);
+    this.addMessage(`WebUrl is  ${this.state.webUrl}`);
+    this.addMessage(`SiteUrl  is  ${this.props.siteUrl}`);
+    this.addMessage(`Updating Site at ${window.location.origin + this.state.webUrl}`);
+
+    await setWebToUseSharedNavigation(window.location.origin + this.state.webUrl, this.addMessage);
+
+    await AddQuickLaunchItem(this.state.webUrl, "GRC Home", this.props.siteUrl, true, this.addMessage);
+    await RemoveQuickLaunchItem(this.state.webUrl, ["Pages", "Documents"], this.addMessage);
+
+    // customize the home paged
+    let welcomePageUrl: string;
+    await newWeb.rootFolder.getAs<any>().then(rootFolder => {
+      welcomePageUrl = rootFolder.ServerRelativeUrl + rootFolder.WelcomePage;
+    });
+    this.addMessage("Customizing Home Page");
+
+    await cleanupHomePage(this.props.siteUrl, welcomePageUrl, this.props.webPartXml, this.addMessage);
+    this.addMessage("Customized Home Page");
+    // add all the approvers as members
+    await newWeb.associatedMemberGroup.get().then(async (membersGroup) => {
+      debugger;
+      await AddUsersInListToGroup(window.location.origin + this.state.webUrl, this.props.primaryApproversListName, "PrimaryApprover", membersGroup, this.addMessage);
+
+      debugger;
+    }).catch(err => {
+      this.addMessage(`<h1>Error Adding users to members group</h1>`);
+      console.error(err);
+    });
+    this.addMessage("DONE!!");
+
+  }
+  // #endregion Site creation
   public render(): React.ReactElement<IMitigatingControlsSiteSetupProps> {
     return (
       <div className={styles.mitigatingControlsSiteSetup}>
@@ -241,7 +332,15 @@ export default class MitigatingControlsSiteSetup extends React.Component<IMitiga
 
         </table>
         <hr />
-        <PrimaryButton title="Update Site">Update Site </PrimaryButton>
+        <PrimaryButton title="Update Site" onClick={this.setupWeb.bind(this)}>Update Site </PrimaryButton>
+        <div style={{ border: '1px', borderStyle: "solid" }} >
+          <IconButton iconProps={{ iconName: "Clear" }}
+            onClick={
+              () => { this.setState((current) => ({ ...current, messages: [] })); }
+            }></IconButton>
+          <div dangerouslySetInnerHTML={this.displayMessages()} />
+
+        </div>
 
       </div>
     );

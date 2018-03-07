@@ -13,6 +13,7 @@ import {
   DetailsList, DetailsListLayoutMode, IColumn, SelectionMode, Selection,
   ColumnActionsMode
 } from "office-ui-fabric-react/lib/DetailsList";
+import { ChoiceGroup, IChoiceGroupOption } from 'office-ui-fabric-react/lib/ChoiceGroup';
 import { Dropdown, IDropdownOption, IDropdownProps } from "office-ui-fabric-react/lib/Dropdown";
 import { Modal, IModalProps } from "office-ui-fabric-react/lib/Modal";
 import { Panel, IPanelProps, PanelType } from "office-ui-fabric-react/lib/Panel";
@@ -20,7 +21,7 @@ import { CommandBar } from "office-ui-fabric-react/lib/CommandBar";
 import { IContextualMenuItem } from "office-ui-fabric-react/lib/ContextualMenu";
 
 import { PrimaryButton, ButtonType, Button, DefaultButton, ActionButton, IconButton } from "office-ui-fabric-react/lib/Button";
-import { Dialog } from "office-ui-fabric-react/lib/Dialog";
+import { Dialog, DialogType, DialogContent, DialogFooter } from "office-ui-fabric-react/lib/Dialog";
 import { TextField } from "office-ui-fabric-react/lib/TextField";
 import { find, map, clone, filter } from "lodash";
 
@@ -33,8 +34,7 @@ export default class MitigatingControls extends React.Component<IMitigatingContr
     this.selection.getKey = (item => { return item["Id"]; });
     this.save = this.save.bind(this);
     this.setComplete = this.setComplete.bind(this);
-    this.changeUnSelected = this.changeUnSelected.bind(this);
-    this.changeSelected = this.changeSelected.bind(this);
+    this.updateSelected = this.updateSelected.bind(this);
     this.fetchMitigatingContols = this.fetchMitigatingContols.bind(this);
     this.state = {
       primaryApprover: props.primaryApprover,
@@ -53,19 +53,26 @@ export default class MitigatingControls extends React.Component<IMitigatingContr
       this.setState((current) => ({ ...current, mitigatingControls: mitigatingControls }));
     }).catch((err) => {
       debugger;
+      console.error(err);
       alert(err);
     });
   }
+  public showUpdatedSelectedPopup(ev?: React.MouseEvent<HTMLElement>, item?: IContextualMenuItem): void {
 
-  public changeSelected(ev?: React.MouseEvent<HTMLElement>, item?: IContextualMenuItem): void {
-    debugger;
+    if (this.selection.count > 0) {
+      this.setState((current) => ({ ...current, showPopup: true }));
+    }
+  }
+  public updateSelected(ev?: React.MouseEvent<HTMLElement>, item?: IContextualMenuItem): void {
+
     var tempArray = map(this.state.mitigatingControls, (rr) => {
-      if (this.selection.isKeySelected(rr.Id.toString())) {
+      if (this.selection.isKeySelected(rr.Id.toString()) === this.state.changeSelected) {
         return {
           ...rr,
-          Effective: item.data,
-          Continues: item.data,
-          Right_x0020_Monitor_x003f_: item.data,
+          Effective: this.state.popupValueEffective ? this.state.popupValueEffective : rr.Effective,
+          Continues: this.state.popupValueContinues ? this.state.popupValueContinues : rr.Continues,
+          Right_x0020_Monitor_x003f_: this.state.popupValueCorrectPerson ? this.state.popupValueCorrectPerson : rr.Right_x0020_Monitor_x003f_,
+          Comments: this.state.popupValueComments ? this.state.popupValueComments : rr.Comments,
           hasBeenUpdated: true,
         };
       }
@@ -75,34 +82,26 @@ export default class MitigatingControls extends React.Component<IMitigatingContr
         };
       }
     });
-    this.setState((current) => ({ ...current, mitigatingControls: tempArray }));
+    this.setState((current) => ({
+      ...current,
+      mitigatingControls: tempArray,
+      popupValueEffective: null,
+      popupValueContinues: null,
+      popupValueCorrectPerson: null,
+      popupValueComments: null,
+      showPopup: false
+    }));
   }
-  public changeUnSelected(ev?: React.MouseEvent<HTMLElement>, item?: IContextualMenuItem): void {
-    var tempArray = map(this.state.mitigatingControls, (rr) => {
-      if (!this.selection.isKeySelected(rr.Id.toString())) {
-        return {
-          ...rr,
-          Effective: item.data,
-          Continues: item.data,
-          Right_x0020_Monitor_x003f_: item.data,
-          hasBeenUpdated: true
-        };
-      }
-      else {
-        return {
-          ...rr
-        };
-      }
-    });
-    this.setState((current) => ({ ...current, mitigatingControls: tempArray }));
-  }
+
+
   public setComplete(): Promise<any> {
-    debugger;
+
     return this.props.setComplete(this.props.primaryApprover[0]).then(() => {
 
       alert("Completed");
     }).catch((err) => {
       debugger;
+      console.error(err);
       alert(err);
     });
   }
@@ -115,6 +114,7 @@ export default class MitigatingControls extends React.Component<IMitigatingContr
       alert("Saved");
     }).catch((err) => {
       debugger;
+      console.error(err);
       alert(err);
     });
   }
@@ -182,19 +182,19 @@ export default class MitigatingControls extends React.Component<IMitigatingContr
   private areAllQuestionsAnswered(): boolean {
     for (let mitigatingControl of this.state.mitigatingControls) {
       if (mitigatingControl.Continues === "3") {
-        return false
+        return false;
       }
       if (mitigatingControl.Effective === "3") {
-        return false
+        return false;
       }
       if (mitigatingControl.Right_x0020_Monitor_x003f_ === "3") {
-        return false
+        return false;
       }
       if (!mitigatingControl.Comments) {
-        return false
+        return false;
       }
       if (mitigatingControl.Comments.length < 8) {
-        return false
+        return false;
       }
 
     }
@@ -203,60 +203,40 @@ export default class MitigatingControls extends React.Component<IMitigatingContr
   }
 
   public render(): React.ReactElement<IMitigatingControlsProps> {
-    debugger;
+
     let itemsNonFocusable: IContextualMenuItem[] = [
       {
-        key: "Change Selected",
-        name: "Change Selected",
+        key: "Update Selected",
+        name: "Update Selected",
         icon: "TriggerApproval",
-        disabled: this.props.primaryApprover[0].Completed === "Yes",
-        subMenuProps: {
-          items: [
-            {
-              key: 'Yes',
-              name: 'Yes',
-              data: "1",
-              onClick: this.changeSelected,
-              disabled: this.props.primaryApprover[0].Completed === "Yes"|| this.selection.count < 1
-            },
-            {
-              key: 'No',
-              name: 'No',
-              data: "2",
-              onClick: this.changeSelected,
-              disabled: this.props.primaryApprover[0].Completed === "Yes" || this.selection.count < 1
-            }
-            
+        onClick: (e) => {
+          if (this.selection.count > 0) {
+            this.setState((current) => ({
+              ...current,
+              showPopup: true,
+              changeSelected: true
+            }));
+          }
+        },
+        disabled: this.props.primaryApprover[0].Completed === "Yes"
 
-          ]
-        }
       },
       {
-        key: "Change Unselected",
-        name: "Change Unselected",
+        key: "Update Unselected",
+        name: "Update Unselected",
         icon: "TriggerAuto",
         disabled: this.props.primaryApprover[0].Completed === "Yes",
+        onClick: (e) => {
+          debugger;
+          if (!this.selection.count || this.selection.count < this.state.mitigatingControls.length) {
+            this.setState((current) => ({
+              ...current,
+              showPopup: true,
+              changeSelected: false // change UNSELECTED Items
+            }));
+          }
+        },
 
-        subMenuProps: {
-          items: [
-            {
-              key: 'Yes',
-              name: 'Yes',
-              data: "1",
-              onClick: this.changeUnSelected,
-              disabled: this.props.primaryApprover[0].Completed === "Yes"
-
-            },
-            {
-              key: 'No',
-              name: 'No',
-              data: "2",
-              onClick: this.changeUnSelected
-            },
-         
-
-          ]
-        }
       },
 
       {
@@ -286,6 +266,87 @@ export default class MitigatingControls extends React.Component<IMitigatingContr
 
     return (
       <div className={styles.mitigatingControls}>
+        <Dialog isBlocking={true}
+          hidden={!this.state.showPopup}
+          onDismiss={(e) => { this.setState((current) => ({ ...current, showPopup: false })); }}
+          dialogContentProps={{
+            type: DialogType.close,
+            title: this.state.changeSelected
+              ? `Update ${this.selection.count} Selected Items`
+              : this.selection.count
+                ? `Update ${this.state.mitigatingControls.length - this.selection.count} Unselected Items`
+                : `Update ${this.state.mitigatingControls.length} Unselected Items`,
+            subText: 'All selected items will be updated with the following values'
+          }} >
+          <ChoiceGroup label={this.props.effectiveLabel}
+            options={[
+              {
+                key: '1',
+                text: 'Yes'
+              },
+              {
+                key: '2',
+                text: 'No',
+              },
+            ]}
+            selectedKey={this.state.popupValueEffective}
+
+            onChange={(ev?: React.FormEvent<HTMLElement | HTMLInputElement>, option?: IChoiceGroupOption) => {
+
+              this.setState((current) => ({ ...current, popupValueEffective: option.key }));
+            }}
+          />
+          <ChoiceGroup label={this.props.continuesLabel}
+            options={[
+              {
+                key: '1',
+                text: 'Yes'
+              },
+              {
+                key: '2',
+                text: 'No',
+              },
+            ]}
+            selectedKey={this.state.popupValueContinues}
+            onChange={(ev?: React.FormEvent<HTMLElement | HTMLInputElement>, option?: IChoiceGroupOption) => {
+
+              this.setState((current) => ({ ...current, popupValueContinues: option.key }));
+            }}
+          />
+          <ChoiceGroup label={this.props.correctPersonLabel}
+            options={[
+              {
+                key: '1',
+                text: 'Yes'
+              },
+              {
+                key: '2',
+                text: 'No',
+              },
+
+            ]}
+            selectedKey={this.state.popupValueCorrectPerson}
+            onChange={(ev?: React.FormEvent<HTMLElement | HTMLInputElement>, option?: IChoiceGroupOption) => {
+
+              this.setState((current) => ({ ...current, popupValueCorrectPerson: option.key }));
+            }}
+          />
+          <TextField label="Comments" onChanged={(e) => {
+
+            this.setState((current) => ({ ...current, popupValueComments: e }));
+          }}
+
+          />
+
+
+
+          <DialogFooter>
+            <PrimaryButton text='Save' onClick={this.updateSelected.bind(this)} />
+            <DefaultButton text='Cancel' onClick={(e) => {
+              this.setState((current) => ({ ...current, showPopup: false }));
+            }} />
+          </DialogFooter>
+        </Dialog>
         <CommandBar
           isSearchBoxVisible={false}
           items={itemsNonFocusable}
@@ -305,7 +366,7 @@ export default class MitigatingControls extends React.Component<IMitigatingContr
             },
             {
               key: "Risk_x0020_Description", name: "Risk Description",
-              fieldName: "Risk_x0020_Description", minWidth: 100,
+              fieldName: "Risk_x0020_Description", minWidth: 170,
               onRender: (item?: MitigatingControlsItem, index?: number, column?: IColumn) => {
                 return (
                   <div className={styles.riskDesription}>
@@ -320,7 +381,7 @@ export default class MitigatingControls extends React.Component<IMitigatingContr
             },
             {
               key: "Description", name: "Control Description",
-              fieldName: "Description", minWidth: 100,
+              fieldName: "Description", minWidth: 170,
               onRender: (item?: MitigatingControlsItem, index?: number, column?: IColumn) => {
                 return (
                   <div className={styles.controlDesription}>
@@ -362,7 +423,7 @@ export default class MitigatingControls extends React.Component<IMitigatingContr
 
             },
             {
-              key: "Effective", name: "Does the mitigating control effectively remediate the assiciated risk?",
+              key: "Effective", name: this.props.effectiveLabel,
               fieldName: "Effective", minWidth: 150,
               onRender: (item?: any, index?: number, column?: IColumn) => {
                 return this.RenderApproval(item, index, column);
@@ -371,7 +432,7 @@ export default class MitigatingControls extends React.Component<IMitigatingContr
 
             },
             {
-              key: "Continues", name: "Does the mitigating control continue to be performed? ",
+              key: "Continues", name: this.props.continuesLabel,
               fieldName: "Continues", minWidth: 150,
               onRender: (item?: any, index?: number, column?: IColumn) => {
                 return this.RenderApproval(item, index, column);
@@ -379,7 +440,7 @@ export default class MitigatingControls extends React.Component<IMitigatingContr
 
             },
             {
-              key: "Right_x0020_Monitor_x003f_", name: "Is the mitigating control monitor the correct person to perform control?",
+              key: "Right_x0020_Monitor_x003f_", name: this.props.correctPersonLabel,
               fieldName: "Right_x0020_Monitor_x003f_", minWidth: 150,
               onRender: (item?: any, index?: number, column?: IColumn) => {
                 return this.RenderApproval(item, index, column);
@@ -389,7 +450,7 @@ export default class MitigatingControls extends React.Component<IMitigatingContr
 
             {
               key: "Comments", name: "Comments",
-              fieldName: "Comments", minWidth: 150, maxWidth: 150,
+              fieldName: "Comments", minWidth: 150,
               onRender: (item?: any, index?: number, column?: IColumn) => { return this.RenderComments(item, index, column); },
             },
 

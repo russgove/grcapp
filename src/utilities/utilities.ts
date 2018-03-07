@@ -8,7 +8,7 @@ export function addPeopleFieldToList(webUrl: string, listTitle: string, internal
 
 }
 
-export async function convertEmailColumnsToUser(webUrl: string, listTitle: string, columns: Array<[string, string]>) {
+export async function convertEmailColumnsToUser(webUrl: string, listTitle: string, columns: Array<[string, string]>, addMessage: (message: string) => void) {
     debugger;
     let web = new Web(window.location.origin + webUrl);
     let fieldsToFetch = ["Id"];
@@ -23,34 +23,49 @@ export async function convertEmailColumnsToUser(webUrl: string, listTitle: strin
                 for (let column of columns) {
                     let emailColumn: string = column[0];
                     let userColumn: string = column[1];
-                    let user = await web.ensureUser(row[column[0]]);
-                    let update= {[userColumn]:user.data.Id};// enclose in brakts to eval
-                    web.lists.getByTitle(listTitle).items.getById(row["Id"]).update(update)
-                        .then(x => {
-                            console.log(`Updated user email ${row[column[0]]} To user ID ${user.data.Id} `);
+                    let user = await web.ensureUser(row[column[0]])
+                        .then(u => {
+                            return u;
                         })
                         .catch(err => {
-                            console.error (`Error updateing user email ${row[column[0]]} To user ID ${user.data.Id} `);
                             debugger;
+                            addMessage(`<h2>User with an eMail/UPN of '${row[column[0]]}' could not be found</h2>`);
+                            return null;
                         });
+                    if (user) { // if the user was ensured!
+                        let update = { [userColumn]: user.data.Id };// enclose in brakts to eval
+                        web.lists.getByTitle(listTitle).items.getById(row["Id"]).update(update)
+                            .then(x => {
+                            })
+                            .catch(err => {
+                                debugger;
+                                addMessage(`<h1>Error updating user</h1>`);
+                                addMessage(`<h1>Error updating user email ${row[column[0]]} To user ID ${user.data.Id}</h1>`);
+                                debugger;
+                            });
 
+
+                    }
                 }
-            };
+            }
         })
         .catch(err => {
-            debugger;
+            console.error(err);
+            addMessage(`<h1>Error fetching items from ${listTitle} <h1>`);
         });
-
+    addMessage(`Done converting users on list ${listTitle}.`);
     return Promise.resolve();
 }
-export function ensureFieldsAreInList(list: List, fieldInternalNames: Array<string>): boolean {
+export function ensureFieldsAreInList(list: List, fieldInternalNames: Array<string>, addMessage: (message: string) => void): boolean {
     // besure when you called pnp get list you expanded Fields/
-  
+
 
     let allFound: boolean = true;
     for (let fieldName of fieldInternalNames) {
         if (!find(list["Fields"], f => { return f["InternalName"] === fieldName; })) {
-            alert(`Field ${fieldName} was not found in list ${list["Title"]}`);
+            if (addMessage) {
+                addMessage(`<h1>Field ${fieldName} was not found in list ${list["Title"]}</h1>`);
+            }
             allFound = false;
         }
     }
@@ -126,7 +141,7 @@ export function uploadFile(web: Web, libraryName: string, file: File, saveAsFile
             console.log(err);
         });
 }
-export async function cleanupHomePage(webRelativeUrl: string, homePageUrl, webPartXml: string) {
+export async function cleanupHomePage(webRelativeUrl: string, homePageUrl, webPartXml: string, addMessage: (message: string) => void) {
     const clientContext: SP.ClientContext = new SP.ClientContext(webRelativeUrl);
     var oFile = clientContext.get_web().getFileByServerRelativeUrl(homePageUrl);
     var limitedWebPartManager = oFile.getLimitedWebPartManager(SP.WebParts.PersonalizationScope.shared);
@@ -134,10 +149,14 @@ export async function cleanupHomePage(webRelativeUrl: string, homePageUrl, webPa
     clientContext.load(webparts, 'Include(WebPart)');
     clientContext.load(limitedWebPartManager);
     await new Promise((resolve, reject) => {
-        clientContext.executeQueryAsync((x) => {
+        clientContext.executeQueryAsync((req: SP.ClientRequest, args: SP.ClientRequestSucceededEventArgs) => {
             resolve();
-        }, (error) => {
-            console.log(error);
+        }, (req: SP.ClientRequest, args: SP.ClientRequestFailedEventArgs) => {
+            addMessage(`Error getting the list of webparts on the page at '${homePageUrl}' in method cleanupHomePage`);
+            addMessage(args.get_message());
+            addMessage(args.get_errorDetails());
+            addMessage(args.get_errorValue());
+            console.error(args);
             reject();
         });
     });
@@ -147,11 +166,15 @@ export async function cleanupHomePage(webRelativeUrl: string, homePageUrl, webPa
         originalWebPartDef.deleteWebPart();
     }
     await new Promise((resolve, reject) => {
-        clientContext.executeQueryAsync((x) => {
-            console.log("the webpartw were deleted hidden");
+        clientContext.executeQueryAsync((req: SP.ClientRequest, args: SP.ClientRequestSucceededEventArgs) => {
+            addMessage(`Webparts removed from page at '${homePageUrl}'`);
             resolve();
-        }, (error) => {
-            console.log(error);
+        }, (req: SP.ClientRequest, args: SP.ClientRequestFailedEventArgs) => {
+            addMessage(`Error removing Webparts from page at '${homePageUrl}'`);
+            addMessage(args.get_message());
+            addMessage(args.get_errorDetails());
+            addMessage(args.get_errorValue());
+            console.error(args);
             reject();
         });
     });
@@ -160,31 +183,76 @@ export async function cleanupHomePage(webRelativeUrl: string, homePageUrl, webPa
     limitedWebPartManager.addWebPart(oWebPart, 'Main', 1);
     clientContext.load(oWebPart);
     await new Promise((resolve, reject) => {
-        clientContext.executeQueryAsync((x) => {
-            console.log("the new webpart was added");
+        clientContext.executeQueryAsync((req: SP.ClientRequest, args: SP.ClientRequestSucceededEventArgs) => {
+            addMessage(`Custom webpart added to page at '${homePageUrl}'`);
+
             resolve();
-        }, (error) => {
-            console.log(error);
+        }, (req: SP.ClientRequest, args: SP.ClientRequestFailedEventArgs) => {
+            addMessage(`Error adding custom webpart to page  at '${homePageUrl}'`);
+            addMessage(args.get_message());
+            addMessage(args.get_errorDetails());
+            addMessage(args.get_errorValue());
+            console.error(args);
             reject();
         });
     });
 }
-export async function setWebToUseSharedNavigation(webRelativeUrl: string) {
-    const clientContext: SP.ClientContext = new SP.ClientContext(webRelativeUrl);
+export async function setWebToUseSharedNavigation(webAbsoluteUrl: string, addMessage: (message: string) => void) {
+    let clientContext: SP.ClientContext;
+    try {
+        clientContext = new SP.ClientContext(webAbsoluteUrl);
+    }
+    catch (err) {
+        addMessage(`Error craeting client context on web ${webAbsoluteUrl}`);
+        console.log(err);
+        debugger;
+    }
     var currentWeb = clientContext.get_web();
     var navigation = currentWeb.get_navigation();
     navigation.set_useShared(true);
     await new Promise((resolve, reject) => {
-        clientContext.executeQueryAsync((x) => {
-            console.log("the web was set to use shared navigation");
+        clientContext.executeQueryAsync((req: SP.ClientRequest, ars: SP.ClientRequestSucceededEventArgs) => {
+            addMessage(`The web at  ${webAbsoluteUrl} was set to use shared navigation`);
             resolve();
-        }, (error) => {
-            console.log(error);
+        }, (req: SP.ClientRequest, args: SP.ClientRequestFailedEventArgs) => {
+            addMessage(`<h1>Error setting web at  ${webAbsoluteUrl} to use shared navigation</h1>`);
+            addMessage(args.get_message());
+            addMessage(args.get_errorDetails());
+            addMessage(args.get_errorValue());
+            console.error(args);
             reject();
         });
     });
 }
-export async function AddQuickLaunchItem(webUrl: string, title: string, url: string, isExternal: boolean) {
+export async function AddUsersInListToGroup(webUrl: string, listName: string, userFieldName: string, membersGroup: any, addMessage: (message: string) => void) {
+    debugger;
+    addMessage(`Adding the people in the  ${listName} to the group ${membersGroup.Title}`);
+    let web = new Web(webUrl);
+    await web.lists.getByTitle(listName).items.expand(userFieldName).select(userFieldName + "/Name").get() // fld/Name gets u the loginname
+        .then(async (listItems) => {
+            debugger;
+            for (const item of listItems) {
+                await pnp.sp.web.siteGroups.getByName(membersGroup.Title).users.add(item[userFieldName]["Name"])
+                    .then((d) => {
+                        d.select("Id").get().then(userData => {
+                            console.log(userData);
+                        });
+                    })
+                    .catch((err) => {
+                        addMessage(`<h1>Error adding user ${item[userFieldName]["Name"]}</h1>`);
+                        addMessage(err.data.responseBody["odata.error"].message.value);
+                    });
+
+
+            }
+
+        })
+        .catch((err) => {
+            addMessage(`<h1>Error fething people from the list named  ${listName}</h1>`);
+            addMessage(err.data.responseBody["odata.error"].message.value);
+        });
+}
+export async function AddQuickLaunchItem(webUrl: string, title: string, url: string, isExternal: boolean, addMessage: (message: string) => void) {
     let nnci: SP.NavigationNodeCreationInformation = new SP.NavigationNodeCreationInformation();
     nnci.set_title(title);
     nnci.set_url(url);
@@ -193,27 +261,35 @@ export async function AddQuickLaunchItem(webUrl: string, title: string, url: str
     const web = clientContext.get_web();
     web.get_navigation().get_quickLaunch().add(nnci);
     await new Promise((resolve, reject) => {
-        clientContext.executeQueryAsync((x) => {
+        clientContext.executeQueryAsync((req: SP.ClientRequest, ars: SP.ClientRequestSucceededEventArgs) => {
+            addMessage(`Added QuickLaunch Item ${title} to web at ${webUrl}`);
             resolve();
-        }, (error) => {
-            console.log(error);
+        }, (req: SP.ClientRequest, args: SP.ClientRequestFailedEventArgs) => {
+            addMessage(`<h1>Error adding QuickLaunch Item ${title}</h1>`);
+            addMessage(args.get_message());
+            addMessage(args.get_errorDetails());
+            addMessage(args.get_errorValue());
+            console.error(args);
             reject();
         });
     });
 }
-export async function RemoveQuickLaunchItem(webUrl: string, titlesToRemove: string[]) {
+export async function RemoveQuickLaunchItem(webUrl: string, titlesToRemove: string[], addMessage: (message: string) => void) {
     const clientContext: SP.ClientContext = new SP.ClientContext(webUrl);
     const ql: SP.NavigationNodeCollection = clientContext.get_web().get_navigation().get_quickLaunch();
     clientContext.load(ql);
     await new Promise((resolve, reject) => {
-        clientContext.executeQueryAsync((x) => {
+        clientContext.executeQueryAsync((req: SP.ClientRequest, ars: SP.ClientRequestSucceededEventArgs) => {
             resolve();
-        }, (error) => {
-            console.log(error);
+        }, (req: SP.ClientRequest, args: SP.ClientRequestFailedEventArgs) => {
+            addMessage(`<h1>Error fetching quicklaunch items in method RemoveQuickLaunchItem</h1>`);
+            addMessage(args.get_message());
+            addMessage(args.get_errorDetails());
+            addMessage(args.get_errorValue());
+            console.error(args);
             reject();
         });
     });
-
     let itemsToDelete = [];
     let itemCount = ql.get_count();
     for (let x = 0; x < itemCount; x++) {
@@ -227,20 +303,25 @@ export async function RemoveQuickLaunchItem(webUrl: string, titlesToRemove: stri
         item.deleteObject();
     }
     await new Promise((resolve, reject) => {
-        clientContext.executeQueryAsync((x) => {
+        clientContext.executeQueryAsync((req: SP.ClientRequest, ars: SP.ClientRequestSucceededEventArgs) => {
+            addMessage(`Removed items ${titlesToRemove.join(",")} from QuickLaunch`);
             resolve();
-        }, (error) => {
-            console.log(error);
+        }, (req: SP.ClientRequest, args: SP.ClientRequestFailedEventArgs) => {
+            addMessage(`<h1>Error Removing items from  quicklaunch in method RemoveQuickLaunchItem</h1>`);
+            addMessage(args.get_message());
+            addMessage(args.get_errorDetails());
+            addMessage(args.get_errorValue());
+            console.error(args);
             reject();
         });
     });
 
 }
-export async function fixUpLeftNav(webUrl: string, homeUrl: string) {
+// export async function fixUpLeftNav(webUrl: string, homeUrl: string) {
 
-    await AddQuickLaunchItem(webUrl, "EFR Home", homeUrl, true);
-    await RemoveQuickLaunchItem(webUrl, ["Pages", "Documents"]);
-}
+//     await AddQuickLaunchItem(webUrl, "EFR Home", homeUrl, true);
+//     await RemoveQuickLaunchItem(webUrl, ["Pages", "Documents"]);
+// }
 /**
  *  Adds a custom webpart to the page at editformUrl
  * 
@@ -313,7 +394,7 @@ export async function addCustomListWithContentType(web: Web, rootweb: Web, listT
             addMessage("Created List " + listTitle);
             list = listResponse.list;
         }).catch(error => {
-  
+
             console.error(error);
             addMessage(error.data.responseBody["odata.error"].message.value);
             return;
@@ -330,7 +411,7 @@ export async function addCustomListWithContentType(web: Web, rootweb: Web, listT
     return Promise.resolve(list);
 }
 export function processUploadedFiles(httpClient: HttpClient, functionUrl: string): Promise<any> {
- 
+
     // call the azure function to write the message to the queue, to start the webjob to process the files
     //https://grctest.azurewebsites.net/api/HttpTriggerCSharp1?code=HBM82bnia7nKPC/nqVTbaCmfPaFyubQa8iY22lb0r88fdQH370CRUg==&SiteType=%27Role%20to%20Tcode%20Review%27&SiteUrl=%27jwh%27&PrimaryApproverList=%27pal%27&RoleReview=%27rr%27&RoleToTransaction=%27rtt%27
     // query param is SiteType='Role to Tcode Review' SiteUrl='url to the new web' PrimaryApproverList='name of the file we updaded to Documents'  RoleReview='name of the file we updaded to Documents' RoleToTransaction='name of the file we updaded to Documents'
