@@ -96,14 +96,24 @@ export default class MitigatingControls extends React.Component<IMitigatingContr
 
   public setComplete(): Promise<any> {
 
-    return this.props.setComplete(this.props.primaryApprover[0]).then(() => {
-
-      alert("Completed");
+    return this.props.save(this.state.mitigatingControls).then(() => {
+      var tempArray = map(this.state.mitigatingControls, (rr) => {
+        return { ...rr, hasBeenUpdated: false };
+      });
+      this.setState((current) => ({ ...current, mitigatingControls: tempArray }));
+      return this.props.setComplete(this.props.primaryApprover[0]).then(() => {
+        alert("Completed");
+      }).catch((err) => {
+        debugger;
+        console.error(err);
+        alert(err);
+      });
     }).catch((err) => {
       debugger;
       console.error(err);
       alert(err);
     });
+
   }
   public save(): Promise<any> {
     return this.props.save(this.state.mitigatingControls).then(() => {
@@ -193,7 +203,7 @@ export default class MitigatingControls extends React.Component<IMitigatingContr
       if (!mitigatingControl.Comments) {
         return false;
       }
-      if (mitigatingControl.Comments.length < 8) {
+      if (mitigatingControl.Comments.length === 0) {
         return false;
       }
 
@@ -358,6 +368,7 @@ export default class MitigatingControls extends React.Component<IMitigatingContr
           selectionMode={SelectionMode.multiple}
           selection={this.selection}
           key="Risk_x0020_ID"
+          layoutMode={DetailsListLayoutMode.fixedColumns}
 
           columns={[
             {
@@ -377,7 +388,7 @@ export default class MitigatingControls extends React.Component<IMitigatingContr
             },
             {
               key: "Control_x0020_ID", name: "Control ID",
-              fieldName: "Control_x0020_ID", minWidth: 50,
+              fieldName: "Control_x0020_ID", minWidth: 65,
             },
             {
               key: "Description", name: "Control Description",

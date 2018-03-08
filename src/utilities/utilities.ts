@@ -142,6 +142,8 @@ export function uploadFile(web: Web, libraryName: string, file: File, saveAsFile
         });
 }
 export async function cleanupHomePage(webRelativeUrl: string, homePageUrl, webPartXml: string, addMessage: (message: string) => void) {
+    addMessage(`Home page Url is ${homePageUrl}`)
+    addMessage(`Web relative url is  ${webRelativeUrl}`)
     const clientContext: SP.ClientContext = new SP.ClientContext(webRelativeUrl);
     var oFile = clientContext.get_web().getFileByServerRelativeUrl(homePageUrl);
     var limitedWebPartManager = oFile.getLimitedWebPartManager(SP.WebParts.PersonalizationScope.shared);
@@ -161,23 +163,26 @@ export async function cleanupHomePage(webRelativeUrl: string, homePageUrl, webPa
         });
     });
     let count = webparts.get_count();
+    addMessage(`There are ${count} webparts on the homme page to remove`)
     for (let i = 0; i < count; i++) {
         let originalWebPartDef = webparts.get_item(i);
+        addMessage(`Removing webpart  ${i} `)
         originalWebPartDef.deleteWebPart();
-    }
-    await new Promise((resolve, reject) => {
-        clientContext.executeQueryAsync((req: SP.ClientRequest, args: SP.ClientRequestSucceededEventArgs) => {
-            addMessage(`Webparts removed from page at '${homePageUrl}'`);
-            resolve();
-        }, (req: SP.ClientRequest, args: SP.ClientRequestFailedEventArgs) => {
-            addMessage(`Error removing Webparts from page at '${homePageUrl}'`);
-            addMessage(args.get_message());
-            addMessage(args.get_errorDetails());
-            addMessage(args.get_errorValue());
-            console.error(args);
-            reject();
+        await new Promise((resolve, reject) => {
+            clientContext.executeQueryAsync((req: SP.ClientRequest, args: SP.ClientRequestSucceededEventArgs) => {
+                addMessage(`Webparts removed from page at '${homePageUrl}'`);
+                resolve();
+            }, (req: SP.ClientRequest, args: SP.ClientRequestFailedEventArgs) => {
+                addMessage(`Error removing Webparts from page at '${homePageUrl}'`);
+                addMessage(args.get_message());
+                addMessage(args.get_errorDetails());
+                addMessage(args.get_errorValue());
+                console.error(args);
+                reject();
+            });
         });
-    });
+    }
+   
     let oWebPartDefinition = limitedWebPartManager.importWebPart(webPartXml);
     let oWebPart = oWebPartDefinition.get_webPart();
     limitedWebPartManager.addWebPart(oWebPart, 'Main', 1);
@@ -248,7 +253,7 @@ export async function AddUsersInListToGroup(webUrl: string, listName: string, us
 
         })
         .catch((err) => {
-            addMessage(`<h1>Error fething people from the list named  ${listName}</h1>`);
+            addMessage(`<h1>Error fetching people from the list named  ${listName}</h1>`);
             addMessage(err.data.responseBody["odata.error"].message.value);
         });
 }
