@@ -237,19 +237,26 @@ export async function AddUsersInListToGroup(webUrl: string, listName: string, us
         .then(async (listItems) => {
             debugger;
             for (const item of listItems) {
+                if (item[userFieldName]){
+           
                 await pnp.sp.web.siteGroups.getByName(membersGroup.Title).users.add(item[userFieldName]["Name"])
-                    .then((d) => {
-                        d.select("Id").get().then(userData => {
-                            console.log(userData);
-                        });
+                    .then(e=>{
+                        addMessage(`added ${item[userFieldName]["Name"]}`);
                     })
                     .catch((err) => {
+                        debugger;
                         addMessage(`<h1>Error adding user ${item[userFieldName]["Name"]}</h1>`);
                         addMessage(err.data.responseBody["odata.error"].message.value);
+                        return;
                     });
 
 
             }
+            else{
+                debugger;
+                addMessage(`<h3>User is missing on row</h3>`)
+            }
+        }
 
         })
         .catch((err) => {
