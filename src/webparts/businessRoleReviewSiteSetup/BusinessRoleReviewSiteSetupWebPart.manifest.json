@@ -1,0 +1,29 @@
+{
+  "$schema": "https://dev.office.com/json-schemas/spfx/client-side-web-part-manifest.schema.json",
+  "id": "addd4124-eeac-4d97-b82f-3d38cf43ac19",
+  "alias": "BusinessRoleReviewSiteSetupWebPart",
+  "componentType": "WebPart",
+
+  // The "*" signifies that the version should be taken from the package.json
+  "version": "*",
+  "manifestVersion": 2,
+
+  // If true, the component can only be installed on sites where Custom Script is allowed.
+  // Components that allow authors to embed arbitrary script code should set this to true.
+  // https://support.office.com/en-us/article/Turn-scripting-capabilities-on-or-off-1f2c515f-5d7e-448a-9fd7-835da935584f
+  "requiresCustomScript": false,
+
+  "preconfiguredEntries": [{
+    "groupId": "5c03119e-3074-46fd-976b-c60198311f70", // Other
+    "group": { "default": "Other" },
+    "title": { "default": "businessRoleReviewSiteSetup" },
+    "description": { "default": "businessRoleReviewSiteSetup description" },
+    "officeFabricIconFontName": "Page",
+    "properties": {
+      "primaryApproversListName": "Primary Approver List",
+      "businessRoleReviewListName":"Business Role Owners",
+      "webPartXml":   "<webParts>      <webPart xmlns='http://schemas.microsoft.com/WebPart/v3'>        <metaData>          <type name='Microsoft.SharePoint.WebPartPages.ClientSideWebPart, Microsoft.SharePoint, Version=16.0.0.0, Culture=neutral, PublicKeyToken=71e9bce111e9429c' />          <importErrorMessage>Cannot Import WebPart</importErrorMessage>        </metaData>        <data>          <properties>            <property name='AllowZoneChange' type='bool'>True</property>            <property name='HelpUrl' type='string' />            <property name='Hidden' type='bool'>False</property>            <property name='MissingAssembly' type='string'>Cannot Import WebPart</property>            <property name='Description' type='string'>mitigating controls user webpart</property>            <property name='AllowHide' type='bool'>True</property>            <property name='AllowMinimize' type='bool'>True</property>            <property name='ExportMode' type='exportmode'>All</property>            <property name='Title' type='string'>MitigatingControls</property>            <property name='TitleUrl' type='string' />            <property name='ClientSideWebPartData' type='string'>&lt;div data-sp-webpart='' data-sp-webpartdataversion=1.0 data-sp-webpartdata='&amp;#123;&amp;quot;id&amp;quot;&amp;#58;&amp;quot;746860a8-18c2-4110-bd12-62ce3e2fc801&amp;quot;,&amp;quot;instanceId&amp;quot;&amp;#58;null,&amp;quot;title&amp;quot;&amp;#58;&amp;quot;MitigatingControls&amp;quot;,&amp;quot;description&amp;quot;&amp;#58;&amp;quot;mitigating controls user webpart&amp;quot;,&amp;quot;version&amp;quot;&amp;#58;&amp;quot;0.0.1&amp;quot;,&amp;quot;properties&amp;quot;&amp;#58;&amp;#123;&amp;quot;description&amp;quot;&amp;#58;&amp;quot;MitigatingControls&amp;quot;,&amp;quot;primaryApproversListName&amp;quot;&amp;#58;&amp;quot;Primary Approver List&amp;quot;,&amp;quot;mitigatingControlsListName&amp;quot;&amp;#58;&amp;quot;High Risk with Mitigating Controls&amp;quot;,&amp;quot;effectiveLabel&amp;quot;&amp;#58;&amp;quot;Does the mitigating control effectively remediate the assiciated risk?&amp;quot;,&amp;quot;continuesLabel&amp;quot;&amp;#58;&amp;quot;Does the mitigating control continue to be performed?&amp;quot;,&amp;quot;correctPersonLabel&amp;quot;&amp;#58;&amp;quot;Is the mitigating control monitor the correct person to perform control?&amp;quot;&amp;#125;,&amp;quot;htmlProperties&amp;quot;&amp;#58;null&amp;#125;'&gt;&lt;div data-sp-componentid=''&gt;746860a8-18c2-4110-bd12-62ce3e2fc801&lt;/div&gt;&lt;div data-sp-htmlproperties=''&gt;&lt;/div&gt;&lt;/div&gt;</property>            <property name='ChromeType' type='chrometype'>Default</property>            <property name='AllowConnect' type='bool'>True</property>            <property name='Width' type='string' />            <property name='Height' type='string' />            <property name='CatalogIconImageUrl' type='string' />            <property name='HelpMode' type='helpmode'>Modeless</property>            <property name='ClientSideWebPartId' type='System.Guid, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'>746860a8-18c2-4110-bd12-62ce3e2fc801</property>            <property name='AllowEdit' type='bool'>True</property>            <property name='TitleIconImageUrl' type='string' />            <property name='Direction' type='direction'>NotSet</property>            <property name='AllowClose' type='bool'>True</property>            <property name='ChromeState' type='chromestate'>Normal</property>          </properties>        </data>      </webPart>    </webParts>"    
+  
+    }
+  }]
+}

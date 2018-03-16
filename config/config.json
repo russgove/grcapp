@@ -57,6 +57,22 @@
           "manifest": "./src/webparts/mitigatingControls/MitigatingControlsWebPart.manifest.json"
         }
       ]
+    },
+    "business-role-review-web-part": {
+      "components": [
+        {
+          "entrypoint": "./lib/webparts/businessRoleReview/BusinessRoleReviewWebPart.js",
+          "manifest": "./src/webparts/businessRoleReview/BusinessRoleReviewWebPart.manifest.json"
+        }
+      ]
+    },
+    "business-role-review-site-setup-web-part": {
+      "components": [
+        {
+          "entrypoint": "./lib/webparts/businessRoleReviewSiteSetup/BusinessRoleReviewSiteSetupWebPart.js",
+          "manifest": "./src/webparts/businessRoleReviewSiteSetup/BusinessRoleReviewSiteSetupWebPart.manifest.json"
+        }
+      ]
     }
   },
   "externals": {
@@ -101,6 +117,8 @@
     "GrcAzureManagementWebPartStrings": "lib/webparts/grcAzureManagement/loc/{locale}.js",
     "MitigatingControlsSiteSetupWebPartStrings": "lib/webparts/mitigatingControlsSiteSetup/loc/{locale}.js",
     "MitigatingControlsWebPartStrings": "lib/webparts/mitigatingControls/loc/{locale}.js",
-    "PropertyControlStrings": "./node_modules/@pnp/spfx-property-controls/lib/loc/{locale}.js"
+    "PropertyControlStrings": "./node_modules/@pnp/spfx-property-controls/lib/loc/{locale}.js",
+    "BusinessRoleReviewWebPartStrings": "lib/webparts/businessRoleReview/loc/{locale}.js",
+    "BusinessRoleReviewSiteSetupWebPartStrings": "lib/webparts/businessRoleReviewSiteSetup/loc/{locale}.js"
   }
 }

@@ -6,9 +6,9 @@ import {
   IPropertyPaneConfiguration,
   PropertyPaneTextField
 } from '@microsoft/sp-webpart-base';
-import{
-Environment,
-EnvironmentType
+import {
+  Environment,
+  EnvironmentType
 } from '@microsoft/sp-core-library';
 import * as strings from 'MitigatingControlsWebPartStrings';
 import MitigatingControls from './components/MitigatingControls';
@@ -20,9 +20,9 @@ import { MitigatingControlsItem, PrimaryApproverItem } from "./dataModel";
 export interface IMitigatingControlsWebPartProps {
   primaryApproversListName: string;
   mitigatingControlsListName: string;
-  effectiveLabel:string;
-  continuesLabel:string;
-  correctPersonLabel:string;
+  effectiveLabel: string;
+  continuesLabel: string;
+  correctPersonLabel: string;
 }
 
 export default class MitigatingControlsWebPart extends BaseClientSideWebPart<IMitigatingControlsWebPartProps> {
@@ -51,7 +51,7 @@ export default class MitigatingControlsWebPart extends BaseClientSideWebPart<IMi
         this.primaryApproverLists = result;
 
       }).catch((err) => {
-      
+
         console.error(err.data.responseBody["odata.error"].message.value);
         alert(err.data.responseBody["odata.error"].message.value);
         debugger;
@@ -61,7 +61,7 @@ export default class MitigatingControlsWebPart extends BaseClientSideWebPart<IMi
 
   }
   private async fetchMitigatingControls(): Promise<any> {
-  
+
     let userId = this.context.pageContext.legacyPageContext.userId;
     let select = `*,PrimaryApproverId,PrimaryApprover/Title`;
     let expands = "PrimaryApprover";
@@ -82,9 +82,9 @@ export default class MitigatingControlsWebPart extends BaseClientSideWebPart<IMi
         fetchMitigatingControls: this.fetchMitigatingControls.bind(this),
         setComplete: this.setComplete.bind(this),
         domElement: this.domElement,
-        effectiveLabel:this.properties.effectiveLabel,
-        continuesLabel:this.properties.continuesLabel,
-        correctPersonLabel:this.properties.correctPersonLabel
+        effectiveLabel: this.properties.effectiveLabel,
+        continuesLabel: this.properties.continuesLabel,
+        correctPersonLabel: this.properties.correctPersonLabel
 
       }
     );
@@ -119,19 +119,20 @@ export default class MitigatingControlsWebPart extends BaseClientSideWebPart<IMi
 
   }
   public save(MitigatingControls: Array<MitigatingControlsItem>): Promise<any> {
-  let itemsToSave = filter(MitigatingControls, (rtc) => { return rtc.hasBeenUpdated === true; });
+    let itemsToSave = filter(MitigatingControls, (rtc) => { return rtc.hasBeenUpdated === true; });
     let batch = pnp.sp.createBatch();
     //let promises: Array<Promise<any>> = [];
 
     for (let item of itemsToSave) {
       pnp.sp.web.lists.getByTitle(this.properties.mitigatingControlsListName)
-        .items.getById(item.Id).inBatch(batch).update({ 
-          "Effective": item.Effective, 
-          "Continues": item.Continues, 
-          "Right_x0020_Monitor_x003f_": item.Right_x0020_Monitor_x003f_, 
-          "Comments": item.Comments })
+        .items.getById(item.Id).inBatch(batch).update({
+          "Effective": item.Effective,
+          "Continues": item.Continues,
+          "Right_x0020_Monitor_x003f_": item.Right_x0020_Monitor_x003f_,
+          "Comments": item.Comments
+        })
         .then((x) => {
-      
+
         })
         .catch((err) => {
           console.error(err);
