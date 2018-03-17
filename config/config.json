@@ -73,6 +73,22 @@
           "manifest": "./src/webparts/businessRoleReviewSiteSetup/BusinessRoleReviewSiteSetupWebPart.manifest.json"
         }
       ]
+    },
+    "high-risk-web-part": {
+      "components": [
+        {
+          "entrypoint": "./lib/webparts/highRisk/HighRiskWebPart.js",
+          "manifest": "./src/webparts/highRisk/HighRiskWebPart.manifest.json"
+        }
+      ]
+    },
+    "high-risk-site-setup-web-part": {
+      "components": [
+        {
+          "entrypoint": "./lib/webparts/highRiskSiteSetup/HighRiskSiteSetupWebPart.js",
+          "manifest": "./src/webparts/highRiskSiteSetup/HighRiskSiteSetupWebPart.manifest.json"
+        }
+      ]
     }
   },
   "externals": {
@@ -119,6 +135,8 @@
     "MitigatingControlsWebPartStrings": "lib/webparts/mitigatingControls/loc/{locale}.js",
     "PropertyControlStrings": "./node_modules/@pnp/spfx-property-controls/lib/loc/{locale}.js",
     "BusinessRoleReviewWebPartStrings": "lib/webparts/businessRoleReview/loc/{locale}.js",
-    "BusinessRoleReviewSiteSetupWebPartStrings": "lib/webparts/businessRoleReviewSiteSetup/loc/{locale}.js"
+    "BusinessRoleReviewSiteSetupWebPartStrings": "lib/webparts/businessRoleReviewSiteSetup/loc/{locale}.js",
+    "HighRiskWebPartStrings": "lib/webparts/highRisk/loc/{locale}.js",
+    "HighRiskSiteSetupWebPartStrings": "lib/webparts/highRiskSiteSetup/loc/{locale}.js"
   }
 }

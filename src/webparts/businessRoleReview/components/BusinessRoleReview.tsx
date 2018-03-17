@@ -365,8 +365,13 @@ export default class BusinessRoleReview extends React.Component<IBusinessRoleRev
 
           columns={[
             {
-              key: "Risk_x0020_ID", name: "Risk ID",
-              fieldName: "Risk_x0020_ID", minWidth: 50,
+              key: "Role_x0020_Name", name: "Role name",
+              fieldName: "Role_x0020_Name", minWidth: 50,
+            },
+           
+            {
+              key: "Composite_x0020_Role", name: "Composite ROle",
+              fieldName: "Composite_x0020_Role", minWidth: 65,
             },
             {
               key: "Risk_x0020_Description", name: "Risk Description",
@@ -378,10 +383,6 @@ export default class BusinessRoleReview extends React.Component<IBusinessRoleRev
                   </div>
                 );
               },
-            },
-            {
-              key: "Composite_x0020_Role", name: "Composite ROle",
-              fieldName: "Composite_x0020_Role", minWidth: 65,
             },
             {
               key: "Approval", name: "Approval Decision",
