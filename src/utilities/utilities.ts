@@ -142,8 +142,8 @@ export function uploadFile(web: Web, libraryName: string, file: File, saveAsFile
         });
 }
 export async function cleanupHomePage(webRelativeUrl: string, homePageUrl, webPartXml: string, addMessage: (message: string) => void) {
-    addMessage(`Home page Url is ${homePageUrl}`)
-    addMessage(`Web relative url is  ${webRelativeUrl}`)
+    addMessage(`Home page Url is ${homePageUrl}`);
+    addMessage(`Web relative url is  ${webRelativeUrl}`);
     const clientContext: SP.ClientContext = new SP.ClientContext(webRelativeUrl);
     var oFile = clientContext.get_web().getFileByServerRelativeUrl(homePageUrl);
     var limitedWebPartManager = oFile.getLimitedWebPartManager(SP.WebParts.PersonalizationScope.shared);
@@ -163,10 +163,10 @@ export async function cleanupHomePage(webRelativeUrl: string, homePageUrl, webPa
         });
     });
     let count = webparts.get_count();
-    addMessage(`There are ${count} webparts on the homme page to remove`)
+    addMessage(`There are ${count} webparts on the homme page to remove`);
     for (let i = 0; i < count; i++) {
         let originalWebPartDef = webparts.get_item(i);
-        addMessage(`Removing webpart  ${i} `)
+        addMessage(`Removing webpart  ${i} `);
         originalWebPartDef.deleteWebPart();
         await new Promise((resolve, reject) => {
             clientContext.executeQueryAsync((req: SP.ClientRequest, args: SP.ClientRequestSucceededEventArgs) => {
@@ -254,7 +254,7 @@ export async function AddUsersInListToGroup(webUrl: string, listName: string, us
             }
             else{
                 debugger;
-                addMessage(`<h3>User is missing on row</h3>`)
+                addMessage(`<h3>User is missing on row</h3>`);
             }
         }
 

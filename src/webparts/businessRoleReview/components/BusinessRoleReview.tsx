@@ -36,7 +36,7 @@ export default class BusinessRoleReview extends React.Component<IBusinessRoleRev
     this.save = this.save.bind(this);
     this.setComplete = this.setComplete.bind(this);
     this.updateSelected = this.updateSelected.bind(this);
-    this.fetchMitigatingContols = this.fetchMitigatingContols.bind(this);
+    this.fetchBusinessRoleReview = this.fetchBusinessRoleReview.bind(this);
     this.state = {
       primaryApprover: props.primaryApprover,
       businessRoleReview: [],
@@ -45,12 +45,12 @@ export default class BusinessRoleReview extends React.Component<IBusinessRoleRev
     };
   }
   public componentDidMount() {
-    this.fetchMitigatingContols();
+    this.fetchBusinessRoleReview();
   }
-  public fetchMitigatingContols(): Promise<any> {
+  public fetchBusinessRoleReview(): Promise<any> {
 
     return this.props.fetchBusinessRoleReview().then((items) => {
-
+      debugger;
       this.setState((current) => ({ ...current, businessRoleReview: items }));
     }).catch((err) => {
       debugger;
@@ -65,12 +65,12 @@ export default class BusinessRoleReview extends React.Component<IBusinessRoleRev
     }
   }
   public updateSelected(ev?: React.MouseEvent<HTMLElement>, item?: IContextualMenuItem): void {
-
+    debugger;
     var tempArray = map(this.state.businessRoleReview, (rr) => {
       if (this.selection.isKeySelected(rr.Id.toString()) === this.state.changeSelected) {
         return {
           ...rr,
-          
+          Approval: this.state.popupValueApproval?this.state.popupValueApproval:rr.Approval,
           Comments: this.state.popupValueComments ? this.state.popupValueComments : rr.Comments,
           hasBeenUpdated: true,
         };
@@ -83,10 +83,8 @@ export default class BusinessRoleReview extends React.Component<IBusinessRoleRev
     });
     this.setState((current) => ({
       ...current,
-      mitigatingControls: tempArray,
-      popupValueEffective: null,
-      popupValueContinues: null,
-      popupValueCorrectPerson: null,
+      businessRoleReview: tempArray,
+      popupValueApproval: null,
       popupValueComments: null,
       showPopup: false
     }));
@@ -137,16 +135,17 @@ export default class BusinessRoleReview extends React.Component<IBusinessRoleRev
     }
     else {
       return (
-        <TextField
+        <TextField key="Commenys"
+
           value={item.Comments}
           onChanged={(newValue) => {
-            let tempRoleToTCodeReview = this.state.businessRoleReview;
-            let rtc = find(tempRoleToTCodeReview, (x) => {
+            let temp = this.state.businessRoleReview;
+            let rtc = find(temp, (x) => {
               return x.Id === item.Id;
             });
             rtc.Comments = newValue;
             rtc.hasBeenUpdated = true;
-            this.setState((current) => ({ ...current, roleToTCodeReview: tempRoleToTCodeReview, changesHaveBeenMade: true }));
+            this.setState((current) => ({ ...current, businessRoleReview: temp, changesHaveBeenMade: true }));
 
           }}
 
@@ -243,14 +242,14 @@ export default class BusinessRoleReview extends React.Component<IBusinessRoleRev
       },
 
       {
-        key: "Undo", name: "Undo", icon: "Undo", onClick: this.fetchMitigatingContols,
+        key: "Undo", name: "Undo", icon: "Undo", onClick: this.fetchBusinessRoleReview,
         disabled: !(filter(this.state.businessRoleReview, (rr) => {
           return rr
             .hasBeenUpdated;
         }).length > 0)
       },
       { // if the item has been comleted OR there are items with noo approvasl, diable
-        key: "Done", name: "Complete", icon: "Completed", onClick: this.setComplete,
+        key: "Done", name: "Task Complete", icon: "Completed", onClick: this.setComplete,
         disabled: this.props.primaryApprover[0].Completed === "Yes" || !(this.areAllQuestionsAnswered())
 
       }
@@ -281,7 +280,7 @@ export default class BusinessRoleReview extends React.Component<IBusinessRoleRev
                 : `Update ${this.state.businessRoleReview.length} Unselected Items`,
             subText: 'All selected items will be updated with the following values'
           }} >
-          <ChoiceGroup label={this.props.effectiveLabel}
+          <ChoiceGroup label="Approval Decision" 
             options={[
               {
                 key: '1',
@@ -292,48 +291,14 @@ export default class BusinessRoleReview extends React.Component<IBusinessRoleRev
                 text: 'No',
               },
             ]}
-            selectedKey={this.state.popupValueEffective}
+            selectedKey={this.state.popupValueApproval}
 
             onChange={(ev?: React.FormEvent<HTMLElement | HTMLInputElement>, option?: IChoiceGroupOption) => {
 
-              this.setState((current) => ({ ...current, popupValueEffective: option.key }));
+              this.setState((current) => ({ ...current, popupValueApproval: option.key }));
             }}
           />
-          <ChoiceGroup label={this.props.continuesLabel}
-            options={[
-              {
-                key: '1',
-                text: 'Yes'
-              },
-              {
-                key: '2',
-                text: 'No',
-              },
-            ]}
-            selectedKey={this.state.popupValueContinues}
-            onChange={(ev?: React.FormEvent<HTMLElement | HTMLInputElement>, option?: IChoiceGroupOption) => {
-
-              this.setState((current) => ({ ...current, popupValueContinues: option.key }));
-            }}
-          />
-          <ChoiceGroup label={this.props.correctPersonLabel}
-            options={[
-              {
-                key: '1',
-                text: 'Yes'
-              },
-              {
-                key: '2',
-                text: 'No',
-              },
-
-            ]}
-            selectedKey={this.state.popupValueCorrectPerson}
-            onChange={(ev?: React.FormEvent<HTMLElement | HTMLInputElement>, option?: IChoiceGroupOption) => {
-
-              this.setState((current) => ({ ...current, popupValueCorrectPerson: option.key }));
-            }}
-          />
+      
           <TextField label="Comments" onChanged={(e) => {
 
             this.setState((current) => ({ ...current, popupValueComments: e }));

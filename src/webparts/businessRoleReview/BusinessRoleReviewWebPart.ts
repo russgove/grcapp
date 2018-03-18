@@ -21,9 +21,7 @@ import { BusinessRoleReviewItem, PrimaryApproverItem } from "./dataModel";
 export interface IBusinessRoleReviewWebPartProps {
   primaryApproversListName: string;
   businessRoleReviewListName: string;
-  effectiveLabel:string;
-  continuesLabel:string;
-  correctPersonLabel:string;
+
 }
 
 export default class BusinessRoleReviewWebPart extends BaseClientSideWebPart<IBusinessRoleReviewWebPartProps> {
@@ -119,9 +117,7 @@ export default class BusinessRoleReviewWebPart extends BaseClientSideWebPart<IBu
         fetchBusinessRoleReview: this.fetchBusinessRoleReview.bind(this),
         setComplete: this.setComplete.bind(this),
         domElement: this.domElement,
-        effectiveLabel: this.properties.effectiveLabel,
-        continuesLabel: this.properties.continuesLabel,
-        correctPersonLabel: this.properties.correctPersonLabel
+
       }
     );
 
@@ -157,9 +153,13 @@ export default class BusinessRoleReviewWebPart extends BaseClientSideWebPart<IBu
             {
               groupName: strings.BasicGroupName,
               groupFields: [
-                PropertyPaneTextField('description', {
-                  label: strings.DescriptionFieldLabel
-                })
+                PropertyPaneTextField('primaryApproversListName', {
+                  label: "Primary Approvers List"
+                }),
+                PropertyPaneTextField('businessRoleReviewListName', {
+                  label: "Business Role Owers List"
+                }),
+
               ]
             }
           ]

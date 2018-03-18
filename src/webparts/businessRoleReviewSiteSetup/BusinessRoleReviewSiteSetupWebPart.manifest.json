@@ -15,7 +15,7 @@
 
   "preconfiguredEntries": [{
     "groupId": "5c03119e-3074-46fd-976b-c60198311f70", // Other
-    "group": { "default": "Other" },
+    "group": { "default": "GRC Admin Webparts" },
     "title": { "default": "businessRoleReviewSiteSetup" },
     "description": { "default": "businessRoleReviewSiteSetup description" },
     "officeFabricIconFontName": "Page",
