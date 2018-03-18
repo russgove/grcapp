@@ -134,10 +134,11 @@ export default class BusinessRoleReview extends React.Component<IBusinessRoleRev
       );
     }
     else {
+      console.log(item.Comments)
       return (
-        <TextField key="Commenys"
+        <TextField key="Comments"
 
-          value={item.Comments}
+          value={item.Comments?item.Comments:""}
           onChanged={(newValue) => {
             let temp = this.state.businessRoleReview;
             let rtc = find(temp, (x) => {

@@ -2,9 +2,13 @@
 
 .businessRoleReview {
   :global{
+    .ms-ChoiceGroup{
+      display: inline-block
+    }
     .ms-DetailsHeader{
       height: .5in;
     }
+
     .ms-DetailsHeader-cell{
       white-space:normal;
       overflow-wrap : break-word;
