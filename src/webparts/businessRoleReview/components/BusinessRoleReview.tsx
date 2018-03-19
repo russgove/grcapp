@@ -134,7 +134,6 @@ export default class BusinessRoleReview extends React.Component<IBusinessRoleRev
       );
     }
     else {
-      console.log(item.Comments)
       return (
         <TextField key="Comments"
 
@@ -171,20 +170,44 @@ export default class BusinessRoleReview extends React.Component<IBusinessRoleRev
     }
     else {
       return (
-        <Dropdown options={options}
-          selectedKey={item[column.fieldName]}
-          onChanged={(option: IDropdownOption, idx?: number) => {
-            let tempTable = this.state.businessRoleReview;
+        <ChoiceGroup label="" 
+        options={[
+          {
+            key: '1',
+            text: 'Yes'
+          },
+          {
+            key: '2',
+            text: 'No',
+          },
+        ]}
+        selectedKey={item[column.fieldName]}
 
-            let rtc = find(tempTable, (x) => {
-              return x.Id === item.Id;
-            });
-            rtc[column.fieldName] = option.key as string;
-            rtc.hasBeenUpdated = true;
-            this.setState((current) => ({ ...current, mitigatingControls: tempTable, changesHaveBeenMade: true }));
-          }}
-        >
-        </Dropdown>
+           onChanged={(option: IChoiceGroupOption, event: any) => {
+             let tempTable = this.state.businessRoleReview;
+
+             let rtc = find(tempTable, (x) => {
+               return x.Id === item.Id;
+             });
+             rtc[column.fieldName] = option.key as string;
+             rtc.hasBeenUpdated = true;
+             this.setState((current) => ({ ...current, mitigatingControls: tempTable, changesHaveBeenMade: true }));
+           }}
+      />
+        // <Dropdown options={options}
+        //   selectedKey={item[column.fieldName]}
+        //   onChanged={(option: IDropdownOption, idx?: number) => {
+        //     let tempTable = this.state.businessRoleReview;
+
+        //     let rtc = find(tempTable, (x) => {
+        //       return x.Id === item.Id;
+        //     });
+        //     rtc[column.fieldName] = option.key as string;
+        //     rtc.hasBeenUpdated = true;
+        //     this.setState((current) => ({ ...current, mitigatingControls: tempTable, changesHaveBeenMade: true }));
+        //   }}
+        // >
+        // </Dropdown>
       );
     }
   }
@@ -327,32 +350,64 @@ export default class BusinessRoleReview extends React.Component<IBusinessRoleRev
           selectionMode={SelectionMode.multiple}
           selection={this.selection}
           key="Risk_x0020_ID"
-          layoutMode={DetailsListLayoutMode.fixedColumns}
-
+          layoutMode={DetailsListLayoutMode.justified}
           columns={[
             {
-              key: "Role_x0020_Name", name: "Role name",
-              fieldName: "Role_x0020_Name", minWidth: 50,
-            },
-           
-            {
-              key: "Composite_x0020_Role", name: "Composite ROle",
-              fieldName: "Composite_x0020_Role", minWidth: 65,
-            },
-            {
-              key: "Risk_x0020_Description", name: "Risk Description",
-              fieldName: "Risk_x0020_Description", minWidth: 170,
+              key: "Role_x0020_Name", name: "Role Name / Composite Role",
+              fieldName: "Role_x0020_Name", 
+              minWidth: this.props.roleNameWidth,
+              isResizable:true,
               onRender: (item?: BusinessRoleReviewItem, index?: number, column?: IColumn) => {
                 return (
-                  <div>
+                  <div  >
                     {item.Role_x0020_Name}
+                    <br />
+                    {item.Composite_x0020_Role}
+                  </div>
+                );
+              },
+            },
+           
+            // {
+            //   key: "Composite_x0020_Role", name: "Composite Role",
+            //   fieldName: "Composite_x0020_Role", minWidth: this.props.compositeRoleWidth,
+            // },
+            {
+              key: "Approver", name: "Approver ID/Name ",
+              fieldName: "Approver", 
+              minWidth: this.props.approverWidth,
+              isResizable:true,
+              onRender: (item?: BusinessRoleReviewItem, index?: number, column?: IColumn) => {
+                return (
+                  <div  >
+                    {item.Approver}
+                    <br />
+                    {item.Approver_x0020_Name}
                   </div>
                 );
               },
             },
             {
+              key: "AlternateApprover", name: "Alt. Apprv. ID/Name",
+              fieldName: "Composite_x0020_Role",
+              minWidth: this.props.altApproverWidth,
+              isResizable:true,
+              onRender: (item?: BusinessRoleReviewItem, index?: number, column?: IColumn) => {
+                return (
+                  <div  >
+                    {item.Alt_x0020_Apprv}
+                    <br />
+                    {item.Alternate_x0020_Approver}
+                  </div>
+                );
+              },
+            },
+            
+            {
               key: "Approval", name: "Approval Decision",
-              fieldName: "Approval", minWidth: 150,
+              fieldName: "Approval",
+              minWidth: this.props.approvalDecisionWidth,
+              isResizable:true,
               onRender: (item?: any, index?: number, column?: IColumn) => {
                 return this.RenderApproval(item, index, column);
               },
@@ -360,8 +415,12 @@ export default class BusinessRoleReview extends React.Component<IBusinessRoleRev
             },
             {
               key: "Comments", name: "Comments",
-              fieldName: "Comments", minWidth: 150,
-              onRender: (item?: any, index?: number, column?: IColumn) => { return this.RenderComments(item, index, column); },
+              fieldName: "Comments",
+              minWidth: this.props.commentsWidth,
+              isResizable:true,
+              onRender: (item?: any, index?: number, column?: IColumn) => { 
+                return this.RenderComments(item, index, column);
+               },
             },
 
 

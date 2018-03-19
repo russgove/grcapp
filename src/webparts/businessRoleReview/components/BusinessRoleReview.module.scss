@@ -2,21 +2,24 @@
 
 .businessRoleReview {
   :global{
-    .ms-ChoiceGroup{
-      display: inline-block
-    }
-    .ms-DetailsHeader{
-      height: .5in;
-    }
+    .ms-ChoiceField{
+      display: inline-block;
+      margin-top: 0px;
+      margin-right: 3px;
 
-    .ms-DetailsHeader-cell{
-      white-space:normal;
-      overflow-wrap : break-word;
-      word-wrap: break-word;
-      line-height: 15px;
-      height: .5in;
-      vertical-align: text-bottom;
     }
+    // .ms-DetailsHeader{
+    //   height: .5in;
+    // }
+
+    // .ms-DetailsHeader-cell{
+    //   white-space:normal;
+    //   overflow-wrap : break-word;
+    //   word-wrap: break-word;
+    //   line-height: 15px;
+    //   height: .5in;
+    //   vertical-align: text-bottom;
+    // }
   }
   .container {
     max-width: 700px;

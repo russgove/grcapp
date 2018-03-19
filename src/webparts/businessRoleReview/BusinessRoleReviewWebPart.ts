@@ -4,7 +4,8 @@ import { Version } from '@microsoft/sp-core-library';
 import {
   BaseClientSideWebPart,
   IPropertyPaneConfiguration,
-  PropertyPaneTextField
+  PropertyPaneTextField,
+  PropertyPaneSlider,IPropertyPaneSliderProps
 } from '@microsoft/sp-webpart-base';
 import{
   Environment,
@@ -21,6 +22,12 @@ import { BusinessRoleReviewItem, PrimaryApproverItem } from "./dataModel";
 export interface IBusinessRoleReviewWebPartProps {
   primaryApproversListName: string;
   businessRoleReviewListName: string;
+  roleNameWidth:number;
+ // compositeRoleWidth:number;
+  approverWidth:number;
+  altApproverWidth:number;
+  approvalDecisionWidth:number;
+  commentsWidth:number;
 
 }
 
@@ -117,6 +124,12 @@ export default class BusinessRoleReviewWebPart extends BaseClientSideWebPart<IBu
         fetchBusinessRoleReview: this.fetchBusinessRoleReview.bind(this),
         setComplete: this.setComplete.bind(this),
         domElement: this.domElement,
+        roleNameWidth:this.properties.roleNameWidth,
+     //   compositeRoleWidth:this.properties.compositeRoleWidth,
+        approverWidth:this.properties.approverWidth,
+        altApproverWidth:this.properties.altApproverWidth,
+        approvalDecisionWidth:this.properties.approvalDecisionWidth,
+        commentsWidth:this.properties.commentsWidth
 
       }
     );
@@ -158,6 +171,42 @@ export default class BusinessRoleReviewWebPart extends BaseClientSideWebPart<IBu
                 }),
                 PropertyPaneTextField('businessRoleReviewListName', {
                   label: "Business Role Owers List"
+                }),
+                PropertyPaneSlider("roleNameWidth",{
+                  min:10,
+                  max:1000,
+                  label:"Width of Role Name column",
+                  showValue:true
+                }),
+                // PropertyPaneSlider("compositeRoleWidth",{
+                //   min:10,
+                //   max:1000,
+                //   label:"Width of Composite Role Name column",
+                //   showValue:true
+                // }),
+                PropertyPaneSlider("approverWidth",{
+                  min:10,
+                  max:1000,
+                  label:"Width of Approver column",
+                  showValue:true
+                }),
+                PropertyPaneSlider("altApproverWidth",{
+                  min:10,
+                  max:1000,
+                  label:"Width of Alternate Approver column",
+                  showValue:true
+                }),
+                PropertyPaneSlider("approvalDecisionWidth",{
+                  min:10,
+                  max:1000,
+                  label:"Width of Approval Decision column",
+                  showValue:true
+                }),
+                PropertyPaneSlider("commentsWidth",{
+                  min:10,
+                  max:1000,
+                  label:"Width of Comments column",
+                  showValue:true
                 }),
 
               ]

@@ -77,7 +77,11 @@ export default class BusinessRoleReviewSiteSetup extends React.Component<IBusine
       let fieldsfound = ensureFieldsAreInList(list, [
         "Role_x0020_Name",
         "Composite_x0020_Role",
+        "Approver",
+        "Approver_x0020_Name",
         "ApproverEmail",
+        "Alt_x0020_Apprv",
+        "Alternate_x0020_Approver",
         "AlternateApproverEmail",
         "Approval", //approval decision
         "Comments"
