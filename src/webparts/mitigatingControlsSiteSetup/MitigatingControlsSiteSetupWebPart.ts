@@ -26,11 +26,12 @@ export default class MitigatingControlsSiteSetupWebPart extends BaseClientSideWe
       });
       return;
     });
-  
+    debugger;
     return Promise.resolve();
 
   }
   public render(): void {
+    debugger;
     const element: React.ReactElement<IMitigatingControlsSiteSetupProps > = React.createElement(
       MitigatingControlsSiteSetup,
       {
@@ -49,6 +50,7 @@ export default class MitigatingControlsSiteSetupWebPart extends BaseClientSideWe
   }
 
   protected getPropertyPaneConfiguration(): IPropertyPaneConfiguration {
+    debugger;
     return {
       pages: [
         {
@@ -65,16 +67,23 @@ export default class MitigatingControlsSiteSetupWebPart extends BaseClientSideWe
                 PropertyPaneTextField('primaryApproversListName', {
                   label: "Primary Approvers List Name"
                 }),
-                PropertyFieldCodeEditor('webPartXml', {
-                  key:"webPartXml",
-                  properties:this.properties,
-                  label: "Webpart XML to add to site homepage",
-                  panelTitle:"WebpartXML",
-                  language: PropertyFieldCodeEditorLanguages.XML,
-                  onPropertyChange: (propertyPath: string, oldValue: any, newValue: any)=>{
-                    debugger;
-                  }
-                })
+                PropertyPaneTextField('webPartXml', {
+                  maxLength:99999, 
+                  multiline:true,
+                  rows:999,
+                  label: "Webpart XML to add to site homepage"
+
+                }),
+                // PropertyFieldCodeEditor('webPartXml', {
+                //   key:"webPartXml",
+                //   properties:this.properties,
+                //   label: "Webpart XML to add to site homepage",
+                //   panelTitle:"WebpartXML",
+                //   language: PropertyFieldCodeEditorLanguages.XML,
+                //   onPropertyChange: (propertyPath: string, oldValue: any, newValue: any)=>{
+                //     debugger;
+                //   }
+                // })
               ]
             }
           ]

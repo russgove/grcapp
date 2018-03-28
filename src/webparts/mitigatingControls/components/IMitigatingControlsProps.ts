@@ -1,4 +1,4 @@
-import { MitigatingControlsItem, PrimaryApproverItem } from "../dataModel";
+import { MitigatingControlsItem, PrimaryApproverItem,HelpLink } from "../dataModel";
 export interface IMitigatingControlsProps {
   primaryApprover: Array<PrimaryApproverItem>;
   save: (mitigatingControls: Array<MitigatingControlsItem>) => Promise<any>;
@@ -8,5 +8,6 @@ export interface IMitigatingControlsProps {
   effectiveLabel:string;
   continuesLabel:string;
   correctPersonLabel:string;
+  helpLinks:Array<HelpLink>;
 
 }

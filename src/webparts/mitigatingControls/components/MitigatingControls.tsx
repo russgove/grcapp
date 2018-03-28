@@ -3,7 +3,7 @@ import styles from './MitigatingControls.module.scss';
 import { IMitigatingControlsProps } from './IMitigatingControlsProps';
 import { IMitigatingControlsState } from './IMitigatingControlsState';
 import { escape } from '@microsoft/sp-lodash-subset';
-import { MitigatingControlsItem, PrimaryApproverItem } from "../dataModel";
+import { MitigatingControlsItem, PrimaryApproverItem ,HelpLink} from "../dataModel";
 import {
   Environment,
   EnvironmentType
@@ -270,6 +270,21 @@ export default class MitigatingControls extends React.Component<IMitigatingContr
         disabled: !(filter(this.state.mitigatingControls, (rr) => { return rr.hasBeenUpdated; }).length > 0)
         || this.props.primaryApprover[0].Completed === "Yes"
 
+      },
+      {
+        key: "helpLinks", name: "Help", icon: "help",
+        items: map(this.props.helpLinks,(hl):IContextualMenuItem=>{
+          debugger;
+          return{
+            key:hl.Id.toString(), // this is the id of the listitem
+            href:hl.Url.Url, 
+            title:hl.Url.Description,
+            icon:hl.IconName,
+            name:hl.Title,
+            target:hl.Target
+
+          }
+        })
       }
     ];
 

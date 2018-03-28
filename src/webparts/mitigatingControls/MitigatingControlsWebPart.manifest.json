@@ -23,9 +23,11 @@
       "description": "MitigatingControls",
       "primaryApproversListName":"Primary Approver List",
       "mitigatingControlsListName":"High Risk with Mitigating Controls",
-      "effectiveLabel":"Does the mitigating control effectively remediate the assiciated risk?",
+      "effectiveLabel":"Does the mitigating control effectively remediate the associated risk?",
       "continuesLabel":"Does the mitigating control continue to be performed?",
-      "correctPersonLabel":"Is the mitigating control monitor the correct person to perform control?"
+      "correctPersonLabel":"Is the mitigating control monitor the correct person to perform control?",
+      "helpLinksListName":"HelpLinks"
+
     }
   }]
 }

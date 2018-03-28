@@ -20,7 +20,10 @@
     "description": { "default": "s" },
     "officeFabricIconFontName": "Page",
     "properties": {
-      "description": "highRiskSiteSetup"
+      "highRiskListName":"High Risk with Mitigating Controls",
+      "primaryApproversListName":"Primary Approver List",
+      "webPartXml":"string"
+    
     }
   }]
 }

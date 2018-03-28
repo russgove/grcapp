@@ -20,7 +20,12 @@
     "description": { "default": "s" },
     "officeFabricIconFontName": "Page",
     "properties": {
-      "description": "highRisk"
+      "highRiskListName": "High Risk with Mitigating Controls",
+      "primaryApproversListName": "Primary Approver List",
+      // "roleToTransactionListName":string;
+      // "effectiveLabel":string;
+      // "continuesLabel":string;
+      // "correctPersonLabel":string;
     }
   }]
 }

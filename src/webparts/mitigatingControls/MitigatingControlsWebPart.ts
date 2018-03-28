@@ -16,18 +16,20 @@ import { IMitigatingControlsProps } from './components/IMitigatingControlsProps'
 import pnp, { EmailProperties, Items, Item } from "sp-pnp-js";
 import { find, filter } from "lodash";
 //import fieldNames from "./fieldNames"
-import { MitigatingControlsItem, PrimaryApproverItem } from "./dataModel";
+import { MitigatingControlsItem, PrimaryApproverItem, HelpLink } from "./dataModel";
 export interface IMitigatingControlsWebPartProps {
   primaryApproversListName: string;
   mitigatingControlsListName: string;
   effectiveLabel: string;
   continuesLabel: string;
   correctPersonLabel: string;
+  helpLinksListName: string;
 }
 
 export default class MitigatingControlsWebPart extends BaseClientSideWebPart<IMitigatingControlsWebPartProps> {
   private primaryApproverLists: Array<any>;
   private highRisks: Array<any>;
+  private helpLinks: Array<HelpLink>;
   private reactElement: React.ReactElement<IMitigatingControlsProps>;
   private formComponent: MitigatingControls;
   public async onInit(): Promise<void> {
@@ -39,7 +41,17 @@ export default class MitigatingControlsWebPart extends BaseClientSideWebPart<IMi
       return;
     });
     let userId = this.context.pageContext.legacyPageContext.userId;
-    // this.testmethod();
+    await pnp.sp.site.rootWeb.lists.getByTitle(this.properties.helpLinksListName).items
+      .filter("Audit eq'Mitigating Controls' or Audit eq 'All'")
+      .getAs<Array<HelpLink>>().then((helps => {
+        debugger;
+        this.helpLinks = helps;
+      })).catch((err) => {
+        console.error(err);
+        debugger;
+        alert("There was an error fetching the helplinks");
+        alert(err.data.responseBody["odata.error"].message.value);
+      });
     let expands = "PrimaryApprover";
     let select = "Id,Completed,PrimaryApprover,PrimaryApproverId,PrimaryApprover/Title";
     return pnp.sp.web.lists.getByTitle(this.properties.primaryApproversListName).items
@@ -84,7 +96,8 @@ export default class MitigatingControlsWebPart extends BaseClientSideWebPart<IMi
         domElement: this.domElement,
         effectiveLabel: this.properties.effectiveLabel,
         continuesLabel: this.properties.continuesLabel,
-        correctPersonLabel: this.properties.correctPersonLabel
+        correctPersonLabel: this.properties.correctPersonLabel,
+        helpLinks: this.helpLinks
 
       }
     );
