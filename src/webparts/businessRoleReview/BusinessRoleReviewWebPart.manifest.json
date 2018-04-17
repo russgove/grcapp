@@ -31,7 +31,8 @@
         "approverWidth": 110,
         "altApproverWidth": 110,
         "approvalDecisionWidth": 170,
-        "commentsWidth": 180
+        "commentsWidth": 180,
+        "helpLinksListName":"HelpLinks"
       }
     }
   ]

@@ -286,6 +286,21 @@ export default class BusinessRoleReview extends React.Component<IBusinessRoleRev
         disabled: !(filter(this.state.businessRoleReview, (rr) => { return rr.hasBeenUpdated; }).length > 0)
         || this.props.primaryApprover[0].Completed === "Yes"
 
+      },
+      {
+        key: "helpLinks", name: "Help", icon: "help",
+        items: map(this.props.helpLinks,(hl):IContextualMenuItem=>{
+          debugger;
+          return{
+            key:hl.Id.toString(), // this is the id of the listitem
+            href:hl.Url.Url, 
+            title:hl.Url.Description,
+            icon:hl.IconName,
+            name:hl.Title,
+            target:hl.Target
+
+          }
+        })
       }
     ];
 

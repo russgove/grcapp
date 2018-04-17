@@ -42,7 +42,7 @@ export default class MitigatingControlsWebPart extends BaseClientSideWebPart<IMi
     });
     let userId = this.context.pageContext.legacyPageContext.userId;
     await pnp.sp.site.rootWeb.lists.getByTitle(this.properties.helpLinksListName).items
-      .filter("Audit eq'Mitigating Controls' or Audit eq 'All'")
+      .filter("Audit eq'Business Role Review' or Audit eq 'All'")
       .getAs<Array<HelpLink>>().then((helps => {
         debugger;
         this.helpLinks = helps;

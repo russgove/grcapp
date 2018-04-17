@@ -1,4 +1,4 @@
-import {BusinessRoleReviewItem, PrimaryApproverItem } from "../dataModel";
+import {BusinessRoleReviewItem, PrimaryApproverItem ,HelpLink} from "../dataModel";
 export interface IBusinessRoleReviewProps {
   primaryApprover: Array<PrimaryApproverItem>;
   save: (mitigatingControls: Array<BusinessRoleReviewItem>) => Promise<any>;
@@ -11,5 +11,7 @@ export interface IBusinessRoleReviewProps {
   altApproverWidth:number;
   approvalDecisionWidth:number;
   commentsWidth:number;
+  helpLinks:Array<HelpLink>;
+
 
 }

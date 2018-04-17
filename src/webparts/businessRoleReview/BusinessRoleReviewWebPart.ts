@@ -17,7 +17,7 @@ import { IBusinessRoleReviewProps } from './components/IBusinessRoleReviewProps'
 import { PropertyFieldCodeEditor,PropertyFieldCodeEditorLanguages } from '@pnp/spfx-property-controls/lib/PropertyFieldCodeEditor';
 import pnp from "sp-pnp-js";
 import { find, filter } from "lodash";
-import { BusinessRoleReviewItem, PrimaryApproverItem } from "./dataModel";
+import { BusinessRoleReviewItem, PrimaryApproverItem,HelpLink } from "./dataModel";
 
 export interface IBusinessRoleReviewWebPartProps {
   primaryApproversListName: string;
@@ -28,6 +28,7 @@ export interface IBusinessRoleReviewWebPartProps {
   altApproverWidth:number;
   approvalDecisionWidth:number;
   commentsWidth:number;
+  helpLinksListName:string
 
 }
 
@@ -36,6 +37,7 @@ export default class BusinessRoleReviewWebPart extends BaseClientSideWebPart<IBu
   private highRisks: Array<any>;
   private reactElement: React.ReactElement<IBusinessRoleReviewProps>;
   private formComponent: BusinessRoleReview;
+  private helpLinks: Array<HelpLink>;
   public async onInit(): Promise<void> {
 
     await super.onInit().then(() => {
@@ -43,6 +45,17 @@ export default class BusinessRoleReviewWebPart extends BaseClientSideWebPart<IBu
         spfxContext: this.context,
       });
       return;
+    });
+    await pnp.sp.site.rootWeb.lists.getByTitle(this.properties.helpLinksListName).items
+    .filter("Audit eq'Mitigating Controls' or Audit eq 'All'")
+    .getAs<Array<HelpLink>>().then((helps => {
+      debugger;
+      this.helpLinks = helps;
+    })).catch((err) => {
+      console.error(err);
+      debugger;
+      alert("There was an error fetching the helplinks");
+      alert(err.data.responseBody["odata.error"].message.value);
     });
     let userId = this.context.pageContext.legacyPageContext.userId;
     // this.testmethod();
@@ -129,7 +142,8 @@ export default class BusinessRoleReviewWebPart extends BaseClientSideWebPart<IBu
         approverWidth:this.properties.approverWidth,
         altApproverWidth:this.properties.altApproverWidth,
         approvalDecisionWidth:this.properties.approvalDecisionWidth,
-        commentsWidth:this.properties.commentsWidth
+        commentsWidth:this.properties.commentsWidth,
+        helpLinks: this.helpLinks
 
       }
     );
