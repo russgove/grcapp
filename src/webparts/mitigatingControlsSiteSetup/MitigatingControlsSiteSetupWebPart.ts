@@ -11,7 +11,7 @@ import * as strings from 'MitigatingControlsSiteSetupWebPartStrings';
 import MitigatingControlsSiteSetup from './components/MitigatingControlsSiteSetup';
 import { IMitigatingControlsSiteSetupProps } from './components/IMitigatingControlsSiteSetupProps';
 import { PropertyFieldCodeEditor,PropertyFieldCodeEditorLanguages } from '@pnp/spfx-property-controls/lib/PropertyFieldCodeEditor';
-import pnp from "sp-pnp-js";
+import {sp} from "@pnp/sp";
 export interface IMitigatingControlsSiteSetupWebPartProps {
   mitigatingControlsListName:string;
   primaryApproversListName:string;
@@ -21,7 +21,7 @@ export interface IMitigatingControlsSiteSetupWebPartProps {
 export default class MitigatingControlsSiteSetupWebPart extends BaseClientSideWebPart<IMitigatingControlsSiteSetupWebPartProps> {
   public async onInit(): Promise<any> {
     await super.onInit().then(() => {
-      pnp.setup({
+      sp.setup({
         spfxContext: this.context,
       });
       return;

@@ -10,7 +10,7 @@ import {
 import * as strings from 'HighRiskUserWebpartWebPartStrings';
 import HighRiskUserWebpart from './components/HighRiskUserWebpart';
 import { IHighRiskUserWebpartProps } from './components/IHighRiskUserWebpartProps';
-import pnp, { EmailProperties, Items, Item } from "sp-pnp-js";
+import  { sp,EmailProperties, Items, Item } from "@pnp/sp";
 import PrimaryApproverList from "../../dataModel/PrimaryApproverList";
 import HighRisk from "../../dataModel/HighRisk";
 import RoleToTransaction from "../../dataModel/RoleToTransaction";
@@ -36,16 +36,16 @@ export default class HighRiskUserWebpartWebPart extends BaseClientSideWebPart<IH
     GRCComments, GRCRemediation`;
     let expands = "GRCApprover";
 
-    return pnp.sp.web.lists.getByTitle(this.properties.highRiskListName).items
+    return sp.web.lists.getByTitle(this.properties.highRiskListName).items
       .select(select)
       .expand(expands)
       .filter('GRCApproverId eq ' + userId)
-      .getAs<Array<HighRisk>>();
+      .get<Array<HighRisk>>();
   }
   public async onInit(): Promise<void> {
     debugger;
     await super.onInit().then(() => {
-      pnp.setup({
+      sp.setup({
         spfxContext: this.context,
       });
       return;
@@ -54,11 +54,11 @@ export default class HighRiskUserWebpartWebPart extends BaseClientSideWebPart<IH
     // this.testmethod();
     let expands = "GRCApprover";
     let select = "Id,GRCCompleted,GRCApprover,GRCApproverId,GRCApprover/Title";
-    return pnp.sp.web.lists.getByTitle(this.properties.primaryApproversListName).items
+    return sp.web.lists.getByTitle(this.properties.primaryApproversListName).items
       .select(select)
       .expand(expands)
       .filter('GRCApproverId eq ' + userId)
-      .getAs<Array<PrimaryApproverList>>().then((result) => {
+      .get<Array<PrimaryApproverList>>().then((result) => {
         this.primaryApproverLists = result;
 
       }).catch((err) => {
@@ -73,11 +73,11 @@ export default class HighRiskUserWebpartWebPart extends BaseClientSideWebPart<IH
   public save(HighRisks: Array<HighRisk>): Promise<any> {
     debugger;
     let itemsToSave = filter(HighRisks, (rtc) => { return rtc.hasBeenUpdated === true; });
-    let batch = pnp.sp.createBatch();
+    let batch = sp.createBatch();
     //let promises: Array<Promise<any>> = [];
 
     for (let item of itemsToSave) {
-      pnp.sp.web.lists.getByTitle(this.properties.highRiskListName)
+      sp.web.lists.getByTitle(this.properties.highRiskListName)
         .items.getById(item.Id).inBatch(batch).update({ "GRCApproval": item.GRCApproval, "GRCComments": item.GRCComments })
         .then((x) => {
           debugger;
@@ -95,8 +95,8 @@ export default class HighRiskUserWebpartWebPart extends BaseClientSideWebPart<IH
     debugger;
 
 
-    return pnp.sp.web.lists.getByTitle(this.properties.roleToTransactionListName)
-      .items.filter(`GRCRole eq '${role}'`).getAs<RoleToTransaction>();
+    return sp.web.lists.getByTitle(this.properties.roleToTransactionListName)
+      .items.filter(`GRCRole eq '${role}'`).get<RoleToTransaction>();
 
 
   }
@@ -104,7 +104,7 @@ export default class HighRiskUserWebpartWebPart extends BaseClientSideWebPart<IH
     debugger;
 
     let userId = this.context.pageContext.legacyPageContext.userId;
-    return pnp.sp.web.lists.getByTitle(this.properties.primaryApproversListName)
+    return sp.web.lists.getByTitle(this.properties.primaryApproversListName)
       .items.getById(primaryApproverList.Id).update({ "GRCCompleted": "Yes" }).then(() => {
         let newProps = this.reactElement.props;
         newProps.primaryApproverList[0].GRCCompleted = "Yes";

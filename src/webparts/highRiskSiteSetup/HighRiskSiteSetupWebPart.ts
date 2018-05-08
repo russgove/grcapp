@@ -11,7 +11,7 @@ import * as strings from 'HighRiskSiteSetupWebPartStrings';
 import HighRiskSiteSetup from './components/HighRiskSiteSetup';
 import { IHighRiskSiteSetupProps } from './components/IHighRiskSiteSetupProps';
 import { PropertyFieldCodeEditor,PropertyFieldCodeEditorLanguages } from '@pnp/spfx-property-controls/lib/PropertyFieldCodeEditor';
-import pnp from "sp-pnp-js";
+import {sp} from "@pnp/sp";
 export interface IHighRiskSiteSetupWebPartProps {
   highRiskListName:string;
   primaryApproversListName:string;
@@ -21,7 +21,7 @@ export interface IHighRiskSiteSetupWebPartProps {
 export default class HighRiskSiteSetupWebPart extends BaseClientSideWebPart<IHighRiskSiteSetupWebPartProps> {
   public async onInit(): Promise<any> {
     await super.onInit().then(() => {
-      pnp.setup({
+      sp.setup({
         spfxContext: this.context,
       });
       return;

@@ -5,7 +5,7 @@ import { IHighRiskAdminWebpartProps } from './IHighRiskAdminWebpartProps';
 import { IHighRiskAdminWebpartState } from './IHighRiskAdminWebpartState';
 import { escape } from '@microsoft/sp-lodash-subset';
 const parse = require('csv-parse');
-import pnp, { TypedHash, ItemAddResult, ListAddResult, ContextInfo, Web, WebAddResult, List as PNPList } from "sp-pnp-js";
+import  { sp, ItemAddResult, ListAddResult, ContextInfo, Web, WebAddResult, List as PNPList } from "@pnp/sp";
 import { List } from "office-ui-fabric-react/lib/List";
 import { TextField } from "office-ui-fabric-react/lib/TextField";
 import { Image, ImageFit } from "office-ui-fabric-react/lib/Image";
@@ -82,7 +82,7 @@ export default class HighRiskAdminWebpart extends React.Component<IHighRiskAdmin
   public async esnureHighRisk(error, data: Array<any>): Promise<any> {
 
     this.setState((current) => ({ ...current, highRiskStatus: "Validating users", highRiskTotalRows: data.length }));
-    await esnureUsers(pnp.sp.web, this.cachedIds, data, "ApproverEmail", this.addMessage);
+    await esnureUsers(sp.web, this.cachedIds, data, "ApproverEmail", this.addMessage);
     this.addMessage("Done validating High Risk Users");
     this.setState((current) => ({ ...current, highRiskStatus: "Completed Validation" }));
     return Promise.resolve();
@@ -142,7 +142,7 @@ export default class HighRiskAdminWebpart extends React.Component<IHighRiskAdmin
   public async esnurePrimaryApprovers(error, data: Array<any>): Promise<any> {
 
     this.setState((current) => ({ ...current, primaryApproversStatus: "Validating users", primaryApproversTotalRows: data.length }));
-    await esnureUsers(pnp.sp.web, this.cachedIds, data, "ApproverEmail", this.addMessage);
+    await esnureUsers(sp.web, this.cachedIds, data, "ApproverEmail", this.addMessage);
     this.addMessage("Done validating Primary Approvers Users");
     this.setState((current) => ({ ...current, primaryApproversStatus: "Completed Validation" }));
     return Promise.resolve();
@@ -201,7 +201,7 @@ export default class HighRiskAdminWebpart extends React.Component<IHighRiskAdmin
   public async esnureRoleToTCode(error, data: Array<any>): Promise<any> {
 
     this.setState((current) => ({ ...current, roleToTransactionStatus: "Validating users", roleToTransactionTotalRows: data.length }));
-    await esnureUsers(pnp.sp.web, this.cachedIds, data, "ApproverEmail", this.addMessage);
+    await esnureUsers(sp.web, this.cachedIds, data, "ApproverEmail", this.addMessage);
     this.addMessage("Done validating Primary Approvers Users");
     this.setState((current) => ({ ...current, roleToTransactionStatus: "Completed Validation" }));
     return Promise.resolve();
@@ -276,11 +276,11 @@ export default class HighRiskAdminWebpart extends React.Component<IHighRiskAdmin
 
 
     this.addMessage("CreatingSite");
-    await pnp.sp.site.getContextInfo().then((context: ContextInfo) => {
+    await sp.site.getContextInfo().then((context: ContextInfo) => {
       contextInfo = context;
     });
     // create the site
-    await pnp.sp.web.webs.add(this.state.siteName, this.state.siteName, this.state.siteName, this.props.templateName).then((war: WebAddResult) => {
+    await sp.web.webs.add(this.state.siteName, this.state.siteName, this.state.siteName, this.props.templateName).then((war: WebAddResult) => {
       this.addMessage("CreatedSite");
       // show the response from the server when adding the web
       webServerRelativeUrl = war.data.ServerRelativeUrl;
@@ -306,13 +306,13 @@ export default class HighRiskAdminWebpart extends React.Component<IHighRiskAdmin
    // await fixUpLeftNav(webServerRelativeUrl, this.props.siteUrl);
 
     // create the lists and assign permissions
-    let highRiskList: PNPList = await addCustomListWithContentType(newWeb, pnp.sp.web, 'High Risk', "High Risk Transactions"
+    let highRiskList: PNPList = await addCustomListWithContentType(newWeb, sp.web, 'High Risk', "High Risk Transactions"
       , "High Risk", this.addMessage);
 
-    let primaryAppproversList: PNPList = await addCustomListWithContentType(newWeb, pnp.sp.web, 'Primary Approvers', "Primary Approvers of High Risk Transactions"
+    let primaryAppproversList: PNPList = await addCustomListWithContentType(newWeb, sp.web, 'Primary Approvers', "Primary Approvers of High Risk Transactions"
       , "Primary Approver List", this.addMessage);
 
-    let roleToTransactionList: PNPList = await addCustomListWithContentType(newWeb, pnp.sp.web, 'Role To Transaction', "Role To Transaction DETAILS"
+    let roleToTransactionList: PNPList = await addCustomListWithContentType(newWeb, sp.web, 'Role To Transaction', "Role To Transaction DETAILS"
       , "Role To Transaction", this.addMessage);
     await roleToTransactionList.fields.getByInternalNameOrTitle("GRCRole").update({
       Indexed: true
@@ -339,7 +339,7 @@ export default class HighRiskAdminWebpart extends React.Component<IHighRiskAdmin
 
     // customize the home paged
     let welcomePageUrl: string;
-    await newWeb.rootFolder.getAs<any>().then(rootFolder => {
+    await newWeb.rootFolder.get<any>().then(rootFolder => {
 
       welcomePageUrl = rootFolder.ServerRelativeUrl + rootFolder.WelcomePage;
     });

@@ -1,5 +1,5 @@
 import { find, clone, map } from "lodash";
-import pnp, { Web, List, ListAddResult } from "sp-pnp-js";
+import {sp, Web, List, ListAddResult } from "@pnp/sp";
 import { HttpClient, IHttpClientOptions, HttpClientResponse } from '@microsoft/sp-http';
 export function addPeopleFieldToList(webUrl: string, listTitle: string, internalName: string, displayName): Promise<any> {
     let web = new Web(window.location.origin + webUrl);
@@ -30,6 +30,7 @@ export async function convertEmailColumnsToUser(webUrl: string, listTitle: strin
                         .catch(err => {
                             debugger;
                             addMessage(`<h2>User with an eMail/UPN of '${row[column[0]]}' could not be found</h2>`);
+                            addMessage(`<h1>Error was  ${err.data.responseBody["odata.error"].message.value} </h1>`);
                             return null;
                         });
                     if (user) { // if the user was ensured!
@@ -41,6 +42,8 @@ export async function convertEmailColumnsToUser(webUrl: string, listTitle: strin
                                 debugger;
                                 addMessage(`<h1>Error updating user</h1>`);
                                 addMessage(`<h1>Error updating user email ${row[column[0]]} To user ID ${user.data.Id}</h1>`);
+                                addMessage(`<h1>Error was  ${err.data.responseBody["odata.error"].message.value} </h1>`);
+                                
                                 debugger;
                             });
 
@@ -52,6 +55,7 @@ export async function convertEmailColumnsToUser(webUrl: string, listTitle: strin
         .catch(err => {
             console.error(err);
             addMessage(`<h1>Error fetching items from ${listTitle} <h1>`);
+            addMessage(`<h1>Error was  ${err.data.responseBody["odata.error"].message.value} </h1>`);
         });
     addMessage(`Done converting users on list ${listTitle}.`);
     return Promise.resolve();
@@ -208,7 +212,7 @@ export async function setWebToUseSharedNavigation(webAbsoluteUrl: string, addMes
         clientContext = new SP.ClientContext(webAbsoluteUrl);
     }
     catch (err) {
-        addMessage(`Error craeting client context on web ${webAbsoluteUrl}`);
+        addMessage(`Error creating client context on web ${webAbsoluteUrl}`);
         console.log(err);
         debugger;
     }
@@ -239,7 +243,7 @@ export async function AddUsersInListToGroup(webUrl: string, listName: string, us
             for (const item of listItems) {
                 if (item[userFieldName]){
            
-                await pnp.sp.web.siteGroups.getByName(membersGroup.Title).users.add(item[userFieldName]["Name"])
+                await sp.web.siteGroups.getByName(membersGroup.Title).users.add(item[userFieldName]["Name"])
                     .then(e=>{
                         addMessage(`added ${item[userFieldName]["Name"]}`);
                     })

@@ -1,4 +1,4 @@
-import { Item } from "sp-pnp-js";
+import { Item } from "@pnp/sp";
 // tassks to be approved
 export default class PrimaryApproverList extends Item {
 

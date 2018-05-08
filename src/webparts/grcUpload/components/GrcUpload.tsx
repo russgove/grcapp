@@ -5,7 +5,7 @@ import { IGrcUploadProps } from './IGrcUploadProps';
 import { IGrcUploadState } from './IGrcUploadState';
 import { escape } from '@microsoft/sp-lodash-subset';
 const parse = require('csv-parse');
-import pnp, { TypedHash, ItemAddResult, ListAddResult, ContextInfo, Web, WebAddResult, List as PNPList } from "sp-pnp-js";
+import  {sp,  ItemAddResult, ListAddResult, ContextInfo, Web, WebAddResult, List as PNPList } from "@pnp/sp";
 import { List } from "office-ui-fabric-react/lib/List";
 import { TextField } from "office-ui-fabric-react/lib/TextField";
 import { Image, ImageFit } from "office-ui-fabric-react/lib/Image";
@@ -102,7 +102,7 @@ export default class GrcUpload extends React.Component<IGrcUploadProps, IGrcUplo
     if (cached) {
       return cached.id;
     }
-    await pnp.sp.web.ensureUser(upn)
+    await sp.web.ensureUser(upn)
       .then((response) => {
         id = response.data.Id;
         this.cachedIds.push({ upn: upn, id: id });
@@ -578,11 +578,11 @@ export default class GrcUpload extends React.Component<IGrcUploadProps, IGrcUplo
 
 
     this.addMessage("CreatingSite");
-    await pnp.sp.site.getContextInfo().then((context: ContextInfo) => {
+    await sp.site.getContextInfo().then((context: ContextInfo) => {
       contextInfo = context;
     });
     // create the site
-    await pnp.sp.web.webs.add(this.state.siteName, this.state.siteName, this.state.siteName, this.props.templateName).then((war: WebAddResult) => {
+    await sp.web.webs.add(this.state.siteName, this.state.siteName, this.state.siteName, this.props.templateName).then((war: WebAddResult) => {
       this.addMessage("CreatedSite");
       // show the response from the server when adding the web
       webServerRelativeUrl = war.data.ServerRelativeUrl;
@@ -691,7 +691,7 @@ export default class GrcUpload extends React.Component<IGrcUploadProps, IGrcUplo
 
     // customize the home paged
     let welcomePageUrl: string;
-    await newWeb.rootFolder.getAs<any>().then(rootFolder => {
+    await newWeb.rootFolder.get<any>().then(rootFolder => {
       debugger;
       welcomePageUrl = rootFolder.ServerRelativeUrl + rootFolder.WelcomePage;
     });

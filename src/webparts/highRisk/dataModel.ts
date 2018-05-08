@@ -1,4 +1,4 @@
-import { Item } from "sp-pnp-js";
+import { Item } from "@pnp/sp";
 // main list for grid
 export  class HighRiskItem extends Item {
 

@@ -13,7 +13,7 @@ import {
 import * as strings from 'MitigatingControlsWebPartStrings';
 import MitigatingControls from './components/MitigatingControls';
 import { IMitigatingControlsProps } from './components/IMitigatingControlsProps';
-import pnp, { EmailProperties, Items, Item } from "sp-pnp-js";
+import  { sp,EmailProperties, Items, Item } from "@pnp/sp";
 import { find, filter } from "lodash";
 //import fieldNames from "./fieldNames"
 import { MitigatingControlsItem, PrimaryApproverItem, HelpLink } from "./dataModel";
@@ -35,15 +35,15 @@ export default class MitigatingControlsWebPart extends BaseClientSideWebPart<IMi
   public async onInit(): Promise<void> {
 
     await super.onInit().then(() => {
-      pnp.setup({
+      sp.setup({
         spfxContext: this.context,
       });
       return;
     });
     let userId = this.context.pageContext.legacyPageContext.userId;
-    await pnp.sp.site.rootWeb.lists.getByTitle(this.properties.helpLinksListName).items
+    await sp.site.rootWeb.lists.getByTitle(this.properties.helpLinksListName).items
       .filter("Audit eq'Business Role Review' or Audit eq 'All'")
-      .getAs<Array<HelpLink>>().then((helps => {
+      .get<Array<HelpLink>>().then((helps => {
         debugger;
         this.helpLinks = helps;
       })).catch((err) => {
@@ -54,7 +54,7 @@ export default class MitigatingControlsWebPart extends BaseClientSideWebPart<IMi
       });
     let expands = "PrimaryApprover";
     let select = "Id,Completed,PrimaryApprover,PrimaryApproverId,PrimaryApprover/Title";
-    return pnp.sp.web.lists.getByTitle(this.properties.primaryApproversListName).items
+    return sp.web.lists.getByTitle(this.properties.primaryApproversListName).items
       .select(select)
       .expand(expands)
       .filter('PrimaryApproverId eq ' + userId)
@@ -78,11 +78,11 @@ export default class MitigatingControlsWebPart extends BaseClientSideWebPart<IMi
     let select = `*,PrimaryApproverId,PrimaryApprover/Title`;
     let expands = "PrimaryApprover";
 
-    return pnp.sp.web.lists.getByTitle(this.properties.mitigatingControlsListName).items
+    return sp.web.lists.getByTitle(this.properties.mitigatingControlsListName).items
       .select(select)
       .expand(expands)
       .filter('PrimaryApproverId eq ' + userId)
-      .getAs<Array<MitigatingControlsItem>>();
+      .get<Array<MitigatingControlsItem>>();
   }
   public render(): void {
 
@@ -121,7 +121,7 @@ export default class MitigatingControlsWebPart extends BaseClientSideWebPart<IMi
   public setComplete(primaryApproverList: any): Promise<any> {
 
     let userId = this.context.pageContext.legacyPageContext.userId;
-    return pnp.sp.web.lists.getByTitle(this.properties.primaryApproversListName)
+    return sp.web.lists.getByTitle(this.properties.primaryApproversListName)
       .items.getById(primaryApproverList.Id).update({ "Completed": "Yes" }).then(() => {
         let newProps = this.reactElement.props;
         newProps.primaryApprover[0].Completed = "Yes";
@@ -133,11 +133,11 @@ export default class MitigatingControlsWebPart extends BaseClientSideWebPart<IMi
   }
   public save(MitigatingControls: Array<MitigatingControlsItem>): Promise<any> {
     let itemsToSave = filter(MitigatingControls, (rtc) => { return rtc.hasBeenUpdated === true; });
-    let batch = pnp.sp.createBatch();
+    let batch = sp.createBatch();
     //let promises: Array<Promise<any>> = [];
 
     for (let item of itemsToSave) {
-      pnp.sp.web.lists.getByTitle(this.properties.mitigatingControlsListName)
+      sp.web.lists.getByTitle(this.properties.mitigatingControlsListName)
         .items.getById(item.Id).inBatch(batch).update({
           "Effective": item.Effective,
           "Continues": item.Continues,

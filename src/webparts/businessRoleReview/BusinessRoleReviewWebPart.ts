@@ -15,7 +15,7 @@ import * as strings from 'BusinessRoleReviewWebPartStrings';
 import BusinessRoleReview from './components/BusinessRoleReview';
 import { IBusinessRoleReviewProps } from './components/IBusinessRoleReviewProps';
 import { PropertyFieldCodeEditor,PropertyFieldCodeEditorLanguages } from '@pnp/spfx-property-controls/lib/PropertyFieldCodeEditor';
-import pnp from "sp-pnp-js";
+import {sp} from "@pnp/sp";
 import { find, filter } from "lodash";
 import { BusinessRoleReviewItem, PrimaryApproverItem,HelpLink } from "./dataModel";
 
@@ -41,14 +41,14 @@ export default class BusinessRoleReviewWebPart extends BaseClientSideWebPart<IBu
   public async onInit(): Promise<void> {
 
     await super.onInit().then(() => {
-      pnp.setup({
+      sp.setup({
         spfxContext: this.context,
       });
       return;
     });
-    await pnp.sp.site.rootWeb.lists.getByTitle(this.properties.helpLinksListName).items
+    await sp.site.rootWeb.lists.getByTitle(this.properties.helpLinksListName).items
     .filter("Audit eq'Mitigating Controls' or Audit eq 'All'")
-    .getAs<Array<HelpLink>>().then((helps => {
+    .get<Array<HelpLink>>().then((helps => {
       debugger;
       this.helpLinks = helps;
     })).catch((err) => {
@@ -61,7 +61,7 @@ export default class BusinessRoleReviewWebPart extends BaseClientSideWebPart<IBu
     // this.testmethod();
     let expands = "PrimaryApprover";
     let select = "Id,Completed,PrimaryApprover,PrimaryApproverId,PrimaryApprover/Title";
-    return pnp.sp.web.lists.getByTitle(this.properties.primaryApproversListName).items
+    return sp.web.lists.getByTitle(this.properties.primaryApproversListName).items
       .select(select)
       .expand(expands)
       .filter('PrimaryApproverId eq ' + userId)
@@ -85,16 +85,16 @@ export default class BusinessRoleReviewWebPart extends BaseClientSideWebPart<IBu
     let select = `*,PrimaryApproverId,PrimaryApprover/Title`;
     let expands = "PrimaryApprover";
 
-    return pnp.sp.web.lists.getByTitle(this.properties.businessRoleReviewListName).items
+    return sp.web.lists.getByTitle(this.properties.businessRoleReviewListName).items
       .select(select)
       .expand(expands)
       .filter('PrimaryApproverId eq ' + userId)
-      .getAs<Array<BusinessRoleReviewItem>>();
+      .get<Array<BusinessRoleReviewItem>>();
   }
   public setComplete(primaryApproverList: any): Promise<any> {
 
     let userId = this.context.pageContext.legacyPageContext.userId;
-    return pnp.sp.web.lists.getByTitle(this.properties.primaryApproversListName)
+    return sp.web.lists.getByTitle(this.properties.primaryApproversListName)
       .items.getById(primaryApproverList.Id).update({ "Completed": "Yes" }).then(() => {
         let newProps = this.reactElement.props;
         newProps.primaryApprover[0].Completed = "Yes";
@@ -106,11 +106,11 @@ export default class BusinessRoleReviewWebPart extends BaseClientSideWebPart<IBu
   }
   public save(MitigatingControls: Array<BusinessRoleReviewItem>): Promise<any> {
     let itemsToSave = filter(MitigatingControls, (rtc) => { return rtc.hasBeenUpdated === true; });
-    let batch = pnp.sp.createBatch();
+    let batch = sp.createBatch();
     //let promises: Array<Promise<any>> = [];
 
     for (let item of itemsToSave) {
-      pnp.sp.web.lists.getByTitle(this.properties.businessRoleReviewListName)
+      sp.web.lists.getByTitle(this.properties.businessRoleReviewListName)
         .items.getById(item.Id).inBatch(batch).update({
           "Approval": item.Approval,
           "Comments": item.Comments

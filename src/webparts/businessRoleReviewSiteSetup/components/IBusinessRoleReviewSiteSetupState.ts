@@ -1,5 +1,5 @@
 import { Dropdown, IDropdownOption, IDropdownProps } from "office-ui-fabric-react/lib/Dropdown";
-import {List} from "sp-pnp-js";
+import {List} from "@pnp/sp";
 export interface IBusinessRoleReviewSiteSetupState{
   webName: string;
   webUrl: string;

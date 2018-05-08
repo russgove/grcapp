@@ -11,7 +11,7 @@ import * as strings from 'BusinessRoleReviewSiteSetupWebPartStrings';
 import BusinessRoleReviewSiteSetup from './components/BusinessRoleReviewSiteSetup';
 import { IBusinessRoleReviewSiteSetupProps } from './components/IBusinessRoleReviewSiteSetupProps';
 import { PropertyFieldCodeEditor,PropertyFieldCodeEditorLanguages } from '@pnp/spfx-property-controls/lib/PropertyFieldCodeEditor';
-import pnp from "sp-pnp-js";
+import {sp} from "@pnp/sp";
 export interface IBusinessRoleReviewSiteSetupWebPartProps {
   businessRoleReviewListName:string;
   primaryApproversListName:string;
@@ -21,7 +21,7 @@ export interface IBusinessRoleReviewSiteSetupWebPartProps {
 export default class BusinessRoleReviewSiteSetupWebPart extends BaseClientSideWebPart<IBusinessRoleReviewSiteSetupWebPartProps> {
   public async onInit(): Promise<any> {
     await super.onInit().then(() => {
-      pnp.setup({
+      sp.setup({
         spfxContext: this.context,
       });
       return;

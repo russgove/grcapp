@@ -1,7 +1,7 @@
 import * as React from 'react';
 import * as ReactDom from 'react-dom';
 import { Version } from '@microsoft/sp-core-library';
-import pnp from "sp-pnp-js";
+import {sp} from "@pnp/sp";
 import {
   BaseClientSideWebPart,
   IPropertyPaneConfiguration,
@@ -27,7 +27,7 @@ export default class HighRiskAdminWebpartWebPart extends BaseClientSideWebPart<I
 
   public async onInit(): Promise<any> {
     await super.onInit().then(() => {
-      pnp.setup({
+      sp.setup({
         spfxContext: this.context,
       });
       return;

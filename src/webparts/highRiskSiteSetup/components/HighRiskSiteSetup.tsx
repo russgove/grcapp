@@ -17,7 +17,7 @@ import { IContextualMenuItem } from "office-ui-fabric-react/lib/ContextualMenu";
 import { PrimaryButton, ButtonType, Button, DefaultButton, ActionButton, IconButton } from "office-ui-fabric-react/lib/Button";
 import { Dialog } from "office-ui-fabric-react/lib/Dialog";
 import { TextField } from "office-ui-fabric-react/lib/TextField";
-import pnp, { TypedHash, ItemAddResult, ListAddResult, ContextInfo, Web, WebAddResult, List as PNPList } from "sp-pnp-js";
+import  { sp, ItemAddResult, ListAddResult, ContextInfo, Web, WebAddResult, List as PNPList } from "@pnp/sp";
 import { map, clone } from "lodash";
 import {
   addPeopleFieldToList, convertEmailColumnsToUser, AddQuickLaunchItem, RemoveQuickLaunchItem, AddUsersInListToGroup,
@@ -50,7 +50,7 @@ export default class HighRiskSiteSetup extends React.Component<IHighRiskSiteSetu
     });
   }
   private getSitesDropDownOptions(): Promise<Array<IDropdownOption>> {
-    return pnp.sp.site.rootWeb.webinfos.get()
+    return sp.site.rootWeb.webinfos.get()
       .then((wi) => {
 
         return map(wi, web => { return { text: web["Title"], key: web["ServerRelativeUrl"] }; });
@@ -215,7 +215,7 @@ export default class HighRiskSiteSetup extends React.Component<IHighRiskSiteSetu
 
     // customize the home paged
     let welcomePageUrl: string;
-    await newWeb.rootFolder.getAs<any>().then(rootFolder => {
+    await newWeb.rootFolder.get<any>().then(rootFolder => {
       welcomePageUrl = rootFolder.ServerRelativeUrl + rootFolder.WelcomePage;
     });
     this.addMessage("Customizing Home Page");

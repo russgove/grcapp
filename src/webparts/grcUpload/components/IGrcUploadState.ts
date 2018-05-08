@@ -1,4 +1,4 @@
-import { Web } from "sp-pnp-js";
+import { Web } from "@pnp/sp";
 export interface IGrcUploadState {
 
   siteName: string; // the name of the web to create

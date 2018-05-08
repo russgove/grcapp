@@ -10,7 +10,7 @@ import {
 import * as strings from "GrcTestWebPartStrings";
 import GrcTest from "./components/GrcTest";
 import { IGrcTestProps } from "./components/IGrcTestProps";
-import pnp, { EmailProperties, Items, Item } from "sp-pnp-js";
+import {sp, EmailProperties, Items, Item } from "@pnp/sp";
 import PrimaryApproverList from "../../dataModel/PrimaryApproverList";
 import RoleReview from "../../dataModel/RoleReview";
 import RoleToTransaction from "../../dataModel/RoleToTransaction";
@@ -35,15 +35,15 @@ export default class GrcTestWebPart extends BaseClientSideWebPart<IGrcTestWebPar
     GRCComments, GRCRemediation`;
     let expands = "GRCApprover";
 
-    return pnp.sp.web.lists.getByTitle(this.properties.roleToTCodeReviewListName).items
+    return sp.web.lists.getByTitle(this.properties.roleToTCodeReviewListName).items
       .select(select)
       .expand(expands)
       .filter('GRCApproverId eq ' + userId)
-      .getAs<Array<RoleReview>>();
+      .get<Array<RoleReview>>();
   }
   public async onInit(): Promise<void> {
     await super.onInit().then(() => {
-      pnp.setup({
+      sp.setup({
         spfxContext: this.context,
       });
       return;
@@ -52,11 +52,11 @@ export default class GrcTestWebPart extends BaseClientSideWebPart<IGrcTestWebPar
     // this.testmethod();
     let expands = "GRCApprover";
     let select = "Id,GRCCompleted,GRCApprover,GRCApproverId,GRCApprover/Title";
-    await pnp.sp.web.lists.getByTitle(this.properties.primaryApproverListName).items
+    await sp.web.lists.getByTitle(this.properties.primaryApproverListName).items
       .select(select)
       .expand(expands)
       .filter('GRCApproverId eq ' + userId)
-      .getAs<Array<PrimaryApproverList>>().then((result) => {
+      .get<Array<PrimaryApproverList>>().then((result) => {
         this.primaryApproverLists = result;
 
       }).catch((err) => {
@@ -71,11 +71,11 @@ export default class GrcTestWebPart extends BaseClientSideWebPart<IGrcTestWebPar
   public save(roleToTCodeReviews: Array<RoleReview>): Promise<any> {
     debugger;
     let itemsToSave = filter(roleToTCodeReviews, (rtc) => { return rtc.hasBeenUpdated === true; });
-    let batch = pnp.sp.createBatch();
+    let batch = sp.createBatch();
     //let promises: Array<Promise<any>> = [];
 
     for (let item of itemsToSave) {
-      pnp.sp.web.lists.getByTitle(this.properties.roleToTCodeReviewListName)
+      sp.web.lists.getByTitle(this.properties.roleToTCodeReviewListName)
         .items.getById(item.Id).inBatch(batch).update({ "GRCApproval": item.GRCApproval, "GRCComments": item.GRCComments })
         .then((x) => {
           debugger;
@@ -94,8 +94,8 @@ export default class GrcTestWebPart extends BaseClientSideWebPart<IGrcTestWebPar
     debugger;
 
 
-    return pnp.sp.web.lists.getByTitle(this.properties.roleToTransactionListName)
-      .items.filter(`GRCRoleName eq '${roleName}'`).getAs<RoleToTransaction>();
+    return sp.web.lists.getByTitle(this.properties.roleToTransactionListName)
+      .items.filter(`GRCRoleName eq '${roleName}'`).get<RoleToTransaction>();
 
 
   }
@@ -103,7 +103,7 @@ export default class GrcTestWebPart extends BaseClientSideWebPart<IGrcTestWebPar
     debugger;
 
     let userId = this.context.pageContext.legacyPageContext.userId;
-    return pnp.sp.web.lists.getByTitle(this.properties.primaryApproverListName)
+    return sp.web.lists.getByTitle(this.properties.primaryApproverListName)
       .items.getById(primaryApproverList.Id).update({ "GRCCompleted": "Yes" }).then(() => {
         let newProps = this.reactElement.props;
         newProps.primaryApproverList[0].GRCCompleted = "Yes";

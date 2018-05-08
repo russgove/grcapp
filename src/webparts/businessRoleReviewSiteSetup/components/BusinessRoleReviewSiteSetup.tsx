@@ -17,7 +17,7 @@ import { IContextualMenuItem } from "office-ui-fabric-react/lib/ContextualMenu";
 import { PrimaryButton, ButtonType, Button, DefaultButton, ActionButton, IconButton } from "office-ui-fabric-react/lib/Button";
 import { Dialog } from "office-ui-fabric-react/lib/Dialog";
 import { TextField } from "office-ui-fabric-react/lib/TextField";
-import pnp, { TypedHash, ItemAddResult, ListAddResult, ContextInfo, Web, WebAddResult, List as PNPList } from "sp-pnp-js";
+import {sp, ItemAddResult, ListAddResult, ContextInfo, Web, WebAddResult, List as PNPList } from "@pnp/sp";
 import { map, clone } from "lodash";
 import {
   addPeopleFieldToList, convertEmailColumnsToUser, AddQuickLaunchItem, RemoveQuickLaunchItem, AddUsersInListToGroup,
@@ -52,13 +52,14 @@ export default class BusinessRoleReviewSiteSetup extends React.Component<IBusine
     });
   }
   private getSitesDropDownOptions(): Promise<Array<IDropdownOption>> {
-    return pnp.sp.site.rootWeb.webinfos.get()
+    return sp.site.rootWeb.webinfos.get()
       .then((wi) => {
 
         return map(wi, web => { return { text: web["Title"], key: web["ServerRelativeUrl"] }; });
       })
       .catch((err) => {
         console.error(err);
+        this.addMessage(`<h1>Error in getSitesDropDownOptions was  ${err.data.responseBody["odata.error"].message.value} </h1>`);
         return [];
       });
   }
@@ -173,6 +174,7 @@ export default class BusinessRoleReviewSiteSetup extends React.Component<IBusine
         this.addMessage(`Created PrimaryApprover Column in '${this.state.primaryApproversList["Title"]}'`);
       }).catch(err => {
         this.addMessage(`<h1>Error Creating PrimaryApprover Column in '${this.state.primaryApproversList["Title"]}'</h1>`);
+        this.addMessage(`<h1>Error was  ${err.data.responseBody["odata.error"].message.value} </h1>`);
         console.error(err);
         debugger;
       });
@@ -220,7 +222,7 @@ export default class BusinessRoleReviewSiteSetup extends React.Component<IBusine
 
     // customize the home paged
     let welcomePageUrl: string;
-    await newWeb.rootFolder.getAs<any>().then(rootFolder => {
+    await newWeb.rootFolder.get<any>().then(rootFolder => {
       welcomePageUrl = rootFolder.ServerRelativeUrl + rootFolder.WelcomePage;
     });
     this.addMessage("Customizing Home Page");
@@ -235,6 +237,7 @@ export default class BusinessRoleReviewSiteSetup extends React.Component<IBusine
       debugger;
     }).catch(err => {
       this.addMessage(`<h1>Error Adding users to members group</h1>`);
+      this.addMessage(`<h1>Error was  ${err.data.responseBody["odata.error"].message.value} </h1>`);
       console.error(err);
     });
     this.addMessage("DONE!!");
