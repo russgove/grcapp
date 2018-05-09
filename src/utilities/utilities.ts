@@ -27,7 +27,7 @@ export async function convertEmailColumnsToUser(webUrl: string, listTitle: strin
                     moreRows = false;
                 }
                 for (let row of rows) {
-                    debugger;
+                   
                     lastId = row.Id;
                     for (let column of columns) {
                         let emailColumn: string = column[0];

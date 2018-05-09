@@ -17,7 +17,7 @@ import { IContextualMenuItem } from "office-ui-fabric-react/lib/ContextualMenu";
 import { PrimaryButton, ButtonType, Button, DefaultButton, ActionButton, IconButton } from "office-ui-fabric-react/lib/Button";
 import { Dialog } from "office-ui-fabric-react/lib/Dialog";
 import { TextField } from "office-ui-fabric-react/lib/TextField";
-import {sp, ItemAddResult, ListAddResult, ContextInfo, Web, WebAddResult, List as PNPList } from "@pnp/sp";
+import { sp, ItemAddResult, ListAddResult, ContextInfo, Web, WebAddResult, List as PNPList } from "@pnp/sp";
 import { map, clone } from "lodash";
 import {
   addPeopleFieldToList, convertEmailColumnsToUser, AddQuickLaunchItem, RemoveQuickLaunchItem, AddUsersInListToGroup,
@@ -30,7 +30,7 @@ require('sp-runtime');
 require('sharepoint');
 require('sp-workflow');
 
-export default class UserAccessSiteSetup extends React.Component<IUserAccessSiteSetupProps,IUserAccessSiteSetupState> {
+export default class UserAccessSiteSetup extends React.Component<IUserAccessSiteSetupProps, IUserAccessSiteSetupState> {
   constructor(props: IUserAccessSiteSetupProps) {
     super(props);
     this.addMessage = this.addMessage.bind(this);
@@ -77,17 +77,21 @@ export default class UserAccessSiteSetup extends React.Component<IUserAccessSite
         userAccessList: list
       }));
       let fieldsfound = ensureFieldsAreInList(list, [
-        "Role_x0020_Name",
-        "Composite_x0020_Role",
+        "Role",
+        "Role_x0020_name",
+        "Approval",
+        "Date_x0020_Reviewed",
+        "User_x0020_ID",
+        "User_x0020_Full_x0020_Name",
+        "Remediation",
         "Approver",
         "Approver_x0020_Name",
         "ApproverEmail",
-        "Alt_x0020_Apprv",
         "Alternate_x0020_Approver",
         "AlternateApproverEmail",
         "Approval", //approval decision
         "Comments"
-        
+
 
       ], this.addMessage);
       if (fieldsfound) {
@@ -118,7 +122,10 @@ export default class UserAccessSiteSetup extends React.Component<IUserAccessSite
         primaryApproversCount: list["ItemCount"],
         primaryApproversList: list
       }));
-      let fieldsfound = ensureFieldsAreInList(list, ["ApproverEmail", "Completed"], this.addMessage);
+      let fieldsfound = ensureFieldsAreInList(list, [
+        "ApproverEmail",
+        "Completed"
+      ], this.addMessage);
       if (fieldsfound) {
         this.addMessage(`Required fields found on List ${this.props.primaryApproversListName} `);
 
@@ -136,8 +143,8 @@ export default class UserAccessSiteSetup extends React.Component<IUserAccessSite
       }));
     });
 
-     // test the  tcode list, ensure the list exists and has required fields
-     getListFromWeb(option.key as string, this.props.tcodeListName).then(list => {
+    // test the  tcode list, ensure the list exists and has required fields
+    getListFromWeb(option.key as string, this.props.tcodeListName).then(list => {
       this.addMessage(`Required List ${this.props.tcodeListName} was found on that site`);
       this.setState((current) => ({
         ...current,
@@ -145,7 +152,11 @@ export default class UserAccessSiteSetup extends React.Component<IUserAccessSite
         tcodeCount: list["ItemCount"],
         tcodeList: list
       }));
-      let fieldsfound = ensureFieldsAreInList(list, ["ApproverEmail", "Completed"], this.addMessage);
+      let fieldsfound = ensureFieldsAreInList(list, [
+        "Role",
+        "Composite_x0020_role",
+        "TCode",
+        "Transaction_x0020_Text"], this.addMessage);
       if (fieldsfound) {
         this.addMessage(`Required fields found on List ${this.props.tcodeListName} `);
 
@@ -197,7 +208,7 @@ export default class UserAccessSiteSetup extends React.Component<IUserAccessSite
     // first we'll check if the user COLUMN is not prensent and If not Add it. (nah, do this later)
     // then , we'll repeatedly get 100 (well , getem all for now....) rows wher the user COLUMN  is empty.(user column CANNOT be indexed)
     // for each of those rows, we'll call ensureUser and then update the row with the users ID.
-debugger;
+    debugger;
     if (!ensureFieldsAreInList(this.state.primaryApproversList, ["PrimaryApprover"], this.addMessage)) {
       this.addMessage(`Creating PrimaryApprover Column in '${this.state.primaryApproversList["Title"]}'`);
       await addPeopleFieldToList(this.state.webUrl, this.props.primaryApproversListName, "PrimaryApprover", "PrimaryApprover").then(d => {
@@ -235,7 +246,7 @@ debugger;
   // #region Site creation
 
   public async setupWeb() {
-debugger;
+    debugger;
     let newWeb = new Web(window.location.origin + this.state.webUrl);
 
 
