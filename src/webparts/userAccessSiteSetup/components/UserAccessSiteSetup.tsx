@@ -185,6 +185,7 @@ export default class UserAccessSiteSetup extends React.Component<IUserAccessSite
     }
 
     this.addMessage(`Updating PrimaryApprover column from ApproverEmail  in '${this.state.userAccessList["Title"]}'`);
+    debugger;
     await convertEmailColumnsToUser(this.state.webUrl, this.props.userAccessListName, [["ApproverEmail", "PrimaryApproverId"]], this.addMessage);
     this.addMessage(`Updated PrimaryApprover column from ApproverEmail  in '${this.state.userAccessList["Title"]}'`);
 

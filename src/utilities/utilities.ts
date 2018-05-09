@@ -1,5 +1,5 @@
 import { find, clone, map } from "lodash";
-import {sp, Web, List, ListAddResult } from "@pnp/sp";
+import { sp, Web, List, ListAddResult } from "@pnp/sp";
 import { HttpClient, IHttpClientOptions, HttpClientResponse } from '@microsoft/sp-http';
 export function addPeopleFieldToList(webUrl: string, listTitle: string, internalName: string, displayName): Promise<any> {
     let web = new Web(window.location.origin + webUrl);
@@ -16,47 +16,57 @@ export async function convertEmailColumnsToUser(webUrl: string, listTitle: strin
         fieldsToFetch.push(column[0]);
         fieldsToFetch.push(column[1]);
     }
-    await web.lists.getByTitle(listTitle).items.top(4000).select(fieldsToFetch.join(",")).get()
-        .then(async rows => {
-            debugger;
-            for (let row of rows) {
-                for (let column of columns) {
-                    let emailColumn: string = column[0];
-                    let userColumn: string = column[1];
-                    let user = await web.ensureUser(row[column[0]])
-                        .then(u => {
-                            return u;
-                        })
-                        .catch(err => {
-                            debugger;
-                            addMessage(`<h2>User with an eMail/UPN of '${row[column[0]]}' could not be found</h2>`);
-                            addMessage(`<h1>Error was  ${err.data.responseBody["odata.error"].message.value} </h1>`);
-                            return null;
-                        });
-                    if (user) { // if the user was ensured!
-                        let update = { [userColumn]: user.data.Id };// enclose in brakts to eval
-                        web.lists.getByTitle(listTitle).items.getById(row["Id"]).update(update)
-                            .then(x => {
+    let moreRows: boolean = true;
+    let lastId: number = 0;
+    let batchsize: number = 200;
+    while (moreRows) {
+        await web.lists.getByTitle(listTitle).items.top(batchsize).filter(`ID gt ${lastId}`).select(fieldsToFetch.join(",")).get()
+            .then(async rows => {
+                debugger;
+                if (rows.length === 0) {
+                    moreRows = false;
+                }
+                for (let row of rows) {
+                    debugger;
+                    lastId = row.Id;
+                    for (let column of columns) {
+                        let emailColumn: string = column[0];
+                        let userColumn: string = column[1];
+                        let user = await web.ensureUser(row[column[0]])
+                            .then(u => {
+                                return u;
                             })
                             .catch(err => {
                                 debugger;
-                                addMessage(`<h1>Error updating user</h1>`);
-                                addMessage(`<h1>Error updating user email ${row[column[0]]} To user ID ${user.data.Id}</h1>`);
+                                addMessage(`<h2>User with an eMail/UPN of '${row[column[0]]}' could not be found</h2>`);
                                 addMessage(`<h1>Error was  ${err.data.responseBody["odata.error"].message.value} </h1>`);
-                                
-                                debugger;
+                                return null;
                             });
+                        if (user) { // if the user was ensured!
+                            let update = { [userColumn]: user.data.Id };// enclose in brakts to eval
+                            web.lists.getByTitle(listTitle).items.getById(row["Id"]).update(update)
+                                .then(x => {
+                                })
+                                .catch(err => {
+                                    debugger;
+                                    addMessage(`<h1>Error updating user</h1>`);
+                                    addMessage(`<h1>Error updating user email ${row[column[0]]} To user ID ${user.data.Id}</h1>`);
+                                    addMessage(`<h1>Error was  ${err.data.responseBody["odata.error"].message.value} </h1>`);
+
+                                    debugger;
+                                });
 
 
+                        }
                     }
                 }
-            }
-        })
-        .catch(err => {
-            console.error(err);
-            addMessage(`<h1>Error fetching items from ${listTitle} <h1>`);
-            addMessage(`<h1>Error was  ${err.data.responseBody["odata.error"].message.value} </h1>`);
-        });
+            })
+            .catch(err => {
+                console.error(err);
+                addMessage(`<h1>Error fetching items from ${listTitle} <h1>`);
+                addMessage(`<h1>Error was  ${err.data.responseBody["odata.error"].message.value} </h1>`);
+            });
+    }
     addMessage(`Done converting users on list ${listTitle}.`);
     return Promise.resolve();
 }
@@ -186,7 +196,7 @@ export async function cleanupHomePage(webRelativeUrl: string, homePageUrl, webPa
             });
         });
     }
-   
+
     let oWebPartDefinition = limitedWebPartManager.importWebPart(webPartXml);
     let oWebPart = oWebPartDefinition.get_webPart();
     limitedWebPartManager.addWebPart(oWebPart, 'Main', 1);
@@ -241,26 +251,26 @@ export async function AddUsersInListToGroup(webUrl: string, listName: string, us
         .then(async (listItems) => {
             debugger;
             for (const item of listItems) {
-                if (item[userFieldName]){
-           
-                await sp.web.siteGroups.getByName(membersGroup.Title).users.add(item[userFieldName]["Name"])
-                    .then(e=>{
-                        addMessage(`added ${item[userFieldName]["Name"]}`);
-                    })
-                    .catch((err) => {
-                        debugger;
-                        addMessage(`<h1>Error adding user ${item[userFieldName]["Name"]}</h1>`);
-                        addMessage(err.data.responseBody["odata.error"].message.value);
-                        return;
-                    });
+                if (item[userFieldName]) {
+
+                    await sp.web.siteGroups.getByName(membersGroup.Title).users.add(item[userFieldName]["Name"])
+                        .then(e => {
+                            addMessage(`added ${item[userFieldName]["Name"]}`);
+                        })
+                        .catch((err) => {
+                            debugger;
+                            addMessage(`<h1>Error adding user ${item[userFieldName]["Name"]}</h1>`);
+                            addMessage(err.data.responseBody["odata.error"].message.value);
+                            return;
+                        });
 
 
+                }
+                else {
+                    debugger;
+                    addMessage(`<h3>User is missing on row</h3>`);
+                }
             }
-            else{
-                debugger;
-                addMessage(`<h3>User is missing on row</h3>`);
-            }
-        }
 
         })
         .catch((err) => {
