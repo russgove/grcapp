@@ -89,6 +89,22 @@
           "manifest": "./src/webparts/highRiskSiteSetup/HighRiskSiteSetupWebPart.manifest.json"
         }
       ]
+    },
+    "user-access-web-part": {
+      "components": [
+        {
+          "entrypoint": "./lib/webparts/userAccess/UserAccessWebPart.js",
+          "manifest": "./src/webparts/userAccess/UserAccessWebPart.manifest.json"
+        }
+      ]
+    },
+    "user-access-site-setup-web-part": {
+      "components": [
+        {
+          "entrypoint": "./lib/webparts/userAccessSiteSetup/UserAccessSiteSetupWebPart.js",
+          "manifest": "./src/webparts/userAccessSiteSetup/UserAccessSiteSetupWebPart.manifest.json"
+        }
+      ]
     }
   },
   "externals": {
@@ -137,6 +153,8 @@
     "BusinessRoleReviewWebPartStrings": "lib/webparts/businessRoleReview/loc/{locale}.js",
     "BusinessRoleReviewSiteSetupWebPartStrings": "lib/webparts/businessRoleReviewSiteSetup/loc/{locale}.js",
     "HighRiskWebPartStrings": "lib/webparts/highRisk/loc/{locale}.js",
-    "HighRiskSiteSetupWebPartStrings": "lib/webparts/highRiskSiteSetup/loc/{locale}.js"
+    "HighRiskSiteSetupWebPartStrings": "lib/webparts/highRiskSiteSetup/loc/{locale}.js",
+    "UserAccessWebPartStrings": "lib/webparts/userAccess/loc/{locale}.js",
+    "UserAccessSiteSetupWebPartStrings": "lib/webparts/userAccessSiteSetup/loc/{locale}.js"
   }
 }
