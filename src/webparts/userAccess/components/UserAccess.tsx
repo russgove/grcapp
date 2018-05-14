@@ -320,34 +320,41 @@ export default class UserAccess extends React.Component<IUserAccessProps, IUserA
                {
               key: "UserID", name: "User Id",
               fieldName: "User_x0020_ID", minWidth: 40, maxWidth: 40,
+              isResizable:true,
             },
             {
               key: "userName", name: "User Name",
               fieldName: "User_x0020_Full_x0020_Name", minWidth: 100, maxWidth: 100,
+              isResizable:true,
             },
             {
               key: "title", name: "Role Name",
               fieldName: "Role_x0020_name", minWidth: 300, maxWidth: 300,
+              isResizable:true,
 
             },
             {
               key: "info", name: "Info",
+              isResizable:true,
               fieldName: "Role_x0020_name", minWidth: 20, maxWidth: 20,
               onRender: (item?: any, index?: number, column?: IColumn) => {
                 return (
                   <IconButton iconProps={{ iconName: "Info" }} onClick={(e) => { this.showPopup(item); }} />
                 );
+                
               }
 
             },
             {
               key: "Approval", name: "Approval",
+              isResizable:true,
               fieldName: "Approval", minWidth: 90, maxWidth: 90,
                 onRender: (item?: any, index?: number, column?: IColumn) => { return this.RenderApproval(item, index, column); },
               },
             {
               key: "Comments", name: "Comments",
               fieldName: "Comments", minWidth: 150, maxWidth: 150,
+              isResizable:true,
               onRender: (item?: any, index?: number, column?: IColumn) => { return this.RenderComments(item, index, column); },
             },
        
