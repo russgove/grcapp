@@ -68,9 +68,9 @@ export default class UserAccess extends React.Component<IUserAccessProps, IUserA
   public RenderApproval(item?: UserAccessItem, index?: number, column?: IColumn): JSX.Element {
 
     let options = [
-      { key: "0", text: "yup" },
-      { key: "1", text: "nope" },
-      { key: "2", text: "no f'in way" }
+      { key: "0", text: "Yes" },
+      { key: "1", text: "No" }
+      
     ];
     if (this.props.primaryApproverList[0].Completed === "Yes") {
       return (
@@ -140,7 +140,7 @@ export default class UserAccess extends React.Component<IUserAccessProps, IUserA
       var tempArray = map(this.state.userAccessItems, (rr) => {
         return { ...rr, hasBeenUpdated: false };
       });
-      this.setState((current) => ({ ...current, highRisk: tempArray }));
+      this.setState((current) => ({ ...current, userAccessItems: tempArray }));
       alert("Saved");
     }).catch((err) => {
       debugger;
@@ -170,7 +170,7 @@ export default class UserAccess extends React.Component<IUserAccessProps, IUserA
         };
       }
     });
-    this.setState((current) => ({ ...current, highRisk: tempArray }));
+    this.setState((current) => ({ ...current, userAccessItems: tempArray }));
   }
   public changeUnSelected(ev?: React.MouseEvent<HTMLElement>, item?: IContextualMenuItem): void {
     var tempArray = map(this.state.userAccessItems, (rr) => {
@@ -186,7 +186,7 @@ export default class UserAccess extends React.Component<IUserAccessProps, IUserA
         };
       }
     });
-    this.setState((current) => ({ ...current, highRisk: tempArray }));
+    this.setState((current) => ({ ...current, userAccessItems: tempArray }));
   }
   // public changeAll(ev?: React.MouseEvent<HTMLElement>, item?: IContextualMenuItem): void {
 
@@ -213,9 +213,9 @@ export default class UserAccess extends React.Component<IUserAccessProps, IUserA
 
   public fetchUserAccess(): Promise<any> {
     debugger;
-    return this.props.fetchUserAccess().then((highrisks) => {
+    return this.props.fetchUserAccess().then((items) => {
       debugger;
-      this.setState((current) => ({ ...current, highRisk: highrisks }));
+      this.setState((current) => ({ ...current, userAccessItems: items }));
     }).catch((err) => {
       debugger;
       alert(err);
@@ -235,26 +235,18 @@ export default class UserAccess extends React.Component<IUserAccessProps, IUserA
         subMenuProps: {
           items: [
             {
-              key: 'yup',
-              name: 'Yup',
+              key: 'Yes',
+              name: 'Yes',
               data: "0",
               onClick: this.changeSelected,
               disabled: this.props.primaryApproverList[0].Completed === "Yes"
             },
             {
-              key: 'Nope',
-              name: 'Nope',
+              key: 'No',
+              name: 'No',
               data: "1",
               onClick: this.changeSelected,
               disabled: this.props.primaryApproverList[0].Completed === "Yes"
-            },
-            {
-              key: "no f'in way",
-              name: "no f'in way",
-              data: "2",
-              onClick: this.changeSelected,
-              disabled: this.props.primaryApproverList[0].Completed === "Yes"
-
             }
 
           ]
@@ -264,30 +256,23 @@ export default class UserAccess extends React.Component<IUserAccessProps, IUserA
         key: "Change Unselected",
         name: "Change Unselected",
         icon: "TriggerAuto",
-        disabled: this.props.primaryApproverList[0].Completed === "Yes"  ,
+        disabled: !(this.props.primaryApproverList) || this.props.primaryApproverList[0].Completed === "Yes"  ,
         
         subMenuProps: {
           items: [
             {
-              key: 'yup',
-              name: 'Yup',
+              key: 'Yes',
+              name: 'Yes',
               data: "0",
               onClick: this.changeUnSelected,
-              disabled: this.props.primaryApproverList[0].Completed === "Yes" 
+              disabled:  !(this.props.primaryApproverList) || this.props.primaryApproverList[0].Completed === "Yes" 
             
             },
             {
-              key: 'Nope',
-              name: 'Nope',
+              key: 'No',
+              name: 'No',
               data: "1",
               onClick: this.changeUnSelected
-            },
-            {
-              key: "no f'in way",
-              name: "no f'in way",
-              data: "2",
-              onClick: this.changeUnSelected
-
             }
 
           ]
@@ -302,7 +287,7 @@ export default class UserAccess extends React.Component<IUserAccessProps, IUserA
       { // if the item has been comleted OR there are items with noo approvasl, diable
         key: "Done", name: "Complete", icon: "Completed", onClick: this.setComplete,
         disabled: this.props.primaryApproverList[0].Completed === "Yes" ||
-        (filter(this.state.userAccessItems, (rr) => { return rr.Approval === null; }).length > 0)
+        (filter(this.state.userAccessItems, (rr) => { return rr.Approval === "3"; }).length > 0) // "3" is the initial state after larry uploads the access db
       }
 
     ];
@@ -347,7 +332,7 @@ export default class UserAccess extends React.Component<IUserAccessProps, IUserA
             },
             {
               key: "info", name: "Info",
-              fieldName: "Role_x0020_name", minWidth: 10, maxWidth: 10,
+              fieldName: "Role_x0020_name", minWidth: 20, maxWidth: 20,
               onRender: (item?: any, index?: number, column?: IColumn) => {
                 return (
                   <IconButton iconProps={{ iconName: "Info" }} onClick={(e) => { this.showPopup(item); }} />
