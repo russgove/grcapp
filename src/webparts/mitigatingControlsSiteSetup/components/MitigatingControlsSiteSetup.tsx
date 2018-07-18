@@ -148,7 +148,7 @@ export default class MitigatingControlsSiteSetup extends React.Component<IMitiga
         this.addMessage(`Created PrimaryApprover Column  in '${this.state.mitigatingControlsList["Title"]}'`);
 
       }).catch(err => {
-        this.addMessage(`<h1>There was an error adding the PrimaryApprover column to the ${this.state.mitigatingControlsList["Title"]} list</h1>`)
+        this.addMessage(`<h1>There was an error adding the PrimaryApprover column to the ${this.state.mitigatingControlsList["Title"]} list</h1>`);
       });
 
     } else {

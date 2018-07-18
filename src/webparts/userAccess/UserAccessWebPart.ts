@@ -10,10 +10,10 @@ import {
 import * as strings from 'UserAccessWebPartStrings';
 import UserAccess from './components/UserAccess';
 import { IUserAccessProps } from './components/IUserAccessProps';
-import {UserAccessItem ,RoleToTransaction,PrimaryApproverItem} from "./datamodel";
+import { UserAccessItem, RoleToTransaction, PrimaryApproverItem } from "./datamodel";
 
 import { find, filter } from "lodash";
-import  { sp,EmailProperties, Items, Item } from "@pnp/sp";
+import { sp, EmailProperties, Items, Item } from "@pnp/sp";
 
 export interface IUserAccessWebPartProps {
   primaryApproversListName: string;
@@ -27,7 +27,7 @@ export default class UserAccessWebPart extends BaseClientSideWebPart<IUserAccess
   private reactElement: React.ReactElement<IUserAccessProps>;
   private formComponent: UserAccess;
   private async fetchUserAccess(): Promise<Array<UserAccessItem>> {
-    debugger;
+ 
     let userId = this.context.pageContext.legacyPageContext.userId;
     let select = `Id,Role,Role_x0020_name,PrimaryApproverId,PrimaryApprover/Title,
     Approval, Date_x0020_Reviewed, User_x0020_ID,User_x0020_Full_x0020_Name,
@@ -38,10 +38,10 @@ export default class UserAccessWebPart extends BaseClientSideWebPart<IUserAccess
       .select(select)
       .expand(expands)
       .filter('PrimaryApproverId eq ' + userId)
-      .get<Array<UserAccessItem>>();
+      .getAll();
   }
   public async onInit(): Promise<void> {
-    debugger;
+ 
     await super.onInit().then(() => {
       sp.setup({
         spfxContext: this.context,
@@ -69,7 +69,7 @@ export default class UserAccessWebPart extends BaseClientSideWebPart<IUserAccess
 
   }
   public save(HighRisks: Array<UserAccessItem>): Promise<any> {
-    debugger;
+  
     let itemsToSave = filter(HighRisks, (rtc) => { return rtc.hasBeenUpdated === true; });
     let batch = sp.createBatch();
     //let promises: Array<Promise<any>> = [];
@@ -78,28 +78,26 @@ export default class UserAccessWebPart extends BaseClientSideWebPart<IUserAccess
       sp.web.lists.getByTitle(this.properties.highRiskListName)
         .items.getById(item.Id).inBatch(batch).update({ "Approval": item.Approval, "Comments": item.Comments })
         .then((x) => {
-          debugger;
+         
         })
         .catch((err) => {
           debugger;
         });
 
     }
-    debugger;
+   
     return batch.execute();
 
   }
-  public getRoleToTransaction(role: string): Promise<RoleToTransaction> {
-    debugger;
-
-
-    return sp.web.lists.getByTitle(this.properties.roleToTransactionListName)
-      .items.filter(`Composite_x0020_role eq '${role}'`).get<RoleToTransaction>();
-
+  public getRoleToTransaction(role: string): Promise<RoleToTransaction[]> {
+    let results: Promise<RoleToTransaction[]> =
+      sp.web.lists.getByTitle(this.properties.roleToTransactionListName)
+        .items.filter(`Composite_x0020_role eq '${role}'`).getAll();
+    return results;
 
   }
   public setComplete(primaryApproverList: PrimaryApproverItem): Promise<any> {
-    debugger;
+
 
     let userId = this.context.pageContext.legacyPageContext.userId;
     return sp.web.lists.getByTitle(this.properties.primaryApproversListName)
@@ -113,7 +111,7 @@ export default class UserAccessWebPart extends BaseClientSideWebPart<IUserAccess
 
   }
   public render(): void {
-   
+
 
     this.reactElement = React.createElement(
       UserAccess,
@@ -126,7 +124,7 @@ export default class UserAccessWebPart extends BaseClientSideWebPart<IUserAccess
         domElement: this.domElement
       }
     );
-    debugger;
+  
     this.formComponent = ReactDom.render(this.reactElement, this.domElement) as UserAccess;
   }
 

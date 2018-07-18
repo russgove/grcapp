@@ -283,7 +283,7 @@ export default class MitigatingControls extends React.Component<IMitigatingContr
             name:hl.Title,
             target:hl.Target
 
-          }
+          };
         })
       }
     ];

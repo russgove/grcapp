@@ -148,7 +148,7 @@ export default class BusinessRoleReviewSiteSetup extends React.Component<IBusine
         this.addMessage(`Created PrimaryApprover Column  in '${this.state.businessRoleReviewList["Title"]}'`);
 
       }).catch(err => {
-        this.addMessage(`<h1>There was an error adding the PrimaryApprover column to the ${this.state.businessRoleReviewList["Title"]} list</h1>`)
+        this.addMessage(`<h1>There was an error adding the PrimaryApprover column to the ${this.state.businessRoleReviewList["Title"]} list</h1>`);
       });
 
     } else {

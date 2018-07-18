@@ -1,4 +1,4 @@
-import {PrimaryApproverItem,UserAccessItem,RoleToTransaction} from "../datamodel"
+import {PrimaryApproverItem,UserAccessItem,RoleToTransaction} from "../datamodel";
 export interface IUserAccessProps {
   primaryApproverList: Array<PrimaryApproverItem>;
   save: (userAccess: Array<UserAccessItem>) => Promise<any>;

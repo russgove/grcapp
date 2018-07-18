@@ -188,7 +188,7 @@ export default class UserAccessSiteSetup extends React.Component<IUserAccessSite
         this.addMessage(`Created PrimaryApprover Column  in '${this.state.userAccessList["Title"]}'`);
 
       }).catch(err => {
-        this.addMessage(`<h1>There was an error adding the PrimaryApprover column to the ${this.state.userAccessList["Title"]} list</h1>`)
+        this.addMessage(`<h1>There was an error adding the PrimaryApprover column to the ${this.state.userAccessList["Title"]} list</h1>`);
       });
 
     } else {

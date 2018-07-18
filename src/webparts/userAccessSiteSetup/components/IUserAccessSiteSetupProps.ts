@@ -1,7 +1,7 @@
 export interface IUserAccessSiteSetupProps {
   userAccessListName:string;
   primaryApproversListName:string;
-  tcodeListName:string
+  tcodeListName:string;
   siteUrl:string;
   webPartXml:string;
 }

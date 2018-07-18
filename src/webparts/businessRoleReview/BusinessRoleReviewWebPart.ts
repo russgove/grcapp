@@ -28,7 +28,7 @@ export interface IBusinessRoleReviewWebPartProps {
   altApproverWidth:number;
   approvalDecisionWidth:number;
   commentsWidth:number;
-  helpLinksListName:string
+  helpLinksListName:string;
 
 }
 

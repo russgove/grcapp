@@ -299,7 +299,7 @@ export default class BusinessRoleReview extends React.Component<IBusinessRoleRev
             name:hl.Title,
             target:hl.Target
 
-          }
+          };
         })
       }
     ];
