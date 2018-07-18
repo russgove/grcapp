@@ -34,8 +34,7 @@ export default class UserAccess extends React.Component<IUserAccessProps, IUserA
     this.selection.getKey = (item => { return item["Id"]; });
     this.save = this.save.bind(this);
     this.setComplete = this.setComplete.bind(this);
-    this.changeUnSelected = this.changeUnSelected.bind(this);
-    this.changeSelected = this.changeSelected.bind(this);
+    this.updateSelected = this.updateSelected.bind(this);
     this.fetchUserAccess = this.fetchUserAccess.bind(this);
     this.state = {
       primaryApproverList: props.primaryApproverList,
@@ -68,8 +67,8 @@ export default class UserAccess extends React.Component<IUserAccessProps, IUserA
   public RenderApproval(item?: UserAccessItem, index?: number, column?: IColumn): JSX.Element {
 
     let options = [
-      { key: "0", text: "Yes" },
-      { key: "1", text: "No" }
+      { key: "1", text: "Yes" },
+      { key: "2", text: "No" }
 
     ];
     if (this.props.primaryApproverList[0].Completed === "Yes") {
@@ -156,38 +155,45 @@ export default class UserAccess extends React.Component<IUserAccessProps, IUserA
       alert(err);
     });
   }
-  public changeSelected(ev?: React.MouseEvent<HTMLElement>, item?: IContextualMenuItem): void {
-    var tempArray = map(this.state.userAccessItems, (rr) => {
-      if (this.selection.isKeySelected(rr.Id.toString())) {
-        return {
-          ...rr,
-          Approval: item.data, hasBeenUpdated: true
-        };
-      }
-      else {
-        return {
-          ...rr
-        };
-      }
-    });
-    this.setState((current) => ({ ...current, userAccessItems: tempArray }));
-  }
-  public changeUnSelected(ev?: React.MouseEvent<HTMLElement>, item?: IContextualMenuItem): void {
-    var tempArray = map(this.state.userAccessItems, (rr) => {
-      if (!this.selection.isKeySelected(rr.Id.toString())) {
-        return {
-          ...rr,
-          Approval: item.data, hasBeenUpdated: true
-        };
-      }
-      else {
-        return {
-          ...rr
-        };
-      }
-    });
-    this.setState((current) => ({ ...current, userAccessItems: tempArray }));
-  }
+  // public changeSelected(ev?: React.MouseEvent<HTMLElement>, item?: IContextualMenuItem): void {
+  //   debugger;
+  //   var tempArray = map(this.state.userAccessItems, (uaItem) => {
+  //     if (this.selection.isKeySelected(uaItem.Id.toString())) {
+  //       debugger;
+  //       return {
+  //         ...uaItem,
+  //         Approval: this.state.popupValueApproval ? this.state.popupValueApproval : uaItem.Approval,
+  //         Comments: this.state.popupValueComments ? this.state.popupValueComments : uaItem.Comments,
+  //         hasBeenUpdated: true
+  //       };
+  //     }
+  //     else {
+  //       return {
+  //         ...uaItem
+  //       };
+  //     }
+  //   });
+  //   this.setState((current) => ({ ...current, userAccessItems: tempArray }));
+  // }
+  // public changeUnSelected(ev?: React.MouseEvent<HTMLElement>, item?: IContextualMenuItem): void {
+  //   debugger;
+  //   var tempArray = map(this.state.userAccessItems, (uaItem) => {
+  //     if (!this.selection.isKeySelected(uaItem.Id.toString())) {
+  //       return {
+  //         ...uaItem,
+  //         Approval: this.state.popupValueApproval ? this.state.popupValueApproval : uaItem.Approval,
+  //         Comments: this.state.popupValueComments ? this.state.popupValueComments : uaItem.Comments,
+  //         hasBeenUpdated: true
+  //       };
+  //     }
+  //     else {
+  //       return {
+  //         ...uaItem
+  //       };
+  //     }
+  //   });
+  //   this.setState((current) => ({ ...current, userAccessItems: tempArray }));
+  // }
   // public changeAll(ev?: React.MouseEvent<HTMLElement>, item?: IContextualMenuItem): void {
 
   //   var tempArray = map(this.state.highRisk, (rr) => {
@@ -222,19 +228,19 @@ export default class UserAccess extends React.Component<IUserAccessProps, IUserA
     });
   }
   public updateSelected(ev?: React.MouseEvent<HTMLElement>, item?: IContextualMenuItem): void {
-
-    var tempArray = map(this.state.userAccessItems, (rr) => {
-      if (this.selection.isKeySelected(rr.Id.toString()) === this.state.changeSelected) {
+debugger;
+    var tempArray = map(this.state.userAccessItems, (uaItem) => {
+      if (this.selection.isKeySelected(uaItem.Id.toString()) === this.state.changeSelected) {
         return {
-          ...rr,
-          Approval: this.state.popupValueApproval ? this.state.popupValueApproval : rr.Approval,
-          Comments: this.state.popupValueComments ? this.state.popupValueComments : rr.Comments,
+          ...uaItem,
+          Approval: this.state.popupValueApproval ? this.state.popupValueApproval : uaItem.Approval,
+          Comments: this.state.popupValueComments ? this.state.popupValueComments : uaItem.Comments,
           hasBeenUpdated: true,
         };
       }
       else {
         return {
-          ...rr
+          ...uaItem
         };
       }
     });
