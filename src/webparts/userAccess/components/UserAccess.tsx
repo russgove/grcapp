@@ -45,10 +45,21 @@ export default class UserAccess extends React.Component<IUserAccessProps, IUserA
     };
   }
   public componentDidMount() {
-    this.props.fetchUserAccess().then(userAccess => {
+    debugger;
+    this.props.fetchUserAccess()
+    .then(userAccess => {
+      debugger;
       this.setState((current) => ({ ...current, userAccessItems: userAccess }));
+    })
+    .catch((err)=>{
+      console.log(err.data.responseBody["odata.error"].message.value);
+      console.log(err);
+      alert("error fething user Access Items")
+      alert(err.data.responseBody["odata.error"].message.value);
 
-    });
+      
+
+    })
   }
   public componentDidUpdate(): void {
     // disable postback of buttons. see https://github.com/SharePoint/sp-dev-docs/issues/492
@@ -381,7 +392,7 @@ debugger;
           columns={[
             {
               key: "UserID", name: "User Id",
-              fieldName: "User_x0020_ID", minWidth: 40, maxWidth: 40,
+              fieldName: "User_x0020_ID", minWidth: 90, maxWidth: 90,
               isResizable: true,
             },
             {

@@ -27,7 +27,7 @@ export default class UserAccessWebPart extends BaseClientSideWebPart<IUserAccess
   private reactElement: React.ReactElement<IUserAccessProps>;
   private formComponent: UserAccess;
   private async fetchUserAccess(): Promise<Array<UserAccessItem>> {
- 
+
     let userId = this.context.pageContext.legacyPageContext.userId;
     let select = `Id,Role,Role_x0020_name,PrimaryApproverId,PrimaryApprover/Title,
     Approval, Date_x0020_Reviewed, User_x0020_ID,User_x0020_Full_x0020_Name,
@@ -41,7 +41,7 @@ export default class UserAccessWebPart extends BaseClientSideWebPart<IUserAccess
       .getAll();
   }
   public async onInit(): Promise<void> {
- 
+    debugger;
     await super.onInit().then(() => {
       sp.setup({
         spfxContext: this.context,
@@ -59,7 +59,12 @@ export default class UserAccessWebPart extends BaseClientSideWebPart<IUserAccess
       .get<Array<PrimaryApproverItem>>().then((result) => {
         this.primaryApproverLists = result;
 
-      }).catch((err) => {
+      })
+      .then((ee)=>{
+        debugger;
+      })
+      .catch((err) => {
+        debugger;
         console.error(err.data.responseBody["odata.error"].message.value);
         alert(err.data.responseBody["odata.error"].message.value);
         debugger;
@@ -69,7 +74,7 @@ export default class UserAccessWebPart extends BaseClientSideWebPart<IUserAccess
 
   }
   public save(HighRisks: Array<UserAccessItem>): Promise<any> {
-  
+
     let itemsToSave = filter(HighRisks, (rtc) => { return rtc.hasBeenUpdated === true; });
     let batch = sp.createBatch();
     //let promises: Array<Promise<any>> = [];
@@ -78,14 +83,14 @@ export default class UserAccessWebPart extends BaseClientSideWebPart<IUserAccess
       sp.web.lists.getByTitle(this.properties.highRiskListName)
         .items.getById(item.Id).inBatch(batch).update({ "Approval": item.Approval, "Comments": item.Comments })
         .then((x) => {
-         
+
         })
         .catch((err) => {
           debugger;
         });
 
     }
-   
+
     return batch.execute();
 
   }
@@ -124,7 +129,7 @@ export default class UserAccessWebPart extends BaseClientSideWebPart<IUserAccess
         domElement: this.domElement
       }
     );
-  
+
     this.formComponent = ReactDom.render(this.reactElement, this.domElement) as UserAccess;
   }
 
