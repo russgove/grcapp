@@ -6,11 +6,11 @@ export interface IUserAccessProps {
   webApiUrl:string;
   roleToTcodeController:string;
   primaryApproverController:string;
-  highRiskFunctionsController:string;
-  save: (userAccess: Array<UserAccessItem>) => Promise<any>;
-  getRoleToTransaction: (role: string) => Promise<Array<RoleToTransaction>>;
-  fetchUserAccess: () => Promise<Array<UserAccessItem>>;
-  setComplete: (PrimaryApproverList: PrimaryApproverItem) => Promise<any>;
+  userAccessController:string;
+  // save: (userAccess: Array<UserAccessItem>) => Promise<any>;
+  // getRoleToTransaction: (role: string) => Promise<Array<RoleToTransaction>>;
+  // fetchUserAccess: () => Promise<Array<UserAccessItem>>;
+  // setComplete: (PrimaryApproverList: PrimaryApproverItem) => Promise<any>;
   domElement: any; // needed to disable button postback after render on classic pages
   httpClient:HttpClient;
 }

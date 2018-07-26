@@ -19,7 +19,6 @@ import { Modal, IModalProps } from "office-ui-fabric-react/lib/Modal";
 import { Panel, IPanelProps, PanelType } from "office-ui-fabric-react/lib/Panel";
 import { CommandBar } from "office-ui-fabric-react/lib/CommandBar";
 import { IContextualMenuItem } from "office-ui-fabric-react/lib/ContextualMenu";
-
 import { PrimaryButton, ButtonType, Button, DefaultButton, ActionButton, IconButton } from "office-ui-fabric-react/lib/Button";
 import { Dialog, DialogFooter, DialogType } from "office-ui-fabric-react/lib/Dialog";
 import { TextField } from "office-ui-fabric-react/lib/TextField";
@@ -34,19 +33,12 @@ export default class UserAccess extends React.Component<IUserAccessProps, IUserA
     console.log("in Construrctor");
     initializeIcons();
     this.selection.getKey = (item => { return item["ID"]; });
-    this.save = this.save.bind(this);
-    this.setComplete = this.setComplete.bind(this);
-    this.updateSelected = this.updateSelected.bind(this);
-    this.fetchUserAccess = this.fetchUserAccess.bind(this);
     this.state = {
-      primaryApproverList: null,
+      primaryApprover: null,
       userAccessItems: [],
       showTcodePopup: false,
       showApprovalPopup: false
-
     };
-  }
-  public componentDidMount() {
   }
 
   public componentDidUpdate(): void {
@@ -63,95 +55,9 @@ export default class UserAccess extends React.Component<IUserAccessProps, IUserA
       }
     }
   }
-  public RenderApproval(item?: UserAccessItem, index?: number, column?: IColumn): JSX.Element {
 
-    let options = [
-      { key: "1", text: "Yes" },
-      { key: "2", text: "No" }
-
-    ];
-    if (this.state.primaryApproverList.Completed === "Yes") {
-      return (
-        <div>
-          {find(options, (o) => { return o.key === item.Approval; }).text}
-        </div>
-      );
-    }
-    else {
-      return (
-        <Dropdown options={options}
-          selectedKey={item.Approval}
-          onChanged={(option: IDropdownOption, idx?: number) => {
-            let tempRoleToTCodeReview = this.state.userAccessItems;
-
-            let rtc = find(tempRoleToTCodeReview, (x) => {
-              return x.ID === item.ID;
-            });
-            rtc.Approval = option.key as string;
-            rtc.hasBeenUpdated = true;
-            this.setState((current) => ({ ...current, roleToTCodeReview: tempRoleToTCodeReview, changesHaveBeenMade: true }));
-
-          }}
-
-        >
-
-        </Dropdown>
-      );
-    }
-
-
-  }
-  public RenderComments(item?: UserAccessItem, index?: number, column?: IColumn): JSX.Element {
-    if (this.state.primaryApproverList.Completed === "Yes") {
-      return (
-        <div>
-          {item.Comments}
-        </div>
-      );
-    }
-    else {
-      return (
-        <TextField
-          value={item.Comments ? item.Comments : ""}
-          onChanged={(newValue) => {
-            let tempRoleToTCodeReview = this.state.userAccessItems;
-            let rtc = find(tempRoleToTCodeReview, (x) => {
-              return x.ID === item.ID;
-            });
-            rtc.Comments = newValue;
-            rtc.hasBeenUpdated = true;
-            this.setState((current) => ({ ...current, roleToTCodeReview: tempRoleToTCodeReview, changesHaveBeenMade: true }));
-          }}
-        >
-        </TextField>
-      );
-    }
-  }
-  @autobind
-  public updateUserAccessItems(items: UserAccessItem[]): Promise<any> {
-    let promises: Array<Promise<any>> = [];
-    for (let item of items) {
-      promises.push(this.putApi(this.props.highRiskFunctionsController, item));
-    }
-    return Promise.all(promises);
-  }
  
-  public setComplete(): Promise<any> {
-    this.state.primaryApproverList.Completed="Yes";
-    return this.putApi(this.props.primaryApproverController, this.state.primaryApproverList);
-  }
-  public save(ev?: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>, item?: IContextualMenuItem): void {
-    this.updateUserAccessItems(this.state.userAccessItems).then(() => {
-      var tempArray = map(this.state.userAccessItems, (rr) => {
-        return { ...rr, hasBeenUpdated: false };
-      });
-      this.setState((current) => ({ ...current, userAccessItems: tempArray }));
-      alert("Saved");
-    }).catch((err) => {
-      debugger;
-      alert(err);
-    });
-  }
+ 
   public showPopup(item: UserAccessItem) {
     this.fetchRoleToTransaction(item.Role)
       .then((roleToTransactions) => {
@@ -163,7 +69,11 @@ export default class UserAccess extends React.Component<IUserAccessProps, IUserA
        debugger;
     });
   }
-
+/**
+ * 
+ * This method gets called by the popup window to update all the selected items
+ */
+  @autobind
   public updateSelected(ev?: React.MouseEvent<HTMLElement>, item?: IContextualMenuItem): void {
     debugger;
     var tempArray = map(this.state.userAccessItems, (uaItem) => {
@@ -189,25 +99,6 @@ export default class UserAccess extends React.Component<IUserAccessProps, IUserA
       popupValueComments: null,
       showApprovalPopup: false
     }));
-  }
-  @autobind
-  public addApprover(approver: any): Promise<HttpClientResponse> {
-    debugger;
-    let requestHeaders: Headers = new Headers();
-    requestHeaders.append('Content-type', 'application/json');
-    requestHeaders.append('Cache-Control', 'no-cache');
-
-    let httpClientOptions: IHttpClientOptions = {
-      credentials: "include",
-      body: JSON.stringify(approver)
-    };
-
-    //let url=`${this.props.webApiUrl}/api/${this.props.primaryApproverController}?$filter=tolower(ApproverEmail) eq '${approverEmail.toLowerCase()}'`;
-    let url = `${this.props.webApiUrl}/api/${this.props.primaryApproverController}`;
-    console.log(url);
-    return this.props.httpClient.post(url,
-      HttpClient.configurations.v1,
-      httpClientOptions);
   }
   @autobind
   public getApi(controller: string, query: string): Promise<any> {
@@ -264,24 +155,68 @@ export default class UserAccess extends React.Component<IUserAccessProps, IUserA
       });
   }
   @autobind
-  public fetchPrimaryApprover(approverEmail: string): Promise<any> {
+  public updateUserAccessItems(items: UserAccessItem[]): Promise<any> {
+    let promises: Array<Promise<any>> = [];
+    for (let item of items) {
+      promises.push(this.putApi(this.props.userAccessController, item));
+    }
+    return Promise.all(promises);
+  }
+ 
+  @autobind
+  public setComplete(): Promise<any> {
+    this.state.primaryApprover.Completed="Yes";
+    return this.putApi(this.props.primaryApproverController, this.state.primaryApprover);
+  }
+  @autobind
+  public save(ev?: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>, item?: IContextualMenuItem): void {
+    this.updateUserAccessItems(this.state.userAccessItems).then(() => {
+      var tempArray = map(this.state.userAccessItems, (rr) => {
+        return { ...rr, hasBeenUpdated: false };
+      });
+      this.setState((current) => ({ ...current, userAccessItems: tempArray }));
+      alert("Saved");
+    }).catch((err) => {
+      debugger;
+      alert(err);
+    });
+  }
+  @autobind
+  public addApprover(approver: any): Promise<HttpClientResponse> {
     debugger;
-    let query = "$filter=tolower(ApproverEmail) eq '" + approverEmail.toLowerCase() + "'";
+    let requestHeaders: Headers = new Headers();
+    requestHeaders.append('Content-type', 'application/json');
+    requestHeaders.append('Cache-Control', 'no-cache');
+
+    let httpClientOptions: IHttpClientOptions = {
+      credentials: "include",
+      body: JSON.stringify(approver)
+    };
+
+    //let url=`${this.props.webApiUrl}/api/${this.props.primaryApproverController}?$filter=tolower(ApproverEmail) eq '${approverEmail.toLowerCase()}'`;
+    let url = `${this.props.webApiUrl}/api/${this.props.primaryApproverController}`;
+    console.log(url);
+    return this.props.httpClient.post(url,
+      HttpClient.configurations.v1,
+      httpClientOptions);
+  }
+  
+  @autobind
+  public fetchPrimaryApprover(): Promise<any> {
+    debugger;
+    let query = "$filter=tolower(ApproverEmail) eq '" + this.props.user.email.toLowerCase() + "'";
     return this.getApi(this.props.primaryApproverController, query)
       .then((appr) => {
         this.setState((current) => ({ ...current, primaryApproverList: appr[0] }));
       }).catch(e => {
         debugger;
-      })
+      });
 
   }
   @autobind
   public fetchUserAccess(): Promise<any> {
-
     let query = "$filter=tolower(ApproverEmail) eq '" + this.props.user.email.toLowerCase() + "'";
-
-    return this.getApi(this.props.highRiskFunctionsController, query)
-
+    return this.getApi(this.props.userAccessController, query)
       .then((response: any) => {
         this.setState((current) => ({ ...current, userAccessItems: response }));
       })
@@ -303,16 +238,71 @@ export default class UserAccess extends React.Component<IUserAccessProps, IUserA
     // });
   }
 
-
+  /**
+   * this function gets called after the iframe has connected to the webapi.
+   * After this we can make calls to the web api passing the credentials
+   */
   public frameLoaded() {
     debugger;
     this.fetchUserAccess();
-    this.fetchPrimaryApprover(this.props.user.email);
-
-
-
+    this.fetchPrimaryApprover();
   }
 
+  public RenderApproval(item?: UserAccessItem, index?: number, column?: IColumn): JSX.Element {
+    let options = [
+      { key: "1", text: "Yes" },
+      { key: "2", text: "No" }
+    ];
+    if (this.state.primaryApprover.Completed === "Yes") {
+      return (
+        <div>
+          {find(options, (o) => { return o.key === item.Approval; }).text}
+        </div>
+      );
+    }
+    else {
+      return (
+        <Dropdown options={options}
+          selectedKey={item.Approval}
+          onChanged={(option: IDropdownOption, idx?: number) => {
+            let tempRoleToTCodeReview = this.state.userAccessItems;
+            let rtc = find(tempRoleToTCodeReview, (x) => {
+              return x.ID === item.ID;
+            });
+            rtc.Approval = option.key as string;
+            rtc.hasBeenUpdated = true;
+            this.setState((current) => ({ ...current, roleToTCodeReview: tempRoleToTCodeReview, changesHaveBeenMade: true }));
+          }}
+        />
+      );
+    }
+  }
+  public RenderComments(item?: UserAccessItem, index?: number, column?: IColumn): JSX.Element {
+    if (this.state.primaryApprover.Completed === "Yes") {
+      return (
+        <div>
+          {item.Comments}
+        </div>
+      );
+    }
+    else {
+      return (
+        <TextField
+          value={item.Comments ? item.Comments : ""}
+          onChanged={(newValue) => {
+            let tempRoleToTCodeReview = this.state.userAccessItems;
+            let rtc = find(tempRoleToTCodeReview, (x) => {
+              return x.ID === item.ID;
+            });
+            rtc.Comments = newValue;
+            rtc.hasBeenUpdated = true;
+            this.setState((current) => ({ ...current, roleToTCodeReview: tempRoleToTCodeReview, changesHaveBeenMade: true }));
+          }}
+        >
+        </TextField>
+      );
+    }
+  }
   public render(): React.ReactElement<IUserAccessProps> {
 
     debugger;
@@ -321,7 +311,7 @@ export default class UserAccess extends React.Component<IUserAccessProps, IUserA
         key: "Update Selected",
         name: "Update Selected",
         icon: "TriggerApproval",
-        disabled: !(this.state.primaryApproverList) || this.state.primaryApproverList.Completed === "Yes",
+        disabled: !(this.state.primaryApprover) || this.state.primaryApprover.Completed === "Yes",
         onClick: (e) => {
           if (this.selection.count > 0) {
             this.setState((current) => ({
@@ -337,7 +327,7 @@ export default class UserAccess extends React.Component<IUserAccessProps, IUserA
         key: "Update Unselected",
         name: "Update Unselected",
         icon: "TriggerAuto",
-        disabled: !(this.state.primaryApproverList) || this.state.primaryApproverList.Completed === "Yes",
+        disabled: !(this.state.primaryApprover) || this.state.primaryApprover.Completed === "Yes",
         onClick: (e) => {
 
           if (!this.selection.count || this.selection.count < this.state.userAccessItems.length) {
@@ -360,7 +350,7 @@ export default class UserAccess extends React.Component<IUserAccessProps, IUserA
       },
       { // if the item has been comleted OR there are items with noo approvasl, diable
         key: "Done", name: "Complete", icon: "Completed", onClick: this.setComplete,
-        disabled: !(this.state.primaryApproverList) || this.state.primaryApproverList.Completed === "Yes" ||
+        disabled: !(this.state.primaryApprover) || this.state.primaryApprover.Completed === "Yes" ||
         (filter(this.state.userAccessItems, (rr) => { return rr.Approval === "3"; }).length > 0) // "3" is the initial state after larry uploads the access db
       }
 
@@ -369,8 +359,8 @@ export default class UserAccess extends React.Component<IUserAccessProps, IUserA
       {
 
         key: "Save", name: "Save", icon: "Save", onClick: this.save,
-        disabled: !(this.state.primaryApproverList) || !(filter(this.state.userAccessItems, (rr) => { return rr.hasBeenUpdated; }).length > 0)
-        || this.state.primaryApproverList[0].Completed === "Yes"
+        disabled: !(this.state.primaryApprover) || !(filter(this.state.userAccessItems, (rr) => { return rr.hasBeenUpdated; }).length > 0)
+        || this.state.primaryApprover[0].Completed === "Yes"
 
       }
     ];

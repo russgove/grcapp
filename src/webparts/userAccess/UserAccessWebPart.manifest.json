@@ -20,13 +20,10 @@
     "description": { "default": "This webpart is placed on the homepage of a User Access review site so that users can conduct the review" },
     "officeFabricIconFontName": "Page",
     "properties": {
-      "primaryApproversListName":"Primary Approver List",
-      "highRiskListName": "User Access Review",
-      "roleToTransactionListName":"Role To TCode",
       "webApiUrl":"https://grcuseraccessreview.azurewebsites.net",
       "roleToTcodeController":"Role_to_TCode",
       "primaryApproverController":"Primary_Approver_List",
-      "highRiskFunctionsController":"C35_High_Risk_Functions_Period"
+      "userAccessController":"C35_High_Risk_Functions_Period"
     }
   }]
 }
