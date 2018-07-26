@@ -1,6 +1,7 @@
 import * as React from 'react';
 import * as ReactDom from 'react-dom';
 import { Version } from '@microsoft/sp-core-library';
+import { HttpClient } from '@microsoft/sp-http';
 import {
   BaseClientSideWebPart,
   IPropertyPaneConfiguration,
@@ -19,6 +20,10 @@ export interface IUserAccessWebPartProps {
   primaryApproversListName: string;
   highRiskListName: string;
   roleToTransactionListName: string;
+  webApiUrl: string;
+  roleToTcodeController: string;
+  primaryApproverController: string;
+  highRiskFunctionsController: string;
 }
 
 export default class UserAccessWebPart extends BaseClientSideWebPart<IUserAccessWebPartProps> {
@@ -41,7 +46,7 @@ export default class UserAccessWebPart extends BaseClientSideWebPart<IUserAccess
       .getAll();
   }
   public async onInit(): Promise<void> {
-    debugger;
+ 
     await super.onInit().then(() => {
       sp.setup({
         spfxContext: this.context,
@@ -60,8 +65,8 @@ export default class UserAccessWebPart extends BaseClientSideWebPart<IUserAccess
         this.primaryApproverLists = result;
 
       })
-      .then((ee)=>{
-        debugger;
+      .then((ee) => {
+    
       })
       .catch((err) => {
         debugger;
@@ -81,7 +86,7 @@ export default class UserAccessWebPart extends BaseClientSideWebPart<IUserAccess
 
     for (let item of itemsToSave) {
       sp.web.lists.getByTitle(this.properties.highRiskListName)
-        .items.getById(item.Id).inBatch(batch).update({ "Approval": item.Approval, "Comments": item.Comments })
+        .items.getById(item.ID).inBatch(batch).update({ "Approval": item.Approval, "Comments": item.Comments })
         .then((x) => {
 
         })
@@ -104,16 +109,16 @@ export default class UserAccessWebPart extends BaseClientSideWebPart<IUserAccess
   public setComplete(primaryApproverList: PrimaryApproverItem): Promise<any> {
 
 
-    let userId = this.context.pageContext.legacyPageContext.userId;
-    return sp.web.lists.getByTitle(this.properties.primaryApproversListName)
-      .items.getById(primaryApproverList.Id).update({ "GRCCompleted": "Yes" }).then(() => {
-        let newProps = this.reactElement.props;
-        newProps.primaryApproverList[0].Completed = "Yes";
-        this.reactElement.props = newProps;
-        this.formComponent.forceUpdate();
+    // let userId = this.context.pageContext.legacyPageContext.userId;
+    // return sp.web.lists.getByTitle(this.properties.primaryApproversListName)
+    //   .items.getById(primaryApproverList.Id).update({ "GRCCompleted": "Yes" }).then(() => {
+    //     let newProps = this.reactElement.props;
+    //     newProps.primaryApproverList[0].Completed = "Yes";
+    //     this.reactElement.props = newProps;
+    //     this.formComponent.forceUpdate();
 
-      });
-
+    //   });
+    return Promise.resolve();
   }
   public render(): void {
 
@@ -121,12 +126,17 @@ export default class UserAccessWebPart extends BaseClientSideWebPart<IUserAccess
     this.reactElement = React.createElement(
       UserAccess,
       {
-        primaryApproverList: this.primaryApproverLists,
+        user: this.context.pageContext.user,
+        webApiUrl: this.properties.webApiUrl,
+        roleToTcodeController: this.properties.roleToTcodeController,
+        primaryApproverController: this.properties.primaryApproverController,
+        highRiskFunctionsController: this.properties.highRiskFunctionsController,
         save: this.save.bind(this),
         getRoleToTransaction: this.getRoleToTransaction.bind(this),
         setComplete: this.setComplete.bind(this),
         fetchUserAccess: this.fetchUserAccess.bind(this),
-        domElement: this.domElement
+        domElement: this.domElement,
+        httpClient: this.context.httpClient
       }
     );
 

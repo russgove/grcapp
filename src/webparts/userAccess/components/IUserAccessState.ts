@@ -1,7 +1,7 @@
 import {PrimaryApproverItem,UserAccessItem,RoleToTransaction} from "../datamodel";
 
 export interface IUserAccessState {
-  primaryApproverList: Array<PrimaryApproverItem>;
+  primaryApproverList: PrimaryApproverItem;
   userAccessItems: Array<UserAccessItem>;
   roleToTransaction?: Array<RoleToTransaction>;
   showTcodePopup:boolean;

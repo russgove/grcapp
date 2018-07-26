@@ -136,8 +136,8 @@ export default class GrcTest extends React.Component<IGrcTestProps, IGrcTestStat
 
 
   }
-  public save(): Promise<any> {
-    return this.props.save(this.state.roleReview).then(() => {
+  public save( ev?: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>, item?: IContextualMenuItem) : void {
+     this.props.save(this.state.roleReview).then(() => {
       debugger;
       var roleReview = map(this.state.roleReview, (rr) => {
         return { ...rr, hasBeenUpdated: false };
@@ -149,8 +149,9 @@ export default class GrcTest extends React.Component<IGrcTestProps, IGrcTestStat
       alert(err);
     });
   }
-  public setComplete(): Promise<any> {
-    return this.props.setComplete(this.props.primaryApproverList[0]).then(() => {
+  //public save (ev?: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>, item?: IContextualMenuItem) : void {
+  public setComplete (ev?: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>, item?: IContextualMenuItem) : void {
+    this.props.setComplete(this.props.primaryApproverList[0]).then(() => {
 
       alert("Completed");
     }).catch((err) => {

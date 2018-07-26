@@ -1,8 +1,10 @@
 import * as React from 'react';
+import { autobind } from 'office-ui-fabric-react/lib/Utilities';
 import styles from './UserAccess.module.scss';
 import { IUserAccessProps } from './IUserAccessProps';
 import { IUserAccessState } from './IUserAccessState';
 import { escape } from '@microsoft/sp-lodash-subset';
+import { HttpClient, HttpClientResponse, IHttpClientOptions } from '@microsoft/sp-http';
 import {
   Environment,
   EnvironmentType
@@ -31,13 +33,13 @@ export default class UserAccess extends React.Component<IUserAccessProps, IUserA
     super();
     console.log("in Construrctor");
     initializeIcons();
-    this.selection.getKey = (item => { return item["Id"]; });
+    this.selection.getKey = (item => { return item["ID"]; });
     this.save = this.save.bind(this);
     this.setComplete = this.setComplete.bind(this);
     this.updateSelected = this.updateSelected.bind(this);
     this.fetchUserAccess = this.fetchUserAccess.bind(this);
     this.state = {
-      primaryApproverList: props.primaryApproverList,
+      primaryApproverList: null,
       userAccessItems: [],
       showTcodePopup: false,
       showApprovalPopup: false
@@ -45,22 +47,8 @@ export default class UserAccess extends React.Component<IUserAccessProps, IUserA
     };
   }
   public componentDidMount() {
-    debugger;
-    this.props.fetchUserAccess()
-    .then(userAccess => {
-      debugger;
-      this.setState((current) => ({ ...current, userAccessItems: userAccess }));
-    })
-    .catch((err)=>{
-      console.log(err.data.responseBody["odata.error"].message.value);
-      console.log(err);
-      alert("error fething user Access Items")
-      alert(err.data.responseBody["odata.error"].message.value);
-
-      
-
-    })
   }
+
   public componentDidUpdate(): void {
     // disable postback of buttons. see https://github.com/SharePoint/sp-dev-docs/issues/492
     if (Environment.type === EnvironmentType.ClassicSharePoint) {
@@ -82,7 +70,7 @@ export default class UserAccess extends React.Component<IUserAccessProps, IUserA
       { key: "2", text: "No" }
 
     ];
-    if (this.props.primaryApproverList[0].Completed === "Yes") {
+    if (this.state.primaryApproverList.Completed === "Yes") {
       return (
         <div>
           {find(options, (o) => { return o.key === item.Approval; }).text}
@@ -97,7 +85,7 @@ export default class UserAccess extends React.Component<IUserAccessProps, IUserA
             let tempRoleToTCodeReview = this.state.userAccessItems;
 
             let rtc = find(tempRoleToTCodeReview, (x) => {
-              return x.Id === item.Id;
+              return x.ID === item.ID;
             });
             rtc.Approval = option.key as string;
             rtc.hasBeenUpdated = true;
@@ -114,7 +102,7 @@ export default class UserAccess extends React.Component<IUserAccessProps, IUserA
 
   }
   public RenderComments(item?: UserAccessItem, index?: number, column?: IColumn): JSX.Element {
-    if (this.props.primaryApproverList[0].Completed === "Yes") {
+    if (this.state.primaryApproverList.Completed === "Yes") {
       return (
         <div>
           {item.Comments}
@@ -128,25 +116,32 @@ export default class UserAccess extends React.Component<IUserAccessProps, IUserA
           onChanged={(newValue) => {
             let tempRoleToTCodeReview = this.state.userAccessItems;
             let rtc = find(tempRoleToTCodeReview, (x) => {
-              return x.Id === item.Id;
+              return x.ID === item.ID;
             });
             rtc.Comments = newValue;
             rtc.hasBeenUpdated = true;
             this.setState((current) => ({ ...current, roleToTCodeReview: tempRoleToTCodeReview, changesHaveBeenMade: true }));
-
           }}
-
         >
-
         </TextField>
       );
     }
-
-
   }
-  public save(): Promise<any> {
-    return this.props.save(this.state.userAccessItems).then(() => {
-
+  @autobind
+  public updateUserAccessItems(items: UserAccessItem[]): Promise<any> {
+    let promises: Array<Promise<any>> = [];
+    for (let item of items) {
+      promises.push(this.putApi(this.props.highRiskFunctionsController, item));
+    }
+    return Promise.all(promises);
+  }
+ 
+  public setComplete(): Promise<any> {
+    this.state.primaryApproverList.Completed="Yes";
+    return this.putApi(this.props.primaryApproverController, this.state.primaryApproverList);
+  }
+  public save(ev?: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>, item?: IContextualMenuItem): void {
+    this.updateUserAccessItems(this.state.userAccessItems).then(() => {
       var tempArray = map(this.state.userAccessItems, (rr) => {
         return { ...rr, hasBeenUpdated: false };
       });
@@ -157,91 +152,22 @@ export default class UserAccess extends React.Component<IUserAccessProps, IUserA
       alert(err);
     });
   }
-  public setComplete(): Promise<any> {
-    return this.props.setComplete(this.props.primaryApproverList[0]).then(() => {
-
-      alert("Completed");
-    }).catch((err) => {
-      debugger;
-      alert(err);
-    });
-  }
-  // public changeSelected(ev?: React.MouseEvent<HTMLElement>, item?: IContextualMenuItem): void {
-  //   debugger;
-  //   var tempArray = map(this.state.userAccessItems, (uaItem) => {
-  //     if (this.selection.isKeySelected(uaItem.Id.toString())) {
-  //       debugger;
-  //       return {
-  //         ...uaItem,
-  //         Approval: this.state.popupValueApproval ? this.state.popupValueApproval : uaItem.Approval,
-  //         Comments: this.state.popupValueComments ? this.state.popupValueComments : uaItem.Comments,
-  //         hasBeenUpdated: true
-  //       };
-  //     }
-  //     else {
-  //       return {
-  //         ...uaItem
-  //       };
-  //     }
-  //   });
-  //   this.setState((current) => ({ ...current, userAccessItems: tempArray }));
-  // }
-  // public changeUnSelected(ev?: React.MouseEvent<HTMLElement>, item?: IContextualMenuItem): void {
-  //   debugger;
-  //   var tempArray = map(this.state.userAccessItems, (uaItem) => {
-  //     if (!this.selection.isKeySelected(uaItem.Id.toString())) {
-  //       return {
-  //         ...uaItem,
-  //         Approval: this.state.popupValueApproval ? this.state.popupValueApproval : uaItem.Approval,
-  //         Comments: this.state.popupValueComments ? this.state.popupValueComments : uaItem.Comments,
-  //         hasBeenUpdated: true
-  //       };
-  //     }
-  //     else {
-  //       return {
-  //         ...uaItem
-  //       };
-  //     }
-  //   });
-  //   this.setState((current) => ({ ...current, userAccessItems: tempArray }));
-  // }
-  // public changeAll(ev?: React.MouseEvent<HTMLElement>, item?: IContextualMenuItem): void {
-
-  //   var tempArray = map(this.state.highRisk, (rr) => {
-  //     return { ...rr, GRCApproval: item.data, hasBeenUpdated: true };
-  //   });
-  //   this.setState((current) => ({ ...current, highRisk: tempArray }));
-
-  // }
   public showPopup(item: UserAccessItem) {
-
-    this.props.getRoleToTransaction(item.Role)
+    this.fetchRoleToTransaction(item.Role)
       .then((roleToTransactions) => {
-
         this.setState((current) => ({ ...current, roleToTransaction: roleToTransactions, showTcodePopup: true }));
-
-      }).catch((err) => {
-        console.error(err.data.responseBody["odata.error"].message.value);
-        alert(err.data.responseBody["odata.error"].message.value);
-
-        debugger;
-      });
-  }
-
-  public fetchUserAccess(): Promise<any> {
-
-    return this.props.fetchUserAccess().then((items) => {
-      debugger;
-      this.setState((current) => ({ ...current, userAccessItems: items }));
-    }).catch((err) => {
-      debugger;
-      alert(err);
+      })
+     .catch((err) => {
+       console.error(err.data.responseBody["odata.error"].message.value);
+       alert(err.data.responseBody["odata.error"].message.value);
+       debugger;
     });
   }
+
   public updateSelected(ev?: React.MouseEvent<HTMLElement>, item?: IContextualMenuItem): void {
-debugger;
+    debugger;
     var tempArray = map(this.state.userAccessItems, (uaItem) => {
-      if (this.selection.isKeySelected(uaItem.Id.toString()) === this.state.changeSelected) {
+      if (this.selection.isKeySelected(uaItem.ID.toString()) === this.state.changeSelected) {
         return {
           ...uaItem,
           Approval: this.state.popupValueApproval ? this.state.popupValueApproval : uaItem.Approval,
@@ -264,17 +190,138 @@ debugger;
       showApprovalPopup: false
     }));
   }
+  @autobind
+  public addApprover(approver: any): Promise<HttpClientResponse> {
+    debugger;
+    let requestHeaders: Headers = new Headers();
+    requestHeaders.append('Content-type', 'application/json');
+    requestHeaders.append('Cache-Control', 'no-cache');
 
+    let httpClientOptions: IHttpClientOptions = {
+      credentials: "include",
+      body: JSON.stringify(approver)
+    };
+
+    //let url=`${this.props.webApiUrl}/api/${this.props.primaryApproverController}?$filter=tolower(ApproverEmail) eq '${approverEmail.toLowerCase()}'`;
+    let url = `${this.props.webApiUrl}/api/${this.props.primaryApproverController}`;
+    console.log(url);
+    return this.props.httpClient.post(url,
+      HttpClient.configurations.v1,
+      httpClientOptions);
+  }
+  @autobind
+  public getApi(controller: string, query: string): Promise<any> {
+    debugger;
+    let url = this.props.webApiUrl + "/api/" + controller + "?" + query;
+
+    let requestHeaders: Headers = new Headers();
+    requestHeaders.append('Content-type', 'application/json');
+    requestHeaders.append('Cache-Control', 'no-cache');
+    let httpClientOptions: IHttpClientOptions = {
+      credentials: "include",
+      headers: [{ 'Accept': 'application/json' },]
+    };
+
+    return this.props.httpClient.get(url,
+      HttpClient.configurations.v1,
+      { credentials: "include" })
+      .then((response: HttpClientResponse) => {
+        debugger;
+        return response.json();
+      })
+      .catch(err => {
+        debugger;
+      });
+  }
+  @autobind
+  public putApi(controller: string, entity: any): Promise<any> {
+    debugger;
+    let url = this.props.webApiUrl + "/api/" + controller + "/" + entity["ID"];
+
+    let requestHeaders: Headers = new Headers();
+    requestHeaders.append('Content-type', 'application/json');
+    requestHeaders.append('Cache-Control', 'no-cache');
+    let httpClientOptions: IHttpClientOptions = {
+      credentials: "include",
+      headers: [{ 'Accept': 'application/json' },],
+      method: "PUT",
+      body: JSON.stringify(entity)
+    };
+
+    return this.props.httpClient.fetch(url, HttpClient.configurations.v1,
+      {
+        credentials: "include",
+        method: "PUT",
+        body: JSON.stringify(entity),
+        headers: requestHeaders
+      })
+      .then((response: HttpClientResponse) => {
+        debugger;
+        return response.json();
+      })
+      .catch(err => {
+        debugger;
+      });
+  }
+  @autobind
+  public fetchPrimaryApprover(approverEmail: string): Promise<any> {
+    debugger;
+    let query = "$filter=tolower(ApproverEmail) eq '" + approverEmail.toLowerCase() + "'";
+    return this.getApi(this.props.primaryApproverController, query)
+      .then((appr) => {
+        this.setState((current) => ({ ...current, primaryApproverList: appr[0] }));
+      }).catch(e => {
+        debugger;
+      })
+
+  }
+  @autobind
+  public fetchUserAccess(): Promise<any> {
+
+    let query = "$filter=tolower(ApproverEmail) eq '" + this.props.user.email.toLowerCase() + "'";
+
+    return this.getApi(this.props.highRiskFunctionsController, query)
+
+      .then((response: any) => {
+        this.setState((current) => ({ ...current, userAccessItems: response }));
+      })
+      .catch(err => {
+        debugger;
+      });
+  }
+  @autobind
+  public fetchRoleToTransaction(role: string) {
+    let query = "$filter=Composite_role eq '" + role + "'";
+
+    return this.getApi(this.props.roleToTcodeController, query);
+
+    // .then((response: any) => {
+    //   this.setState((current) => ({ ...current, roleToTransaction: response }));
+    // })
+    // .catch(err => {
+    //   debugger;
+    // });
+  }
+
+
+  public frameLoaded() {
+    debugger;
+    this.fetchUserAccess();
+    this.fetchPrimaryApprover(this.props.user.email);
+
+
+
+  }
 
   public render(): React.ReactElement<IUserAccessProps> {
 
-
+    debugger;
     let itemsNonFocusable: IContextualMenuItem[] = [
       {
         key: "Update Selected",
         name: "Update Selected",
         icon: "TriggerApproval",
-        disabled: this.props.primaryApproverList[0].Completed === "Yes",
+        disabled: !(this.state.primaryApproverList) || this.state.primaryApproverList.Completed === "Yes",
         onClick: (e) => {
           if (this.selection.count > 0) {
             this.setState((current) => ({
@@ -290,7 +337,7 @@ debugger;
         key: "Update Unselected",
         name: "Update Unselected",
         icon: "TriggerAuto",
-        disabled: !(this.props.primaryApproverList) || this.props.primaryApproverList[0].Completed === "Yes",
+        disabled: !(this.state.primaryApproverList) || this.state.primaryApproverList.Completed === "Yes",
         onClick: (e) => {
 
           if (!this.selection.count || this.selection.count < this.state.userAccessItems.length) {
@@ -313,8 +360,8 @@ debugger;
       },
       { // if the item has been comleted OR there are items with noo approvasl, diable
         key: "Done", name: "Complete", icon: "Completed", onClick: this.setComplete,
-        disabled: this.props.primaryApproverList[0].Completed === "Yes" ||
-          (filter(this.state.userAccessItems, (rr) => { return rr.Approval === "3"; }).length > 0) // "3" is the initial state after larry uploads the access db
+        disabled: !(this.state.primaryApproverList) || this.state.primaryApproverList.Completed === "Yes" ||
+        (filter(this.state.userAccessItems, (rr) => { return rr.Approval === "3"; }).length > 0) // "3" is the initial state after larry uploads the access db
       }
 
     ];
@@ -322,8 +369,8 @@ debugger;
       {
 
         key: "Save", name: "Save", icon: "Save", onClick: this.save,
-        disabled: !(filter(this.state.userAccessItems, (rr) => { return rr.hasBeenUpdated; }).length > 0)
-          || this.props.primaryApproverList[0].Completed === "Yes"
+        disabled: !(this.state.primaryApproverList) || !(filter(this.state.userAccessItems, (rr) => { return rr.hasBeenUpdated; }).length > 0)
+        || this.state.primaryApproverList[0].Completed === "Yes"
 
       }
     ];
@@ -331,6 +378,8 @@ debugger;
 
     return (
       <div className={styles.userAccess}>
+        <iframe src={this.props.webApiUrl} onLoad={this.frameLoaded.bind(this)} />
+
         <Dialog isBlocking={true}
           hidden={!this.state.showApprovalPopup}
           onDismiss={(e) => { this.setState((current) => ({ ...current, showApprovalPopup: false })); }}
@@ -388,28 +437,28 @@ debugger;
           items={this.state.userAccessItems}
           selectionMode={SelectionMode.multiple}
           selection={this.selection}
-          key="Id"
+          key="ID"
           columns={[
             {
               key: "UserID", name: "User Id",
-              fieldName: "User_x0020_ID", minWidth: 90, maxWidth: 90,
+              fieldName: "User_ID", minWidth: 90, maxWidth: 90,
               isResizable: true,
             },
             {
               key: "userName", name: "User Name",
-              fieldName: "User_x0020_Full_x0020_Name", minWidth: 100, maxWidth: 100,
+              fieldName: "User_Full_Name", minWidth: 100, maxWidth: 100,
               isResizable: true,
             },
             {
               key: "title", name: "Role Name",
-              fieldName: "Role_x0020_name", minWidth: 300, maxWidth: 300,
+              fieldName: "Role_name", minWidth: 300, maxWidth: 300,
               isResizable: true,
 
             },
             {
               key: "info", name: "Transactions",
               isResizable: true,
-              fieldName: "Role_x0020_name", minWidth: 60, maxWidth: 60,
+              fieldName: "Role_name", minWidth: 60, maxWidth: 60,
               onRender: (item?: any, index?: number, column?: IColumn) => {
                 return (
                   <IconButton iconProps={{ iconName: "Info" }} onClick={(e) => { this.showPopup(item); }} />
@@ -463,7 +512,7 @@ debugger;
               {
                 key: "Remediation", name: "Transaction Text",
                 isResizable: true,
-                fieldName: "Transaction_x0020_Text", minWidth: 150, maxWidth: 150,
+                fieldName: "Transaction_Text", minWidth: 150, maxWidth: 150,
 
               },
 

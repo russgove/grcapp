@@ -27,10 +27,9 @@
     "@types/webpack-env": ">=1.12.1 <1.14.0",
     "csv-parse": "^2.0.0",
     "lodash": "^4.17.4",
-    "office-ui-fabric-react": "^5.41.2",
+    "office-ui-fabric-react": "^5.113.1",
     "react": "15.6.2",
-    "react-dom": "15.6.2",
-    "sp-pnp-js": "^3.0.4"
+    "react-dom": "15.6.2"
   },
   "devDependencies": {
     "@microsoft/sp-build-web": "~1.4.1",

@@ -2,30 +2,7 @@
   "$schema": "https://dev.office.com/json-schemas/spfx-build/config.2.0.schema.json",
   "version": "2.0",
   "bundles": {
-    "grc-test-web-part": {
-      "components": [
-        {
-          "entrypoint": "./lib/webparts/grcTest/GrcTestWebPart.js",
-          "manifest": "./src/webparts/grcTest/GrcTestWebPart.manifest.json"
-        }
-      ]
-    },
-    "grc-upload-web-part": {
-      "components": [
-        {
-          "entrypoint": "./lib/webparts/grcUpload/GrcUploadWebPart.js",
-          "manifest": "./src/webparts/grcUpload/GrcUploadWebPart.manifest.json"
-        }
-      ]
-    },
-    "grc-azure-management-web-part": {
-      "components": [
-        {
-          "entrypoint": "./lib/webparts/grcAzureManagement/GrcAzureManagementWebPart.js",
-          "manifest": "./src/webparts/grcAzureManagement/GrcAzureManagementWebPart.manifest.json"
-        }
-      ]
-    },
+  
     "mitigating-controls-site-setup-web-part": {
       "components": [
         {

@@ -115,8 +115,8 @@ export default class MitigatingControls extends React.Component<IMitigatingContr
     });
 
   }
-  public save(): Promise<any> {
-    return this.props.save(this.state.mitigatingControls).then(() => {
+  public save (ev?: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>, item?: IContextualMenuItem) : void {
+     this.props.save(this.state.mitigatingControls).then(() => {
       var tempArray = map(this.state.mitigatingControls, (rr) => {
         return { ...rr, hasBeenUpdated: false };
       });
