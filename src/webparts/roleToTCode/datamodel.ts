@@ -1,14 +1,17 @@
 import { Item } from "@pnp/sp";
 // main list for grid
-export class UserAccessItem extends Item {
+export class RoleReviewItem extends Item {
 
     public ID: number;
-    public User_ID: string;
-    public User_Full_Name: string;
-    public Role: string;
-    public Role_name: string;
+    public Role_Name: string;
+    public Approver: string;
     public ApproverEmail: string;
-    
+    public Approver_Name: string;
+    public Alt_Apprv: string;
+    public AlternateApproverEmail:string;
+    public Alternate_Approver:string;
+    public Approved_by:string;
+ 
   
     public Approval: string;
     // public GRCApprovedBy: string;

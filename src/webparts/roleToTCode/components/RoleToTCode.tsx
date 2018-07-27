@@ -23,7 +23,7 @@ import { PrimaryButton, ButtonType, Button, DefaultButton, ActionButton, IconBut
 import { Dialog, DialogFooter, DialogType } from "office-ui-fabric-react/lib/Dialog";
 import { TextField } from "office-ui-fabric-react/lib/TextField";
 import { find, map, clone, filter } from "lodash";
-import { PrimaryApproverItem, UserAccessItem, RoleToTransaction } from "../datamodel";
+import { PrimaryApproverItem, RoleReviewItem, RoleToTransaction } from "../datamodel";
 import { ChoiceGroup, IChoiceGroupOption } from 'office-ui-fabric-react/lib/ChoiceGroup';
 
 
@@ -59,8 +59,8 @@ export default class RoleToTCode extends React.Component<IRoleToTCodeProps,IRole
 
  
  
-  public showPopup(item: UserAccessItem) {
-    this.fetchRoleToTransaction(item.Role)
+  public showPopup(item: RoleReviewItem) {
+    this.fetchRoleToTransaction(item.Role_Name)
       .then((roleToTransactions) => {
         this.setState((current) => ({ ...current, roleToTransaction: roleToTransactions, showTcodePopup: true }));
       })
@@ -154,7 +154,7 @@ export default class RoleToTCode extends React.Component<IRoleToTCodeProps,IRole
       });
   }
   @autobind
-  public updateUserAccessItems(items: UserAccessItem[]): Promise<any> {
+  public updateUserAccessItems(items: RoleReviewItem[]): Promise<any> {
     let promises: Array<Promise<any>> = [];
     for (let item of items) {
   
@@ -247,7 +247,7 @@ export default class RoleToTCode extends React.Component<IRoleToTCodeProps,IRole
     this.fetchPrimaryApprover();
   }
 
-  public RenderApproval(item?: UserAccessItem, index?: number, column?: IColumn): JSX.Element {
+  public RenderApproval(item?: RoleReviewItem, index?: number, column?: IColumn): JSX.Element {
     let options = [
       { key: "1", text: "Yes" },
       { key: "2", text: "No" }
@@ -276,7 +276,7 @@ export default class RoleToTCode extends React.Component<IRoleToTCodeProps,IRole
       );
     }
   }
-  public RenderComments(item?: UserAccessItem, index?: number, column?: IColumn): JSX.Element {
+  public RenderComments(item?: RoleReviewItem, index?: number, column?: IColumn): JSX.Element {
     if (this.state.primaryApprover.Completed === "Yes") {
       return (
         <div>
