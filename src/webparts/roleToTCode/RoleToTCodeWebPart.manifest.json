@@ -1,0 +1,29 @@
+{
+  "$schema": "https://dev.office.com/json-schemas/spfx/client-side-web-part-manifest.schema.json",
+  "id": "03771b4d-4e98-44f7-98a1-7c41b066f52e",
+  "alias": "RoleToTCodeWebPart",
+  "componentType": "WebPart",
+
+  // The "*" signifies that the version should be taken from the package.json
+  "version": "*",
+  "manifestVersion": 2,
+
+  // If true, the component can only be installed on sites where Custom Script is allowed.
+  // Components that allow authors to embed arbitrary script code should set this to true.
+  // https://support.office.com/en-us/article/Turn-scripting-capabilities-on-or-off-1f2c515f-5d7e-448a-9fd7-835da935584f
+  "requiresCustomScript": false,
+
+  "preconfiguredEntries": [{
+    "groupId": "5c03119e-3074-46fd-976b-c60198311f70", // Other
+    "group": { "default": "Other" },
+    "title": { "default": "roleToTCode" },
+    "description": { "default": "role to tcode" },
+    "officeFabricIconFontName": "Page",
+    "properties": {
+      "webApiUrl":"http://grcroletotcodeapi.azurewebsites.net",
+      "roleToTcodeController":"Role_to_Transaction",
+      "primaryApproverController":"Primary_Approver_List",
+      "roleReviewController":"C35_High_Risk_Functions_Period"
+    }
+  }]
+}

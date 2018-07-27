@@ -1,9 +1,9 @@
+import styles from './RoleToTCode.module.scss';
+import { IRoleToTCodeProps } from './IRoleToTCodeProps';
+import { escape } from '@microsoft/sp-lodash-subset';
 import * as React from 'react';
 import { autobind } from 'office-ui-fabric-react/lib/Utilities';
-import styles from './UserAccess.module.scss';
-import { IUserAccessProps } from './IUserAccessProps';
-import { IUserAccessState } from './IUserAccessState';
-import { escape } from '@microsoft/sp-lodash-subset';
+import { IRoleToTCodeState } from './IRoleToTCodeState';
 import { HttpClient, HttpClientResponse, IHttpClientOptions } from '@microsoft/sp-http';
 import {
   Environment,
@@ -26,9 +26,10 @@ import { find, map, clone, filter } from "lodash";
 import { PrimaryApproverItem, UserAccessItem, RoleToTransaction } from "../datamodel";
 import { ChoiceGroup, IChoiceGroupOption } from 'office-ui-fabric-react/lib/ChoiceGroup';
 
-export default class UserAccess extends React.Component<IUserAccessProps, IUserAccessState> {
+
+export default class RoleToTCode extends React.Component<IRoleToTCodeProps,IRoleToTCodeState> {
   private selection: Selection = new Selection();
-  public constructor(props: IUserAccessProps) {
+  public constructor(props: IRoleToTCodeProps) {
     super();
     console.log("in Construrctor");
     initializeIcons();
@@ -156,7 +157,8 @@ export default class UserAccess extends React.Component<IUserAccessProps, IUserA
   public updateUserAccessItems(items: UserAccessItem[]): Promise<any> {
     let promises: Array<Promise<any>> = [];
     for (let item of items) {
-      promises.push(this.putApi(this.props.userAccessController, item));
+  
+  promises.push(this.putApi(this.props.roleReviewController, item));
     }
     return Promise.all(promises);
   }
@@ -219,7 +221,7 @@ export default class UserAccess extends React.Component<IUserAccessProps, IUserA
   @autobind
   public fetchUserAccess(ev?: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>, item?: IContextualMenuItem): void {
     let query = "$filter=tolower(ApproverEmail) eq '" + this.props.user.email.toLowerCase() + "'";
-     this.getApi(this.props.userAccessController, query)
+     this.getApi(this.props.roleReviewController, query)
       .then((response: any) => {
         this.setState((current) => ({ ...current, userAccessItems: response }));
       })
@@ -300,7 +302,7 @@ export default class UserAccess extends React.Component<IUserAccessProps, IUserA
       );
     }
   }
-  public render(): React.ReactElement<IUserAccessProps> {
+  public render(): React.ReactElement<IRoleToTCodeProps> {
 
     debugger;
     let itemsNonFocusable: IContextualMenuItem[] = [

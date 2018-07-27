@@ -2,7 +2,6 @@
   "$schema": "https://dev.office.com/json-schemas/spfx-build/config.2.0.schema.json",
   "version": "2.0",
   "bundles": {
-  
     "mitigating-controls-site-setup-web-part": {
       "components": [
         {
@@ -48,6 +47,14 @@
         {
           "entrypoint": "./lib/webparts/userAccessSiteSetup/UserAccessSiteSetupWebPart.js",
           "manifest": "./src/webparts/userAccessSiteSetup/UserAccessSiteSetupWebPart.manifest.json"
+        }
+      ]
+    },
+    "role-to-t-code-web-part": {
+      "components": [
+        {
+          "entrypoint": "./lib/webparts/roleToTCode/RoleToTCodeWebPart.js",
+          "manifest": "./src/webparts/roleToTCode/RoleToTCodeWebPart.manifest.json"
         }
       ]
     }
@@ -96,6 +103,7 @@
     "BusinessRoleReviewWebPartStrings": "lib/webparts/businessRoleReview/loc/{locale}.js",
     "BusinessRoleReviewSiteSetupWebPartStrings": "lib/webparts/businessRoleReviewSiteSetup/loc/{locale}.js",
     "UserAccessWebPartStrings": "lib/webparts/userAccess/loc/{locale}.js",
-    "UserAccessSiteSetupWebPartStrings": "lib/webparts/userAccessSiteSetup/loc/{locale}.js"
+    "UserAccessSiteSetupWebPartStrings": "lib/webparts/userAccessSiteSetup/loc/{locale}.js",
+    "RoleToTCodeWebPartStrings": "lib/webparts/roleToTCode/loc/{locale}.js"
   }
 }
