@@ -372,7 +372,7 @@ export default class RoleToTCode extends React.Component<IRoleToTCodeProps,IRole
 
 
     return (
-      <div className={styles.userAccess}>
+      <div className={styles.roleToTCode}>
         <iframe src={this.props.webApiUrl} onLoad={this.frameLoaded.bind(this)} />
 
         <Dialog isBlocking={true}

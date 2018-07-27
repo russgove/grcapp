@@ -1,4 +1,4 @@
-import {PrimaryApproverItem,UserAccessItem,RoleToTransaction} from "../datamodel";
+import {PrimaryApproverItem,RoleReviewItem,RoleToTransaction} from "../datamodel";
 import { HttpClient } from '@microsoft/sp-http';
 import { SPUser } from '@microsoft/sp-page-context';
 export interface IRoleToTCodeProps {

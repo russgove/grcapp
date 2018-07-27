@@ -1,8 +1,8 @@
-import {PrimaryApproverItem,UserAccessItem,RoleToTransaction} from "../datamodel";
+import {PrimaryApproverItem,RoleReviewItem,RoleToTransaction} from "../datamodel";
 
 export interface IRoleToTCodeState {
   primaryApprover: PrimaryApproverItem;
-  userAccessItems: Array<UserAccessItem>;
+  userAccessItems: Array<RoleReviewItem>;
   roleToTransaction?: Array<RoleToTransaction>;
   showTcodePopup:boolean;
   showApprovalPopup:boolean;
