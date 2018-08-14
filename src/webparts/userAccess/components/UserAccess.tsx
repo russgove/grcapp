@@ -101,56 +101,27 @@ export default class UserAccess extends React.Component<IUserAccessProps, IUserA
   }
   @autobind
   public getApi(controller: string, query: string): Promise<any> {
-
     let url = this.props.webApiUrl + "/api/" + controller + "?" + query;
-
-    let requestHeaders: Headers = new Headers();
-    requestHeaders.append('Content-type', 'application/json');
-    requestHeaders.append('Cache-Control', 'no-cache');
     let httpClientOptions: IHttpClientOptions = {
       credentials: "include",
-      headers: [{ 'Accept': 'application/json' },]
     };
-
-    return this.props.httpClient.get(url,
-      HttpClient.configurations.v1,
-      { credentials: "include" })
+    return this.props.httpClient.get(url,    HttpClient.configurations.v1,httpClientOptions)
       .then((response: HttpClientResponse) => {
-          return response.json();
-      })
-      .catch(err => {
-        debugger;
+        return response.json();
       });
   }
   @autobind
   public putApi(controller: string, entity: any): Promise<any> {
-
     let url = this.props.webApiUrl + "/api/" + controller + "/" + entity["ID"];
-
     let requestHeaders: Headers = new Headers();
     requestHeaders.append('Content-type', 'application/json');
-    requestHeaders.append('Cache-Control', 'no-cache');
     let httpClientOptions: IHttpClientOptions = {
       credentials: "include",
-      headers: [{ 'Accept': 'application/json' },],
+      headers: requestHeaders,
       method: "PUT",
       body: JSON.stringify(entity)
     };
-
-    return this.props.httpClient.fetch(url, HttpClient.configurations.v1,
-      {
-        credentials: "include",
-        method: "PUT",
-        body: JSON.stringify(entity),
-        headers: requestHeaders
-      })
-      .then((response: HttpClientResponse) => {
-  
-        return response.json();
-      })
-      .catch(err => {
-        debugger;
-      });
+    return this.props.httpClient.fetch(url, HttpClient.configurations.v1, httpClientOptions);
   }
   @autobind
   public updateUserAccessItems(items: UserAccessItem[]): Promise<any> {
@@ -163,13 +134,31 @@ export default class UserAccess extends React.Component<IUserAccessProps, IUserA
  
   @autobind
   public setComplete(ev?: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>, item?: IContextualMenuItem): void {
-    this.state.primaryApprover.Completed="Yes";
-    this.putApi(this.props.primaryApproverController, this.state.primaryApprover);
+    let updatedApprover = this.state.primaryApprover;
+    updatedApprover.Completed = "Yes";
+    this.putApi(this.props.primaryApproverController, updatedApprover)
+      .then(() => {
+        this.setState((current) => ({ ...current, primaryApprover: updatedApprover }));
+      })
+      .catch((err) => {
+        console.log(err);
+        alert("An error occurred saving the primary approver record");
+      });
   }
   @autobind
   public unsetComplete(ev?: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>, item?: IContextualMenuItem): void {
-    this.state.primaryApprover.Completed="";
-    this.putApi(this.props.primaryApproverController, this.state.primaryApprover);
+    let updatedApprover = this.state.primaryApprover;
+    updatedApprover.Completed = "";
+    this.putApi(this.props.primaryApproverController, updatedApprover)
+      .then(() => {
+        this.setState((current) => ({ ...current, primaryApprover: updatedApprover }));
+      })
+
+      .catch((err) => {
+        console.log(err);
+        alert("An error occurred saving the primary approver record")
+      });
+
   }
   @autobind
   public save(ev?: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>, item?: IContextualMenuItem): void {
@@ -212,7 +201,8 @@ export default class UserAccess extends React.Component<IUserAccessProps, IUserA
         debugger;
         this.setState((current) => ({ ...current, primaryApprover: appr[0] }));
       }).catch(e => {
-        debugger;
+        console.log(e);
+        alert("There was an error fetching Primary approvers");
       });
 
   }
@@ -224,15 +214,14 @@ export default class UserAccess extends React.Component<IUserAccessProps, IUserA
         this.setState((current) => ({ ...current, userAccessItems: response }));
       })
       .catch(err => {
-        debugger;
+        console.log(err);
+        alert("There was an error fetching User Access Items");
       });
   }
   @autobind
   public fetchRoleToTransaction(role: string) {
     let query = "$filter=Composite_role eq '" + role + "'";
-
     return this.getApi(this.props.roleToTcodeController, query);
-
   }
 
   /**

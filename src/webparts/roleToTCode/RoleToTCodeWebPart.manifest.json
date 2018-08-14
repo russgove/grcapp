@@ -20,10 +20,10 @@
     "description": { "default": "role to tcode" },
     "officeFabricIconFontName": "Page",
     "properties": {
-      "webApiUrl":"http://grcroletotcodeapi.azurewebsites.net",
+      "webApiUrl":"https://grcroletotcode.azurewebsites.net",
       "roleToTcodeController":"Role_to_Transaction",
       "primaryApproverController":"Primary_Approver_List",
-      "roleReviewController":"C35_High_Risk_Functions_Period"
+      "roleReviewController":"Role_Review"
     }
   }]
 }

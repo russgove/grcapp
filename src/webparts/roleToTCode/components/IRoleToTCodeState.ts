@@ -2,7 +2,7 @@ import {PrimaryApproverItem,RoleReviewItem,RoleToTransaction} from "../datamodel
 
 export interface IRoleToTCodeState {
   primaryApprover: PrimaryApproverItem;
-  userAccessItems: Array<RoleReviewItem>;
+  RoleReviewItems: Array<RoleReviewItem>;
   roleToTransaction?: Array<RoleToTransaction>;
   showTcodePopup:boolean;
   showApprovalPopup:boolean;

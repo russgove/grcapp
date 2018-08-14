@@ -27,7 +27,7 @@ import { PrimaryApproverItem, RoleReviewItem, RoleToTransaction } from "../datam
 import { ChoiceGroup, IChoiceGroupOption } from 'office-ui-fabric-react/lib/ChoiceGroup';
 
 
-export default class RoleToTCode extends React.Component<IRoleToTCodeProps,IRoleToTCodeState> {
+export default class RoleToTCode extends React.Component<IRoleToTCodeProps, IRoleToTCodeState> {
   private selection: Selection = new Selection();
   public constructor(props: IRoleToTCodeProps) {
     super();
@@ -36,7 +36,7 @@ export default class RoleToTCode extends React.Component<IRoleToTCodeProps,IRole
     this.selection.getKey = (item => { return item["ID"]; });
     this.state = {
       primaryApprover: null,
-      userAccessItems: [],
+      RoleReviewItems: [],
       showTcodePopup: false,
       showApprovalPopup: false
     };
@@ -57,26 +57,27 @@ export default class RoleToTCode extends React.Component<IRoleToTCodeProps,IRole
     }
   }
 
- 
- 
+
+
   public showPopup(item: RoleReviewItem) {
     this.fetchRoleToTransaction(item.Role_Name)
       .then((roleToTransactions) => {
+        console.log(roleToTransactions);
         this.setState((current) => ({ ...current, roleToTransaction: roleToTransactions, showTcodePopup: true }));
       })
-     .catch((err) => {
-       console.error(err.data.responseBody["odata.error"].message.value);
-       alert(err.data.responseBody["odata.error"].message.value);
-       debugger;
-    });
+      .catch((err) => {
+        console.error(err.data.responseBody["odata.error"].message.value);
+        alert(err.data.responseBody["odata.error"].message.value);
+        debugger;
+      });
   }
-/**
- * 
- * This method gets called by the popup window to update all the selected items
- */
+  /**
+   * 
+   * This method gets called by the popup window to update all the selected items
+   */
   @autobind
   public updateSelected(ev?: React.MouseEvent<HTMLElement>, item?: IContextualMenuItem): void {
-    var tempArray = map(this.state.userAccessItems, (uaItem) => {
+    var tempArray = map(this.state.RoleReviewItems, (uaItem) => {
       if (this.selection.isKeySelected(uaItem.ID.toString()) === this.state.changeSelected) {
         return {
           ...uaItem,
@@ -102,81 +103,69 @@ export default class RoleToTCode extends React.Component<IRoleToTCodeProps,IRole
   }
   @autobind
   public getApi(controller: string, query: string): Promise<any> {
-
     let url = this.props.webApiUrl + "/api/" + controller + "?" + query;
-
-    let requestHeaders: Headers = new Headers();
-    requestHeaders.append('Content-type', 'application/json');
-    requestHeaders.append('Cache-Control', 'no-cache');
     let httpClientOptions: IHttpClientOptions = {
       credentials: "include",
-      headers: [{ 'Accept': 'application/json' },]
     };
-
-    return this.props.httpClient.get(url,
-      HttpClient.configurations.v1,
-      { credentials: "include" })
+    return this.props.httpClient.get(url,    HttpClient.configurations.v1,httpClientOptions)
       .then((response: HttpClientResponse) => {
-          return response.json();
-      })
-      .catch(err => {
-        debugger;
+        return response.json();
       });
   }
+
   @autobind
   public putApi(controller: string, entity: any): Promise<any> {
-
     let url = this.props.webApiUrl + "/api/" + controller + "/" + entity["ID"];
-
     let requestHeaders: Headers = new Headers();
     requestHeaders.append('Content-type', 'application/json');
-    requestHeaders.append('Cache-Control', 'no-cache');
     let httpClientOptions: IHttpClientOptions = {
       credentials: "include",
-      headers: [{ 'Accept': 'application/json' },],
+      headers: requestHeaders,
       method: "PUT",
       body: JSON.stringify(entity)
     };
-
-    return this.props.httpClient.fetch(url, HttpClient.configurations.v1,
-      {
-        credentials: "include",
-        method: "PUT",
-        body: JSON.stringify(entity),
-        headers: requestHeaders
-      })
-      .then((response: HttpClientResponse) => {
-  
-        return response.json();
-      })
-      .catch(err => {
-        debugger;
-      });
+    return this.props.httpClient.fetch(url, HttpClient.configurations.v1, httpClientOptions);
   }
   @autobind
-  public updateUserAccessItems(items: RoleReviewItem[]): Promise<any> {
+  public updateRoleReviewItems(items: RoleReviewItem[]): Promise<any> {
     let promises: Array<Promise<any>> = [];
     for (let item of items) {
-  
-  promises.push(this.putApi(this.props.roleReviewController, item));
+      promises.push(this.putApi(this.props.roleReviewController, item));
     }
     return Promise.all(promises);
   }
- 
+
   @autobind
   public setComplete(ev?: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>, item?: IContextualMenuItem): void {
-    this.state.primaryApprover.Completed="Yes";
-    this.putApi(this.props.primaryApproverController, this.state.primaryApprover);
+    let updatedApprover = this.state.primaryApprover;
+    updatedApprover.Completed = "Yes";
+    this.putApi(this.props.primaryApproverController, updatedApprover)
+      .then(() => {
+        this.setState((current) => ({ ...current, primaryApprover: updatedApprover }));
+      })
+      .catch((err) => {
+        console.log(err);
+        alert("An error occurred saving the primary approver record");
+      });
   }
   @autobind
   public unsetComplete(ev?: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>, item?: IContextualMenuItem): void {
-    this.state.primaryApprover.Completed="";
-    this.putApi(this.props.primaryApproverController, this.state.primaryApprover);
+    let updatedApprover = this.state.primaryApprover;
+    updatedApprover.Completed = "";
+    this.putApi(this.props.primaryApproverController, updatedApprover)
+      .then(() => {
+        this.setState((current) => ({ ...current, primaryApprover: updatedApprover }));
+      })
+      .catch((err) => {
+        console.log(err);
+        alert("An error occurred saving the primary approver record")
+      });
+
   }
   @autobind
   public save(ev?: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>, item?: IContextualMenuItem): void {
-    this.updateUserAccessItems(this.state.userAccessItems).then(() => {
-      var tempArray = map(this.state.userAccessItems, (rr) => {
+    this.updateRoleReviewItems(this.state.RoleReviewItems).then(() => {
+      var tempArray = map(this.state.RoleReviewItems, (rr) => {
         return { ...rr, hasBeenUpdated: false };
       });
       this.setState((current) => ({ ...current, userAccessItems: tempArray }));
@@ -188,7 +177,7 @@ export default class RoleToTCode extends React.Component<IRoleToTCodeProps,IRole
   }
   @autobind
   public addApprover(approver: any): Promise<HttpClientResponse> {
-    
+
     let requestHeaders: Headers = new Headers();
     requestHeaders.append('Content-type', 'application/json');
     requestHeaders.append('Cache-Control', 'no-cache');
@@ -205,36 +194,37 @@ export default class RoleToTCode extends React.Component<IRoleToTCodeProps,IRole
       HttpClient.configurations.v1,
       httpClientOptions);
   }
-  
+
   @autobind
   public fetchPrimaryApprover(): Promise<any> {
-       let query = "$filter=tolower(ApproverEmail) eq '" + this.props.user.email.toLowerCase() + "'";
+    let query = "$filter=tolower(ApproverEmail) eq '" + this.props.user.email.toLowerCase() + "'";
     return this.getApi(this.props.primaryApproverController, query)
       .then((appr) => {
         debugger;
         this.setState((current) => ({ ...current, primaryApprover: appr[0] }));
       }).catch(e => {
-        debugger;
+       console.log(e);
+       alert("There was an error fetching Primary approvers");
       });
 
   }
   @autobind
-  public fetchUserAccess(ev?: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>, item?: IContextualMenuItem): void {
+  public fetchRoleReview(ev?: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>, item?: IContextualMenuItem): void {
     let query = "$filter=tolower(ApproverEmail) eq '" + this.props.user.email.toLowerCase() + "'";
-     this.getApi(this.props.roleReviewController, query)
+    this.getApi(this.props.roleReviewController, query)
       .then((response: any) => {
         this.setState((current) => ({ ...current, userAccessItems: response }));
       })
       .catch(err => {
-        debugger;
+        console.log(err);
+        alert("There was an error fetching Role Review Items");
       });
   }
   @autobind
-  public fetchRoleToTransaction(role: string) {
-    let query = "$filter=Composite_role eq '" + role + "'";
-
+  public fetchRoleToTransaction(RoleName: string) {
+    console.log(RoleName);
+    let query = "$filter=Role_Name eq '" + RoleName + "'";
     return this.getApi(this.props.roleToTcodeController, query);
-
   }
 
   /**
@@ -243,7 +233,7 @@ export default class RoleToTCode extends React.Component<IRoleToTCodeProps,IRole
    */
   public frameLoaded() {
 
-    this.fetchUserAccess();
+    this.fetchRoleReview();
     this.fetchPrimaryApprover();
   }
 
@@ -264,7 +254,7 @@ export default class RoleToTCode extends React.Component<IRoleToTCodeProps,IRole
         <Dropdown options={options}
           selectedKey={item.Approval}
           onChanged={(option: IDropdownOption, idx?: number) => {
-            let tempRoleToTCodeReview = this.state.userAccessItems;
+            let tempRoleToTCodeReview = this.state.RoleReviewItems;
             let rtc = find(tempRoleToTCodeReview, (x) => {
               return x.ID === item.ID;
             });
@@ -289,7 +279,7 @@ export default class RoleToTCode extends React.Component<IRoleToTCodeProps,IRole
         <TextField
           value={item.Comments ? item.Comments : ""}
           onChanged={(newValue) => {
-            let tempRoleToTCodeReview = this.state.userAccessItems;
+            let tempRoleToTCodeReview = this.state.RoleReviewItems;
             let rtc = find(tempRoleToTCodeReview, (x) => {
               return x.ID === item.ID;
             });
@@ -303,7 +293,7 @@ export default class RoleToTCode extends React.Component<IRoleToTCodeProps,IRole
     }
   }
   public render(): React.ReactElement<IRoleToTCodeProps> {
-
+    console.log(this.props.webApiUrl);
     debugger;
     let itemsNonFocusable: IContextualMenuItem[] = [
       {
@@ -329,7 +319,7 @@ export default class RoleToTCode extends React.Component<IRoleToTCodeProps,IRole
         disabled: !(this.state.primaryApprover) || this.state.primaryApprover.Completed === "Yes",
         onClick: (e) => {
 
-          if (!this.selection.count || this.selection.count < this.state.userAccessItems.length) {
+          if (!this.selection.count || this.selection.count < this.state.RoleReviewItems.length) {
             this.setState((current) => ({
               ...current,
               showApprovalPopup: true,
@@ -341,22 +331,22 @@ export default class RoleToTCode extends React.Component<IRoleToTCodeProps,IRole
       },
 
       {
-        key: "Undo", name: "Undo", icon: "Undo", onClick: this.fetchUserAccess,
-        disabled: !(filter(this.state.userAccessItems, (rr) => {
+        key: "Undo", name: "Undo", icon: "Undo", onClick: this.fetchRoleReview,
+        disabled: !(filter(this.state.RoleReviewItems, (rr) => {
           return rr
             .hasBeenUpdated;
         }).length > 0)
       },
       { // if the item has been comleted OR there are items with noo approvasl, diable
-        key: "Done", 
+        key: "Done",
         name: "Complete",
-         icon: "Completed",
-          onClick: this.setComplete,
+        icon: "Completed",
+        onClick: this.setComplete,
         disabled: !(this.state.primaryApprover) || this.state.primaryApprover.Completed === "Yes" ||
-        (filter(this.state.userAccessItems, (rr) => { return rr.Approval === "3"; }).length > 0) // "3" is the initial state after larry uploads the access db
-      }      ,
-      { 
-         key: "UnDone", name: "UnComplete", icon: "Completed", onClick: this.unsetComplete
+        (filter(this.state.RoleReviewItems, (rr) => { return rr.Approval === "3"; }).length > 0) // "3" is the initial state after larry uploads the access db
+      },
+      {
+        key: "UnDone", name: "UnComplete", icon: "Completed", onClick: this.unsetComplete
       }
 
     ];
@@ -364,7 +354,7 @@ export default class RoleToTCode extends React.Component<IRoleToTCodeProps,IRole
       {
 
         key: "Save", name: "Save", icon: "Save", onClick: this.save,
-        disabled: !(this.state.primaryApprover) || !(filter(this.state.userAccessItems, (rr) => { return rr.hasBeenUpdated; }).length > 0)
+        disabled: !(this.state.primaryApprover) || !(filter(this.state.RoleReviewItems, (rr) => { return rr.hasBeenUpdated; }).length > 0)
         || this.state.primaryApprover.Completed === "Yes"
 
       }
@@ -383,8 +373,8 @@ export default class RoleToTCode extends React.Component<IRoleToTCodeProps,IRole
             title: this.state.changeSelected
               ? `Update ${this.selection.count} Selected Items`
               : this.selection.count
-                ? `Update ${this.state.userAccessItems.length - this.selection.count} Unselected Items`
-                : `Update ${this.state.userAccessItems.length} Unselected Items`,
+                ? `Update ${this.state.RoleReviewItems.length - this.selection.count} Unselected Items`
+                : `Update ${this.state.RoleReviewItems.length} Unselected Items`,
             subText: 'All selected items will be updated with the following values'
           }} >
           <ChoiceGroup label="Approval Decision"
@@ -426,24 +416,15 @@ export default class RoleToTCode extends React.Component<IRoleToTCodeProps,IRole
 
         />
         <DetailsList
-          items={this.state.userAccessItems}
+          items={this.state.RoleReviewItems}
           selectionMode={SelectionMode.multiple}
           selection={this.selection}
           key="ID"
           columns={[
-            {
-              key: "UserID", name: "User Id",
-              fieldName: "User_ID", minWidth: 90, maxWidth: 90,
-              isResizable: true,
-            },
-            {
-              key: "userName", name: "User Name",
-              fieldName: "User_Full_Name", minWidth: 100, maxWidth: 100,
-              isResizable: true,
-            },
+
             {
               key: "title", name: "Role Name",
-              fieldName: "Role_name", minWidth: 300, maxWidth: 300,
+              fieldName: "Role_Name", minWidth: 300, maxWidth: 300,
               isResizable: true,
 
             },
@@ -493,12 +474,12 @@ export default class RoleToTCode extends React.Component<IRoleToTCodeProps,IRole
               {
                 key: "Role", name: "Role",
                 isResizable: true,
-                fieldName: "Role", minWidth: 300, maxWidth: 300,
+                fieldName: "Role", minWidth: 250, maxWidth: 250,
               },
               {
                 key: "Comments", name: "TCode",
                 isResizable: true,
-                fieldName: "TCode", minWidth: 50, maxWidth: 50,
+                fieldName: "TCode", minWidth: 150, maxWidth: 150,
 
               },
               {

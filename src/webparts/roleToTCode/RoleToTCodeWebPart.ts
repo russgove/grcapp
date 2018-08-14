@@ -33,6 +33,7 @@ export default class RoleToTCodeWebPart extends BaseClientSideWebPart<IRoleToTCo
     });
   }
   public render(): void {
+    debugger;
     this.reactElement = React.createElement(
       RoleToTCode,
       {
