@@ -136,8 +136,8 @@ export default class GrcTest extends React.Component<IGrcTestProps, IGrcTestStat
 
 
   }
-  public save(): Promise<any> {
-    return this.props.save(this.state.roleReview).then(() => {
+  public save( ev?: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>, item?: IContextualMenuItem) : void{
+     this.props.save(this.state.roleReview).then(() => {
       debugger;
       var roleReview = map(this.state.roleReview, (rr) => {
         return { ...rr, hasBeenUpdated: false };
@@ -221,79 +221,79 @@ export default class GrcTest extends React.Component<IGrcTestProps, IGrcTestStat
   public render(): React.ReactElement<IGrcTestProps> {
 
     let itemsNonFocusable: IContextualMenuItem[] = [
-      {
-        key: "Change All",
-        name: "Change All",
-        icon: "TriggerAuto",
-        disabled: this.props.primaryApproverList[0].GRCCompleted === "Yes",
-        subMenuProps: {
-          items: [
-            {
-              key: 'yup',
-              name: 'Yup',
-              data: "0",
-              onClick: this.changeAll,
-              disabled: this.props.primaryApproverList[0].GRCCompleted === "Yes"
-            },
-            {
-              key: 'Nope',
-              name: 'Nope',
-              data: "1",
-              onClick: this.changeAll
-            },
-            {
-              key: "no f'in way",
-              name: "no f'in way",
-              data: "2",
-              onClick: this.changeAll
+      //{
+      //   key: "Change All",
+      //   name: "Change All",
+      //   icon: "TriggerAuto",
+      //   disabled: this.props.primaryApproverList[0].GRCCompleted === "Yes",
+      //   subMenuProps: {
+      //     items: [
+      //       {
+      //         key: 'yup',
+      //         name: 'Yup',
+      //         data: "0",
+      //         onClick: this.changeAll,
+      //         disabled: this.props.primaryApproverList[0].GRCCompleted === "Yes"
+      //       },
+      //       {
+      //         key: 'Nope',
+      //         name: 'Nope',
+      //         data: "1",
+      //         onClick: this.changeAll
+      //       },
+      //       {
+      //         key: "no f'in way",
+      //         name: "no f'in way",
+      //         data: "2",
+      //         onClick: this.changeAll
 
-            }
+      //       }
 
-          ]
-        }
-      },
-      {
-        key: "Change Selected",
-        name: "Change Selected",
-        icon: "TriggerApproval",
-        disabled: this.props.primaryApproverList[0].GRCCompleted === "Yes",
-        subMenuProps: {
-          items: [
-            {
-              key: 'yup',
-              name: 'Yup',
-              data: "0",
-              onClick: this.changeSelected,
-              disabled: this.props.primaryApproverList[0].GRCCompleted === "Yes"
-            },
-            {
-              key: 'Nope',
-              name: 'Nope',
-              data: "1",
-              onClick: this.changeSelected,
-              disabled: this.props.primaryApproverList[0].GRCCompleted === "Yes"
-            },
-            {
-              key: "no f'in way",
-              name: "no f'in way",
-              data: "2",
-              onClick: this.changeSelected,
-              disabled: this.props.primaryApproverList[0].GRCCompleted === "Yes"
+      //     ]
+      //   }
+      // },
+      // {
+      //   key: "Change Selected",
+      //   name: "Change Selected",
+      //   icon: "TriggerApproval",
+      //   disabled: this.props.primaryApproverList[0].GRCCompleted === "Yes",
+      //   subMenuProps: {
+      //     items: [
+      //       {
+      //         key: 'yup',
+      //         name: 'Yup',
+      //         data: "0",
+      //         onClick: this.changeSelected,
+      //         disabled: this.props.primaryApproverList[0].GRCCompleted === "Yes"
+      //       },
+      //       {
+      //         key: 'Nope',
+      //         name: 'Nope',
+      //         data: "1",
+      //         onClick: this.changeSelected,
+      //         disabled: this.props.primaryApproverList[0].GRCCompleted === "Yes"
+      //       },
+      //       {
+      //         key: "no f'in way",
+      //         name: "no f'in way",
+      //         data: "2",
+      //         onClick: this.changeSelected,
+      //         disabled: this.props.primaryApproverList[0].GRCCompleted === "Yes"
 
-            }
+      //       }
 
-          ]
-        }
-      },
-      {
-        key: "Undo", name: "Undo", icon: "Undo", onClick: this.fetchRoleReviews,
-        disabled: !(filter(this.state.roleReview, (rr) => { return rr.hasBeenUpdated; }).length > 0)
-      },
-      { // if the item has been comleted OR there are items with noo approvasl, diable
-        key: "Done", name: "Complete", icon: "Completed", onClick: this.setComplete,
-        disabled: this.props.primaryApproverList[0].GRCCompleted === "Yes" ||
-        (filter(this.state.roleReview, (rr) => { return rr.GRCApproval === null; }).length > 0)
-      }
+      //     ]
+      //   }
+      // },
+      // {
+      //   key: "Undo", name: "Undo", icon: "Undo", onClick: this.fetchRoleReviews,
+      //   disabled: !(filter(this.state.roleReview, (rr) => { return rr.hasBeenUpdated; }).length > 0)
+      // },
+      // { // if the item has been comleted OR there are items with noo approvasl, diable
+      //   key: "Done", name: "Complete", icon: "Completed", onClick: this.setComplete,
+      //   disabled: this.props.primaryApproverList[0].GRCCompleted === "Yes" ||
+      //   (filter(this.state.roleReview, (rr) => { return rr.GRCApproval === null; }).length > 0)
+      // }
 
     ];
     let farItemsNonFocusable: IContextualMenuItem[] = [

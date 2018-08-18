@@ -89,6 +89,7 @@ export default class BusinessRoleReviewWebPart extends BaseClientSideWebPart<IBu
       .select(select)
       .expand(expands)
       .filter('PrimaryApproverId eq ' + userId)
+      .top(2000)
       .get<Array<BusinessRoleReviewItem>>();
   }
   public setComplete(primaryApproverList: any): Promise<any> {

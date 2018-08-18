@@ -112,8 +112,8 @@ export default class BusinessRoleReview extends React.Component<IBusinessRoleRev
     });
 
   }
-  public save(): Promise<any> {
-    return this.props.save(this.state.businessRoleReview).then(() => {
+  public save( ev?: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>, item?: IContextualMenuItem) : void{
+     this.props.save(this.state.businessRoleReview).then(() => {
       var tempArray = map(this.state.businessRoleReview, (rr) => {
         return { ...rr, hasBeenUpdated: false };
       });

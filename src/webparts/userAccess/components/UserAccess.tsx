@@ -144,8 +144,8 @@ export default class UserAccess extends React.Component<IUserAccessProps, IUserA
 
 
   }
-  public save(): Promise<any> {
-    return this.props.save(this.state.userAccessItems).then(() => {
+  public save( ev?: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>, item?: IContextualMenuItem) : void{
+     this.props.save(this.state.userAccessItems).then(() => {
 
       var tempArray = map(this.state.userAccessItems, (rr) => {
         return { ...rr, hasBeenUpdated: false };
