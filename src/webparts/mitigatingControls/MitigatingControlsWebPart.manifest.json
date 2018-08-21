@@ -3,31 +3,36 @@
   "id": "746860a8-18c2-4110-bd12-62ce3e2fc801",
   "alias": "MitigatingControlsWebPart",
   "componentType": "WebPart",
-
   // The "*" signifies that the version should be taken from the package.json
   "version": "*",
   "manifestVersion": 2,
-
   // If true, the component can only be installed on sites where Custom Script is allowed.
   // Components that allow authors to embed arbitrary script code should set this to true.
   // https://support.office.com/en-us/article/Turn-scripting-capabilities-on-or-off-1f2c515f-5d7e-448a-9fd7-835da935584f
   "requiresCustomScript": false,
-
-  "preconfiguredEntries": [{
-    "groupId": "5c03119e-3074-46fd-976b-c60198311f70", // Other
-    "group": { "default": "GRC User Webparts" },
-    "title": { "default": "MitigatingControls" },
-    "description": { "default": "mitigating controls user webpart" },
-    "officeFabricIconFontName": "Page",
-    "properties": {
-      "description": "MitigatingControls",
-      "primaryApproversListName":"Primary Approver List",
-      "mitigatingControlsListName":"High Risk with Mitigating Controls",
-      "effectiveLabel":"Does the mitigating control effectively remediate the associated risk?",
-      "continuesLabel":"Does the mitigating control continue to be performed?",
-      "correctPersonLabel":"Is the mitigating control monitor the correct person to perform control?",
-      "helpLinksListName":"HelpLinks"
-
+  "preconfiguredEntries": [
+    {
+      "groupId": "5c03119e-3074-46fd-976b-c60198311f70", // Other
+      "group": {
+        "default": "GRC User Webparts"
+      },
+      "title": {
+        "default": "MitigatingControls"
+      },
+      "description": {
+        "default": "mitigating controls user webpart"
+      },
+      "officeFabricIconFontName": "Page",
+      "properties": {
+        "description": "MitigatingControls",
+        "webApiUrl": "https://grcmitigatingcontrolswebapi20180812035024.azurewebsites.net",
+        "mitigatngControlsController": "High_Risk_with_Mitigating_Control",
+        "primaryApproverController": "Primary_Approver_List",
+        "effectiveLabel": "Does the mitigating control effectively remediate the associated risk?",
+        "continuesLabel": "Does the mitigating control continue to be performed?",
+        "correctPersonLabel": "Is the mitigating control monitor the correct person to perform control?",
+        "helpLinksListName": "HelpLinks"
+      }
     }
-  }]
+  ]
 }

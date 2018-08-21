@@ -1,6 +1,6 @@
 import { MitigatingControlsItem, PrimaryApproverItem } from "../dataModel";
 export interface IMitigatingControlsState {
-  primaryApprover : Array<PrimaryApproverItem>;
+  primaryApprover : PrimaryApproverItem;
   mitigatingControls: Array<MitigatingControlsItem>;
   //roleToTransaction?: Array<RoleToTransaction>;
   showPopup:boolean;// triggers the popup that lets a user enter values for changeSelected

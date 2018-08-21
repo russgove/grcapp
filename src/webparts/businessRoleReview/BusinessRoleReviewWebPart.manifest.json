@@ -24,8 +24,10 @@
       },
       "officeFabricIconFontName": "Page",
       "properties": {
-        "primaryApproversListName": "Primary Approver List",
-        "businessRoleReviewListName": "Business Role Owners",
+        "webApiUrl":"https://grcuseraccessreview.azurewebsites.net",
+        "businessROleReviewController":"Business Role Owners",
+        "primaryApproverController":"Primary_Approver_List",
+        
         "roleNameWidth": 400,
  
         "approverWidth": 110,

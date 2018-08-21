@@ -1,9 +1,11 @@
 import * as React from 'react';
+import { autobind } from 'office-ui-fabric-react/lib/Utilities';
 import styles from './MitigatingControls.module.scss';
+import { HttpClient, HttpClientResponse, IHttpClientOptions } from '@microsoft/sp-http';
 import { IMitigatingControlsProps } from './IMitigatingControlsProps';
 import { IMitigatingControlsState } from './IMitigatingControlsState';
 import { escape } from '@microsoft/sp-lodash-subset';
-import { MitigatingControlsItem, PrimaryApproverItem ,HelpLink} from "../dataModel";
+import { MitigatingControlsItem, PrimaryApproverItem, HelpLink } from "../dataModel";
 import {
   Environment,
   EnvironmentType
@@ -32,30 +34,65 @@ export default class MitigatingControls extends React.Component<IMitigatingContr
     console.log("in Construrctor");
     initializeIcons();
     this.selection.getKey = (item => { return item["Id"]; });
-    this.save = this.save.bind(this);
-    this.setComplete = this.setComplete.bind(this);
-    this.updateSelected = this.updateSelected.bind(this);
-    this.fetchMitigatingContols = this.fetchMitigatingContols.bind(this);
+
     this.state = {
-      primaryApprover: props.primaryApprover,
+      primaryApprover: null,
       mitigatingControls: [],
       showPopup: false
 
     };
   }
-  public componentDidMount() {
-    this.fetchMitigatingContols();
+
+  @autobind
+  public getApi(controller: string, query: string): Promise<any> {
+    let url = this.props.webApiUrl + "/api/" + controller + "?" + query;
+    let httpClientOptions: IHttpClientOptions = {
+      credentials: "include",
+    };
+    return this.props.httpClient.get(url, HttpClient.configurations.v1, httpClientOptions)
+      .then((response: HttpClientResponse) => {
+        return response.json();
+      });
   }
-  public fetchMitigatingContols(): Promise<any> {
 
-    return this.props.fetchMitigatingControls().then((mitigatingControls) => {
+  @autobind
+  public putApi(controller: string, entity: any): Promise<any> {
+    let url = this.props.webApiUrl + "/api/" + controller + "/" + entity["ID"];
+    let requestHeaders: Headers = new Headers();
+    requestHeaders.append('Content-type', 'application/json');
+    let httpClientOptions: IHttpClientOptions = {
+      credentials: "include",
+      headers: requestHeaders,
+      method: "PUT",
+      body: JSON.stringify(entity)
+    };
+    return this.props.httpClient.fetch(url, HttpClient.configurations.v1, httpClientOptions);
+  }
+  @autobind
+  public fetchPrimaryApprover(): Promise<any> {
+    let query = "$filter=tolower(ApproverEmail) eq '" + this.props.user.email.toLowerCase() + "'";
+    return this.getApi(this.props.primaryApproverController, query)
+      .then((appr) => {
+        debugger;
+        this.setState((current) => ({ ...current, primaryApprover: appr[0] }));
+      }).catch(e => {
+        console.log(e);
+        alert("There was an error fetching Primary approvers");
+      });
 
-      this.setState((current) => ({ ...current, mitigatingControls: mitigatingControls }));
-    }).catch((err) => {
-      debugger;
-      console.error(err);
-      alert(err);
-    });
+  }
+  @autobind
+  public fetchMitigatingContols(ev?: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>, item?: IContextualMenuItem): void {
+
+    let query = "$filter=tolower(ApproverEmail) eq '" + this.props.user.email.toLowerCase() + "'";
+    this.getApi(this.props.mitigatngControlsController, query)
+      .then((response: any) => {
+        this.setState((current) => ({ ...current, mitigatingControls: response }));
+      })
+      .catch(err => {
+        console.log(err);
+        alert("There was an error fetching mitigatingControls Items");
+      });
   }
   public showUpdatedSelectedPopup(ev?: React.MouseEvent<HTMLElement>, item?: IContextualMenuItem): void {
 
@@ -94,42 +131,43 @@ export default class MitigatingControls extends React.Component<IMitigatingContr
   }
 
 
-  public setComplete(): Promise<any> {
-
-    return this.props.save(this.state.mitigatingControls).then(() => {
-      var tempArray = map(this.state.mitigatingControls, (rr) => {
-        return { ...rr, hasBeenUpdated: false };
+  @autobind
+  public setComplete(ev?: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>, item?: IContextualMenuItem): void {
+    let updatedApprover = this.state.primaryApprover;
+    updatedApprover.Completed = "Yes";
+    this.putApi(this.props.primaryApproverController, updatedApprover)
+      .then(() => {
+        this.setState((current) => ({ ...current, primaryApprover: updatedApprover }));
+      })
+      .catch((err) => {
+        console.log(err);
+        alert("An error occurred saving the primary approver record");
       });
-      this.setState((current) => ({ ...current, mitigatingControls: tempArray }));
-      return this.props.setComplete(this.props.primaryApprover[0]).then(() => {
-        alert("Completed");
-      }).catch((err) => {
-        debugger;
-        console.error(err);
-        alert(err);
-      });
-    }).catch((err) => {
-      debugger;
-      console.error(err);
-      alert(err);
-    });
-
   }
-  public save (ev?: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>, item?: IContextualMenuItem) : void {
-     this.props.save(this.state.mitigatingControls).then(() => {
+
+  @autobind
+  public updateMitigatingControlItems(items: MitigatingControlsItem[]): Promise<any> {
+    let promises: Array<Promise<any>> = [];
+    for (let item of items) {
+      promises.push(this.putApi(this.props.mitigatngControlsController, item));
+    }
+    return Promise.all(promises);
+  }
+  @autobind
+  public save(ev?: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>, item?: IContextualMenuItem): void {
+    this.updateMitigatingControlItems(this.state.mitigatingControls).then(() => {
       var tempArray = map(this.state.mitigatingControls, (rr) => {
         return { ...rr, hasBeenUpdated: false };
       });
-      this.setState((current) => ({ ...current, mitigatingControls: tempArray }));
+      this.setState((current) => ({ ...current, userAccessItems: tempArray }));
       alert("Saved");
     }).catch((err) => {
       debugger;
-      console.error(err);
       alert(err);
     });
   }
   public RenderComments(item?: MitigatingControlsItem, index?: number, column?: IColumn): JSX.Element {
-    if (this.props.primaryApprover[0].Completed === "Yes") {
+    if (this.state.primaryApprover.Completed === "Yes") {
       return (
         <div>
           {item.Comments}
@@ -163,7 +201,7 @@ export default class MitigatingControls extends React.Component<IMitigatingContr
       { key: "2", text: "No" },
 
     ];
-    if (this.props.primaryApprover[0].Completed === "Yes") {
+    if (this.state.primaryApprover.Completed === "Yes") {
       return (
         <div>
           {find(options, (o) => { return o.key === item[column.fieldName]; }).text}
@@ -211,7 +249,16 @@ export default class MitigatingControls extends React.Component<IMitigatingContr
 
     return true;
   }
+  /**
+    * this function gets called after the iframe has connected to the webapi.
+    * After this we can make calls to the web api passing the credentials
+    */
+  public frameLoaded() {
+    debugger;
 
+    this.fetchMitigatingContols();
+    this.fetchPrimaryApprover();
+  }
   public render(): React.ReactElement<IMitigatingControlsProps> {
 
     let itemsNonFocusable: IContextualMenuItem[] = [
@@ -228,14 +275,14 @@ export default class MitigatingControls extends React.Component<IMitigatingContr
             }));
           }
         },
-        disabled: this.props.primaryApprover[0].Completed === "Yes"
+        disabled: !(this.state.primaryApprover) || this.state.primaryApprover.Completed === "Yes"
 
       },
       {
         key: "Update Unselected",
         name: "Update Unselected",
         icon: "TriggerAuto",
-        disabled: this.props.primaryApprover[0].Completed === "Yes",
+        disabled: !(this.state.primaryApprover) || this.state.primaryApprover.Completed === "Yes",
         onClick: (e) => {
           debugger;
           if (!this.selection.count || this.selection.count < this.state.mitigatingControls.length) {
@@ -258,7 +305,7 @@ export default class MitigatingControls extends React.Component<IMitigatingContr
       },
       { // if the item has been comleted OR there are items with noo approvasl, diable
         key: "Done", name: "Complete", icon: "Completed", onClick: this.setComplete,
-        disabled: this.props.primaryApprover[0].Completed === "Yes" || !(this.areAllQuestionsAnswered())
+        disabled: !(this.state.primaryApprover) || this.state.primaryApprover.Completed === "Yes" || !(this.areAllQuestionsAnswered())
 
       }
 
@@ -268,20 +315,20 @@ export default class MitigatingControls extends React.Component<IMitigatingContr
 
         key: "Save", name: "Save", icon: "Save", onClick: this.save,
         disabled: !(filter(this.state.mitigatingControls, (rr) => { return rr.hasBeenUpdated; }).length > 0)
-        || this.props.primaryApprover[0].Completed === "Yes"
+        || !(this.state.primaryApprover) || this.state.primaryApprover[0].Completed === "Yes"
 
       },
       {
         key: "helpLinks", name: "Help", icon: "help",
-        items: map(this.props.helpLinks,(hl):IContextualMenuItem=>{
+        items: map(this.props.helpLinks, (hl): IContextualMenuItem => {
           debugger;
-          return{
-            key:hl.Id.toString(), // this is the id of the listitem
-            href:hl.Url.Url, 
-            title:hl.Url.Description,
-            icon:hl.IconName,
-            name:hl.Title,
-            target:hl.Target
+          return {
+            key: hl.Id.toString(), // this is the id of the listitem
+            href: hl.Url.Url,
+            title: hl.Url.Description,
+            icon: hl.IconName,
+            name: hl.Title,
+            target: hl.Target
 
           };
         })
@@ -291,6 +338,7 @@ export default class MitigatingControls extends React.Component<IMitigatingContr
 
     return (
       <div className={styles.mitigatingControls}>
+        <iframe src={this.props.webApiUrl} onLoad={this.frameLoaded.bind(this)} />
         <Dialog isBlocking={true}
           hidden={!this.state.showPopup}
           onDismiss={(e) => { this.setState((current) => ({ ...current, showPopup: false })); }}
