@@ -314,7 +314,7 @@ debugger;
       { // if the item has been comleted OR there are items with noo approvasl, diable
         key: "Done", name: "Complete", icon: "Completed", onClick: this.setComplete,
         disabled: this.props.primaryApproverList[0].Completed === "Yes" ||
-          (filter(this.state.userAccessItems, (rr) => { return rr.Approval === "3"; }).length > 0) // "3" is the initial state after larry uploads the access db
+          (filter(this.state.userAccessItems, (rr) => { return rr.Approval === "3" || !rr.Comments || rr.Comments.trim().length===0; }).length > 0) // "3" is the initial state after larry uploads the access db
       }
 
     ];

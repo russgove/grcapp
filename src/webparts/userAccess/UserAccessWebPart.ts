@@ -106,7 +106,7 @@ export default class UserAccessWebPart extends BaseClientSideWebPart<IUserAccess
 
     let userId = this.context.pageContext.legacyPageContext.userId;
     return sp.web.lists.getByTitle(this.properties.primaryApproversListName)
-      .items.getById(primaryApproverList.Id).update({ "GRCCompleted": "Yes" }).then(() => {
+      .items.getById(primaryApproverList.Id).update({ "Completed": "Yes" }).then(() => {
         let newProps = this.reactElement.props;
         newProps.primaryApproverList[0].Completed = "Yes";
         this.reactElement.props = newProps;

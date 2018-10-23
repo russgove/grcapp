@@ -58,7 +58,7 @@ export default class MitigatingControlsWebPart extends BaseClientSideWebPart<IMi
       .select(select)
       .expand(expands)
       .filter('PrimaryApproverId eq ' + userId)
-      .get()
+      .getAll()
       .then((result) => {
         this.primaryApproverLists = result;
 
@@ -82,7 +82,7 @@ export default class MitigatingControlsWebPart extends BaseClientSideWebPart<IMi
       .select(select)
       .expand(expands)
       .filter('PrimaryApproverId eq ' + userId)
-      .get<Array<MitigatingControlsItem>>();
+      .getAll();
   }
   public render(): void {
 
