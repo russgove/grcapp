@@ -3,19 +3,19 @@ import { Item } from "@pnp/sp";
 export class RoleReviewItem extends Item {
 
     public ID: number;
-    public Role_Name: string;
+    public Role_x0020_Name: string;
     public Approver: string;
     public ApproverEmail: string;
-    public Approver_Name: string;
-    public Alt_Apprv: string;
+    public Approver_x0020_Name: string;
+    public Alt_x0020_Apprv: string;
     public AlternateApproverEmail:string;
-    public Alternate_Approver:string;
-    public Approved_by:string;
+    public Alternate_x0020_Approver:string;
+    public Approved_x0020_by:string;
  
   
     public Approval: string;
     // public GRCApprovedBy: string;
-    public Date_Reviewed: string;
+    public Date_x0020_Reviewed: string;
     public Comments: string;
     public Remediation: string;
     public hasBeenUpdated: boolean;
@@ -24,9 +24,9 @@ export class RoleReviewItem extends Item {
 
 export class RoleToTransaction extends Item {
     public Role: string;
-    public Composite_role: string;
+    public Composite_x0020_role: string;
     public TCode: string;
-    public Transaction_Text: string;
+    public Transaction_x0020_Text: string;
 
 }
 export class PrimaryApproverItem extends Item {
@@ -34,7 +34,7 @@ export class PrimaryApproverItem extends Item {
     public ID: number;
     public Approver: string;
     public ApproverEmail: string;
-    public Approver_Name: string;
+    public Approver_x0020_Name: string;
     public Completed: string;
 
 

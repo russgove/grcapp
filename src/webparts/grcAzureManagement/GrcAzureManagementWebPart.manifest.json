@@ -1,5 +1,5 @@
 {
-  "$schema": "https://dev.office.com/json-schemas/spfx/client-side-web-part-manifest.schema.json",
+  "$schema": "https://developer.microsoft.com/json-schemas/spfx/client-side-web-part-manifest.schema.json"
   "id": "e30095ac-6542-40dc-83c2-965680b847d3",
   "alias": "GrcAzureManagementWebPart",
   "componentType": "WebPart",

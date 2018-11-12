@@ -1,5 +1,5 @@
 {
-  "$schema": "https://dev.office.com/json-schemas/spfx/client-side-web-part-manifest.schema.json",
+  "$schema": "https://developer.microsoft.com/json-schemas/spfx/client-side-web-part-manifest.schema.json",
   "id": "06081c3f-51e2-49f2-b2e8-4eea941a4e14",
   "alias": "UserAccessSiteSetupWebPart",
   "componentType": "WebPart",

@@ -1,13 +1,21 @@
-{
+{ "include": [
+  "src/**/*.ts"
+],
+"exclude": [
+  "node_modules",
+  "lib"
+],
   "compilerOptions": {
     "target": "es5",
     "forceConsistentCasingInFileNames": true,
-    "module": "commonjs",
+    "moduleResolution": "node",
     "jsx": "react",
     "declaration": true,
     "sourceMap": true,
     "experimentalDecorators": true,
     "skipLibCheck": true,
+    "outDir": "lib",
+    "module": "esnext",
     "typeRoots": [
       "./node_modules/@types",
       "./node_modules/@microsoft"
@@ -25,5 +33,6 @@
       "dom",
       "es2015.collection"
     ]
+   
   }
 }

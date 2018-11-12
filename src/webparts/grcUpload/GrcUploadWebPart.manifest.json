@@ -1,5 +1,5 @@
 {
-  "$schema": "https://dev.office.com/json-schemas/spfx/client-side-web-part-manifest.schema.json",
+  "$schema": "https://developer.microsoft.com/json-schemas/spfx/client-side-web-part-manifest.schema.json"
   "id": "3a74f393-9ca3-426c-baab-097f54a60d93",
   "alias": "GrcUploadWebPart",
   "componentType": "WebPart",

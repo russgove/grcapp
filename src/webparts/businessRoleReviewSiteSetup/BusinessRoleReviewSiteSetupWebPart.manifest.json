@@ -1,5 +1,5 @@
 {
-  "$schema": "https://dev.office.com/json-schemas/spfx/client-side-web-part-manifest.schema.json",
+  "$schema": "https://developer.microsoft.com/json-schemas/spfx/client-side-web-part-manifest.schema.json",
   "id": "addd4124-eeac-4d97-b82f-3d38cf43ac19",
   "alias": "BusinessRoleReviewSiteSetupWebPart",
   "componentType": "WebPart",

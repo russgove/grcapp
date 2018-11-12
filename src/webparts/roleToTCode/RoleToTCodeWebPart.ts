@@ -1,6 +1,7 @@
 import * as React from 'react';
 import * as ReactDom from 'react-dom';
 import { Version } from '@microsoft/sp-core-library';
+import { AadHttpClient } from '@microsoft/sp-http';
 import {
   BaseClientSideWebPart,
   IPropertyPaneConfiguration,
@@ -12,10 +13,12 @@ import RoleToTCode from './components/RoleToTCode';
 import { IRoleToTCodeProps } from './components/IRoleToTCodeProps';
 
 export interface IRoleToTCodeWebPartProps {
-  webApiUrl:string;
-  roleToTcodeController:string;
-  primaryApproverController:string;
-  roleReviewController:string;
+
+  GetPrimaryApproverByEmailPath: string;
+  UpdatePrimaryApproversPath: string;
+  GetRoleReviewsForApproverPath: string;
+  UpdateRoleReviewsForApproverPath: string;
+  GetRoleToTransactionsForRoleNamePath: string;
 }
 import { sp, EmailProperties, Items, Item } from "@pnp/sp";
 
@@ -23,25 +26,31 @@ export default class RoleToTCodeWebPart extends BaseClientSideWebPart<IRoleToTCo
 
   private reactElement: React.ReactElement<IRoleToTCodeProps>;
   private formComponent: RoleToTCode;
-   
+ 
+
   public async onInit(): Promise<void> {
     await super.onInit().then(() => {
       sp.setup({
         spfxContext: this.context,
       });
-      return;
+     
     });
   }
   public render(): void {
-    debugger;
+
     this.reactElement = React.createElement(
       RoleToTCode,
       {
+        GetPrimaryApproverByEmailPath: this.properties.GetPrimaryApproverByEmailPath,
+        UpdatePrimaryApproversPath: this.properties.UpdatePrimaryApproversPath,
+        GetRoleReviewsForApproverPath: this.properties.GetRoleReviewsForApproverPath,
+        UpdateRoleReviewsForApproverPath: this.properties.UpdateRoleReviewsForApproverPath,
+        GetRoleToTransactionsForRoleNamePath: this.properties.GetRoleToTransactionsForRoleNamePath,
         user: this.context.pageContext.user,
-        webApiUrl: this.properties.webApiUrl,
-        roleToTcodeController: this.properties.roleToTcodeController,
-        primaryApproverController: this.properties.primaryApproverController,
-        roleReviewController: this.properties.roleReviewController,
+
+
+
+
         domElement: this.domElement,
         httpClient: this.context.httpClient
       }
