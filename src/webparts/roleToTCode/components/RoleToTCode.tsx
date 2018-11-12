@@ -32,7 +32,7 @@ export default class RoleToTCode extends React.Component<IRoleToTCodeProps, IRol
   public constructor(props: IRoleToTCodeProps) {
     super();
     debugger;
-    this.fetchPrimaryApprover = this.fetchPrimaryApprover.bind(this);
+
     console.log("in Construrctor");
     initializeIcons();
     this.selection.getKey = (item => { return item["ID"]; });
@@ -86,7 +86,7 @@ export default class RoleToTCode extends React.Component<IRoleToTCodeProps, IRol
             alert(err.data.responseBody["odata.error"].message.value);
             debugger;
           });
-      }).catch((err)=>{
+      }).catch((err) => {
         debugger;
       });
   }
@@ -230,26 +230,8 @@ export default class RoleToTCode extends React.Component<IRoleToTCodeProps, IRol
     });
   }
 
-  // public addApprover(approver: any): Promise<HttpClientResponse> {
 
-  //   let requestHeaders: Headers = new Headers();
-  //   requestHeaders.append('Content-type', 'application/json');
-  //   requestHeaders.append('Cache-Control', 'no-cache');
-
-  //   let httpClientOptions: IHttpClientOptions = {
-  //     credentials: "include",
-  //     body: JSON.stringify(approver)
-  //   };
-
-  //   //let url=`${this.props.webApiUrl}/api/${this.props.primaryApproverController}?$filter=tolower(ApproverEmail) eq '${approverEmail.toLowerCase()}'`;
-  //   let url = `${this.props.webApiUrl}/api/${this.props.primaryApproverController}`;
-  //   console.log(url);
-  //   return this.props.httpClient.post(url,
-  //     HttpClient.configurations.v1,
-  //     httpClientOptions);
-  // }
-
-
+  @autobind
   public fetchPrimaryApprover(): Promise<any> {
     let url = this.props.GetPrimaryApproverByEmailPath;
     let requestHeaders: Headers = new Headers();
