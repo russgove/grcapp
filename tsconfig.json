@@ -4,6 +4,7 @@
     "forceConsistentCasingInFileNames": true,
     "module": "commonjs",
     "jsx": "react",
+    "outDir": "lib",
     "declaration": true,
     "sourceMap": true,
     "experimentalDecorators": true,

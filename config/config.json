@@ -95,8 +95,7 @@
   },
   "localizedResources": {
     "GrcTestWebPartStrings": "lib/webparts/grcTest/loc/{locale}.js",
-    "GrcUploadWebPartStrings": "lib/webparts/grcUpload/loc/{locale}.js",
-    "GrcAzureManagementWebPartStrings": "lib/webparts/grcAzureManagement/loc/{locale}.js",
+   "GrcAzureManagementWebPartStrings": "lib/webparts/grcAzureManagement/loc/{locale}.js",
     "MitigatingControlsSiteSetupWebPartStrings": "lib/webparts/mitigatingControlsSiteSetup/loc/{locale}.js",
     "MitigatingControlsWebPartStrings": "lib/webparts/mitigatingControls/loc/{locale}.js",
     "PropertyControlStrings": "./node_modules/@pnp/spfx-property-controls/lib/loc/{locale}.js",

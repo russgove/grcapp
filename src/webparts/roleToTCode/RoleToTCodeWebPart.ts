@@ -12,24 +12,29 @@ import RoleToTCode from './components/RoleToTCode';
 import { IRoleToTCodeProps } from './components/IRoleToTCodeProps';
 
 export interface IRoleToTCodeWebPartProps {
-  webApiUrl:string;
-  roleToTcodeController:string;
-  primaryApproverController:string;
-  roleReviewController:string;
+  azureFunctionUrl: string;
+
 }
 import { sp, EmailProperties, Items, Item } from "@pnp/sp";
+import { AadHttpClient } from "@microsoft/sp-http/dist/index-internal";
 
 export default class RoleToTCodeWebPart extends BaseClientSideWebPart<IRoleToTCodeWebPartProps> {
 
   private reactElement: React.ReactElement<IRoleToTCodeProps>;
   private formComponent: RoleToTCode;
-   
+  private aadHttpClient: AadHttpClient
+
   public async onInit(): Promise<void> {
     await super.onInit().then(() => {
       sp.setup({
         spfxContext: this.context,
       });
-      return;
+      return this.context.aadHttpClientFactory.getClient(this.properties.azureFunctionUrl).then((client) => {
+        this.aadHttpClient = client;
+      }).catch((err) => {
+        debugger;
+      });
+      
     });
   }
   public render(): void {
@@ -38,12 +43,9 @@ export default class RoleToTCodeWebPart extends BaseClientSideWebPart<IRoleToTCo
       RoleToTCode,
       {
         user: this.context.pageContext.user,
-        webApiUrl: this.properties.webApiUrl,
-        roleToTcodeController: this.properties.roleToTcodeController,
-        primaryApproverController: this.properties.primaryApproverController,
-        roleReviewController: this.properties.roleReviewController,
+        azureFunctionUrl: this.properties.azureFunctionUrl,
         domElement: this.domElement,
-        httpClient: this.context.httpClient
+        aadHttpClient: this.aadHttpClient
       }
     );
     this.formComponent = ReactDom.render(this.reactElement, this.domElement) as RoleToTCode;
