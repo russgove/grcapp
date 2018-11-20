@@ -13,6 +13,7 @@ import { IRoleToTCodeProps } from './components/IRoleToTCodeProps';
 
 export interface IRoleToTCodeWebPartProps {
   azureFunctionUrl: string;
+  accessCode:string;
 
 }
 import { sp, EmailProperties, Items, Item } from "@pnp/sp";
@@ -38,14 +39,15 @@ export default class RoleToTCodeWebPart extends BaseClientSideWebPart<IRoleToTCo
     });
   }
   public render(): void {
-    debugger;
+    
     this.reactElement = React.createElement(
       RoleToTCode,
       {
         user: this.context.pageContext.user,
         azureFunctionUrl: this.properties.azureFunctionUrl,
         domElement: this.domElement,
-        aadHttpClient: this.aadHttpClient
+        httpClient: this.context.httpClient,
+        accessCode:this.properties.accessCode
       }
     );
     this.formComponent = ReactDom.render(this.reactElement, this.domElement) as RoleToTCode;
@@ -65,11 +67,11 @@ export default class RoleToTCodeWebPart extends BaseClientSideWebPart<IRoleToTCo
             {
               groupName: strings.BasicGroupName,
               groupFields: [
-                PropertyPaneTextField('webApiUrl', {
-                  label: "Web API Url"
+                PropertyPaneTextField('azureFunctionUrl', {
+                  label: "azureFunctionUrl"
                 }),
-                PropertyPaneTextField('primaryApproverController', {
-                  label: "Primary Approvers Controller"
+                PropertyPaneTextField('accessCode', {
+                  label: "accress code"
                 }),
                 PropertyPaneTextField('roleReviewController', {
                   label: "Role Review Controller"

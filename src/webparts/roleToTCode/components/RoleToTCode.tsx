@@ -4,7 +4,7 @@ import { escape } from '@microsoft/sp-lodash-subset';
 import * as React from 'react';
 import { autobind } from 'office-ui-fabric-react/lib/Utilities';
 import { IRoleToTCodeState } from './IRoleToTCodeState';
-import { AadHttpClient, HttpClientResponse, IHttpClientOptions } from '@microsoft/sp-http';
+import { HttpClient, HttpClientResponse, IHttpClientOptions } from '@microsoft/sp-http';
 import {
   Environment,
   EnvironmentType
@@ -29,9 +29,6 @@ import { ChoiceGroup, IChoiceGroupOption } from 'office-ui-fabric-react/lib/Choi
 
 export default class RoleToTCode extends React.Component<IRoleToTCodeProps, IRoleToTCodeState> {
   private selection: Selection = new Selection();
-  private httpClientOptions: IHttpClientOptions = {
-    credentials: "include",
-  };
   public constructor(props: IRoleToTCodeProps) {
     super();
     console.log("in Construrctor");
@@ -44,10 +41,10 @@ export default class RoleToTCode extends React.Component<IRoleToTCodeProps, IRol
       showApprovalPopup: false
     };
   }
-  public componentDidMount():void{
+  public componentDidMount(): void {
     debugger;
-    this.fetchRoleReview();
-    this.fetchPrimaryApprover();
+    // this.fetchRoleReview();
+    // this.fetchPrimaryApprover();
   }
 
   public componentDidUpdate(): void {
@@ -103,7 +100,7 @@ export default class RoleToTCode extends React.Component<IRoleToTCodeProps, IRol
 
     this.setState((current) => ({
       ...current,
-      userAccessItems: tempArray,
+      RoleReviewItems: tempArray,
       popupValueApproval: null,
       popupValueComments: null,
       showApprovalPopup: false
@@ -137,9 +134,13 @@ export default class RoleToTCode extends React.Component<IRoleToTCodeProps, IRol
   @autobind
   public updateRoleReviewItems(items: RoleReviewItem[]): Promise<any> {
     let promises: Array<Promise<any>> = [];
-    // for (let item of items) {
-    //   promises.push(this.putApi(this.props.roleReviewController, item));
-    // }
+    for (let item of items) {
+      // promises.push(this.putApi(this.props.roleReviewController, item));
+      let query = `${this.props.azureFunctionUrl}/api/RoleReviews/${item.ID}?&code=${this.props.accessCode}`;
+      promises.push(this.props.httpClient.post(query, HttpClient.configurations.v1, {
+        credentials: "include", referrerPolicy: "unsafe-url", body: item, method: "PUT"
+      }));
+    }
     return Promise.all(promises);
   }
 
@@ -172,18 +173,18 @@ export default class RoleToTCode extends React.Component<IRoleToTCodeProps, IRol
   }
   @autobind
   public save(ev?: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>, item?: IContextualMenuItem): void {
-    // this.updateRoleReviewItems(this.state.RoleReviewItems).then(() => {
-    //   var tempArray = map(this.state.RoleReviewItems, (rr) => {
-    //     return { ...rr, hasBeenUpdated: false };
-    //   });
-    //   this.setState((current) => ({ ...current, userAccessItems: tempArray }));
-    //   alert("Saved");
-    // }).catch((err) => {
-    //   debugger;
-    //   alert(err);
-    // });
+    this.updateRoleReviewItems(this.state.RoleReviewItems).then(() => {
+      var tempArray = map(this.state.RoleReviewItems, (rr) => {
+        return { ...rr, hasBeenUpdated: false };
+      });
+      this.setState((current) => ({ ...current, RoleReviewItems: tempArray }));
+      alert("Saved");
+    }).catch((err) => {
+      debugger;
+      alert(err);
+    });
   }
-  @autobind
+  //@autobind
   // public addApprover(approver: any): Promise<HttpClientResponse> {
 
   //   let requestHeaders: Headers = new Headers();
@@ -206,28 +207,43 @@ export default class RoleToTCode extends React.Component<IRoleToTCodeProps, IRol
   @autobind
   public fetchPrimaryApprover(): Promise<any> {
     //let query = "$filter=tolower(ApproverEmail) eq '" + this.props.user.email.toLowerCase() + "'";
-    let query=`${this.props.azureFunctionUrl}/PrimaryApprovers/${this.props.user.email}`;
+    let query = `${this.props.azureFunctionUrl}/api/PrimaryApprovers/${this.props.user.email}?&code=${this.props.accessCode}`;
 
-    return this.props.aadHttpClient.fetch(query,AadHttpClient.configurations.v1,this.httpClientOptions)
-      .then((appr) => {
+    return this.props.httpClient.fetch(query, HttpClient.configurations.v1, {
+      credentials: "include", referrerPolicy: "unsafe-url"
+    })
+      .then((response: HttpClientResponse) => {
         debugger;
-        this.setState((current) => ({ ...current, primaryApprover: appr[0] }));
+        response.json()
+          .then((appr) => {
+            this.setState((current) => ({ ...current, primaryApprover: appr[0] }));
+          })
+          .catch((err) => {
+            debugger
+          })
       }).catch(e => {
-       console.log(e);
-       debugger;
-       alert("There was an error fetching Primary approvers");
+        console.log(e);
+        debugger;
+        alert("There was an error fetching Primary approvers");
       });
 
   }
   @autobind
   public fetchRoleReview(ev?: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>, item?: IContextualMenuItem): void {
     //let query = "$filter=tolower(ApproverEmail) eq '" + this.props.user.email.toLowerCase() + "'";
-    let query=`${this.props.azureFunctionUrl}/RoleReviews/${this.props.user.email}`;
+    let query = `${this.props.azureFunctionUrl}/api/RoleReviews/${this.props.user.email}?&code=${this.props.accessCode}`;
 
-     this.props.aadHttpClient.fetch(query,AadHttpClient.configurations.v1,this.httpClientOptions)
-    
-      .then((response: any) => {
-        this.setState((current) => ({ ...current, userAccessItems: response }));
+    this.props.httpClient.fetch(query, HttpClient.configurations.v1, {
+      credentials: "include", referrerPolicy: "unsafe-url"
+    })
+
+      .then((response: HttpClientResponse) => {
+        response.json().then((rolereviews) => {
+          this.setState((current) => ({ ...current, RoleReviewItems: rolereviews }));
+        })
+      })
+      .catch((err) => {
+        debugger;
       })
       .catch(err => {
         console.log(err);
@@ -235,14 +251,24 @@ export default class RoleToTCode extends React.Component<IRoleToTCodeProps, IRol
       });
   }
   @autobind
-  public fetchRoleToTransaction(RoleName: string) {
+  public fetchRoleToTransaction(RoleName: string): Promise<any> {
     console.log(RoleName);
+    let r2 = RoleName.replace(/\//g, "~");
     //let query = "$filter=Role_Name eq '" + RoleName + "'";
-    let query=`${this.props.azureFunctionUrl}/"RoleToTransactions/${RoleName}"`;
+    let query = `${this.props.azureFunctionUrl}/api/RoleToTransactions/${r2}?&code=${this.props.accessCode}`;
+    debugger;
+    return this.props.httpClient.fetch(query, HttpClient.configurations.v1, {
+      credentials: "include", referrerPolicy: "unsafe-url"
+    })
+      .then((response: HttpClientResponse) => {
+        debugger;
+        return response.json();
+      })
+      .catch((err) => {
+        debugger;
+      })
 
-    return this.props.aadHttpClient.fetch(query,AadHttpClient.configurations.v1,this.httpClientOptions)
-    
-    
+
   }
 
   /**
@@ -278,7 +304,7 @@ export default class RoleToTCode extends React.Component<IRoleToTCodeProps, IRol
             });
             rtc.Approval = option.key as string;
             rtc.hasBeenUpdated = true;
-            this.setState((current) => ({ ...current, roleToTCodeReview: tempRoleToTCodeReview, changesHaveBeenMade: true }));
+            this.setState((current) => ({ ...current, RoleReviewItems: tempRoleToTCodeReview, changesHaveBeenMade: true }));
           }}
         />
       );
@@ -381,7 +407,7 @@ export default class RoleToTCode extends React.Component<IRoleToTCodeProps, IRol
 
     return (
       <div className={styles.roleToTCode}>
-        {/* <iframe src={this.props.webApiUrl} onLoad={this.frameLoaded.bind(this)} /> */}
+        <iframe src={this.props.azureFunctionUrl} onLoad={this.frameLoaded.bind(this)} />
 
         <Dialog isBlocking={true}
           hidden={!this.state.showApprovalPopup}

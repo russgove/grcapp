@@ -20,7 +20,8 @@
     "description": { "default": "role to tcode" },
     "officeFabricIconFontName": "Page",
     "properties": {
-      "azureFunctionUrl":"http://grcroletotransactionazurefunction.azurewebsites.net",
+      "azureFunctionUrl":"http://localhost:7071",
+      "accessCode":"vF1D8O81KKQzlIMUml1wC3ckSlhFjgedwTaxTXpmHoHdmOhkhpf06A=="
    
     }
   }]
