@@ -135,6 +135,7 @@ export default class RoleToTCode extends React.Component<IRoleToTCodeProps, IRol
   public updateRoleReviewItems(items: RoleReviewItem[]): Promise<any> {
     let promises: Array<Promise<any>> = [];
     for (let item of items) {
+      debugger;
       // promises.push(this.putApi(this.props.roleReviewController, item));
       let query = `${this.props.azureFunctionUrl}/api/RoleReviews/${item.ID}?&code=${this.props.accessCode}`;
       promises.push(this.props.httpClient.post(query, HttpClient.configurations.v1, {
