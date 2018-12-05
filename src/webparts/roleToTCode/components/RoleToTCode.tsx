@@ -138,7 +138,7 @@ export default class RoleToTCode extends React.Component<IRoleToTCodeProps, IRol
       debugger;
       // promises.push(this.putApi(this.props.roleReviewController, item));
       let query = `${this.props.azureFunctionUrl}/api/RoleReviews/${item.ID}?&code=${this.props.accessCode}`;
-      promises.push(this.props.httpClient.post(query, HttpClient.configurations.v1, {
+      promises.push(this.props.httpClient.fetch(query, HttpClient.configurations.v1, {
         credentials: "include", referrerPolicy: "unsafe-url", body: item, method: "PUT"
       }));
     }
