@@ -1,15 +1,8 @@
 {
-  "$schema": "https://dev.office.com/json-schemas/spfx-build/config.2.0.schema.json",
-  "version": "2.0",
+  "$schema": "https://developer.microsoft.com/json-schemas/spfx-build/config.2.0.schema.json",
+   "version": "2.0",
   "bundles": {
-    "mitigating-controls-site-setup-web-part": {
-      "components": [
-        {
-          "entrypoint": "./lib/webparts/mitigatingControlsSiteSetup/MitigatingControlsSiteSetupWebPart.js",
-          "manifest": "./src/webparts/mitigatingControlsSiteSetup/MitigatingControlsSiteSetupWebPart.manifest.json"
-        }
-      ]
-    },
+   
     "mitigating-controls-web-part": {
       "components": [
         {
@@ -26,14 +19,7 @@
         }
       ]
     },
-    "business-role-review-site-setup-web-part": {
-      "components": [
-        {
-          "entrypoint": "./lib/webparts/businessRoleReviewSiteSetup/BusinessRoleReviewSiteSetupWebPart.js",
-          "manifest": "./src/webparts/businessRoleReviewSiteSetup/BusinessRoleReviewSiteSetupWebPart.manifest.json"
-        }
-      ]
-    },
+   
     "user-access-web-part": {
       "components": [
         {
@@ -42,14 +28,7 @@
         }
       ]
     },
-    "user-access-site-setup-web-part": {
-      "components": [
-        {
-          "entrypoint": "./lib/webparts/userAccessSiteSetup/UserAccessSiteSetupWebPart.js",
-          "manifest": "./src/webparts/userAccessSiteSetup/UserAccessSiteSetupWebPart.manifest.json"
-        }
-      ]
-    },
+  
     "role-to-t-code-web-part": {
       "components": [
         {
@@ -94,15 +73,11 @@
     }
   },
   "localizedResources": {
-    "GrcTestWebPartStrings": "lib/webparts/grcTest/loc/{locale}.js",
-   "GrcAzureManagementWebPartStrings": "lib/webparts/grcAzureManagement/loc/{locale}.js",
-    "MitigatingControlsSiteSetupWebPartStrings": "lib/webparts/mitigatingControlsSiteSetup/loc/{locale}.js",
+  "GrcAzureManagementWebPartStrings": "lib/webparts/grcAzureManagement/loc/{locale}.js",
     "MitigatingControlsWebPartStrings": "lib/webparts/mitigatingControls/loc/{locale}.js",
     "PropertyControlStrings": "./node_modules/@pnp/spfx-property-controls/lib/loc/{locale}.js",
     "BusinessRoleReviewWebPartStrings": "lib/webparts/businessRoleReview/loc/{locale}.js",
-    "BusinessRoleReviewSiteSetupWebPartStrings": "lib/webparts/businessRoleReviewSiteSetup/loc/{locale}.js",
     "UserAccessWebPartStrings": "lib/webparts/userAccess/loc/{locale}.js",
-    "UserAccessSiteSetupWebPartStrings": "lib/webparts/userAccessSiteSetup/loc/{locale}.js",
-    "RoleToTCodeWebPartStrings": "lib/webparts/roleToTCode/loc/{locale}.js"
+   "RoleToTCodeWebPartStrings": "lib/webparts/roleToTCode/loc/{locale}.js"
   }
 }

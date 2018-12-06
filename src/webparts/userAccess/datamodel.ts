@@ -1,6 +1,6 @@
-import { Item } from "@pnp/sp";
+
 // main list for grid
-export class UserAccessItem extends Item {
+export class UserAccessItem  {
 
     public ID: number;
     public User_ID: string;
@@ -19,14 +19,14 @@ export class UserAccessItem extends Item {
 
 }
 
-export class RoleToTransaction extends Item {
+export class RoleToTransaction {
     public Role: string;
     public Composite_role: string;
     public TCode: string;
     public Transaction_Text: string;
 
 }
-export class PrimaryApproverItem extends Item {
+export class PrimaryApproverItem {
 
     public ID: number;
     public Approver: string;

@@ -16,6 +16,9 @@ import {
 } from "office-ui-fabric-react/lib/DetailsList";
 import { Dropdown, IDropdownOption, IDropdownProps } from "office-ui-fabric-react/lib/Dropdown";
 import { Modal, IModalProps } from "office-ui-fabric-react/lib/Modal";
+import { Overlay } from "office-ui-fabric-react/lib/Overlay";
+import { Spinner,SpinnerSize,SpinnerType } from "office-ui-fabric-react/lib/Spinner";
+
 import { Panel, IPanelProps, PanelType } from "office-ui-fabric-react/lib/Panel";
 import { CommandBar } from "office-ui-fabric-react/lib/CommandBar";
 import { IContextualMenuItem } from "office-ui-fabric-react/lib/ContextualMenu";
@@ -30,7 +33,7 @@ import { ChoiceGroup, IChoiceGroupOption } from 'office-ui-fabric-react/lib/Choi
 export default class RoleToTCode extends React.Component<IRoleToTCodeProps, IRoleToTCodeState> {
   private selection: Selection = new Selection();
   public constructor(props: IRoleToTCodeProps) {
-    super();
+    super(props);
     console.log("in Construrctor");
     initializeIcons();
     this.selection.getKey = (item => { return item["ID"]; });
@@ -43,8 +46,8 @@ export default class RoleToTCode extends React.Component<IRoleToTCodeProps, IRol
   }
   public componentDidMount(): void {
     debugger;
-    // this.fetchRoleReview();
-    // this.fetchPrimaryApprover();
+     this.fetchRoleReview();
+     this.fetchPrimaryApprover();
   }
 
   public componentDidUpdate(): void {
@@ -137,10 +140,13 @@ export default class RoleToTCode extends React.Component<IRoleToTCodeProps, IRol
     for (let item of items) {
       debugger;
       // promises.push(this.putApi(this.props.roleReviewController, item));
-      let query = `${this.props.azureFunctionUrl}/api/RoleReviews/${item.ID}?&code=${this.props.accessCode}`;
-      promises.push(this.props.httpClient.fetch(query, HttpClient.configurations.v1, {
-        credentials: "include", referrerPolicy: "unsafe-url", body: item, method: "PUT"
-      }));
+      let query = `${this.props.azureFunctionUrl}/api/${this.props.roleReviewsPath}/${item.ID}?&code=${this.props.accessCode}`;
+      if (item.hasBeenUpdated) {
+        promises.push(this.props.httpClient.fetch(query, HttpClient.configurations.v1, {
+          referrerPolicy: "unsafe-url",
+          body: JSON.stringify(item), method: "PUT", mode: "cors"
+        }));
+      }
     }
     return Promise.all(promises);
   }
@@ -149,27 +155,37 @@ export default class RoleToTCode extends React.Component<IRoleToTCodeProps, IRol
   public setComplete(ev?: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>, item?: IContextualMenuItem): void {
     let updatedApprover = this.state.primaryApprover;
     updatedApprover.Completed = "Yes";
-    // this.putApi(this.props.primaryApproverController, updatedApprover)
-    //   .then(() => {
-    //     this.setState((current) => ({ ...current, primaryApprover: updatedApprover }));
-    //   })
-    //   .catch((err) => {
-    //     console.log(err);
-    //     alert("An error occurred saving the primary approver record");
-    //   });
+    let query = `${this.props.azureFunctionUrl}/api/${this.props.primaryApproversPath}/${updatedApprover.ID}?&code=${this.props.accessCode}`;
+    this.props.httpClient.fetch(query, HttpClient.configurations.v1, {
+      body: JSON.stringify(updatedApprover), method: "PUT", mode: "cors", referrerPolicy: "unsafe-url"
+    })
+      .then(() => {
+        debugger;
+        this.setState((current) => ({ ...current, primaryApprover: updatedApprover }));
+      })
+      .catch((err) => {
+        debugger;
+        console.log(err);
+        alert("An error occurred saving the primary approver record");
+      });
   }
   @autobind
   public unsetComplete(ev?: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>, item?: IContextualMenuItem): void {
     let updatedApprover = this.state.primaryApprover;
     updatedApprover.Completed = "";
-    // this.putApi(this.props.primaryApproverController, updatedApprover)
-    //   .then(() => {
-    //     this.setState((current) => ({ ...current, primaryApprover: updatedApprover }));
-    //   })
-    //   .catch((err) => {
-    //     console.log(err);
-    //     alert("An error occurred saving the primary approver record")
-    //   });
+    let query = `${this.props.azureFunctionUrl}/api/${this.props.primaryApproversPath}/${updatedApprover.ID}?&code=${this.props.accessCode}`;
+    this.props.httpClient.fetch(query, HttpClient.configurations.v1, {
+      body: JSON.stringify(updatedApprover), method: "PUT", mode: "cors", referrerPolicy: "unsafe-url"
+    })
+      .then(() => {
+        debugger;
+        this.setState((current) => ({ ...current, primaryApprover: updatedApprover }));
+      })
+      .catch((err) => {
+        debugger;
+        console.log(err);
+        alert("An error occurred saving the primary approver record");
+      });
 
   }
   @autobind
@@ -208,7 +224,7 @@ export default class RoleToTCode extends React.Component<IRoleToTCodeProps, IRol
   @autobind
   public fetchPrimaryApprover(): Promise<any> {
     //let query = "$filter=tolower(ApproverEmail) eq '" + this.props.user.email.toLowerCase() + "'";
-    let query = `${this.props.azureFunctionUrl}/api/PrimaryApprovers/${this.props.user.email}?&code=${this.props.accessCode}`;
+    let query = `${this.props.azureFunctionUrl}/api/${this.props.primaryApproversPath}/${this.props.user.email}?&code=${this.props.accessCode}`;
 
     return this.props.httpClient.fetch(query, HttpClient.configurations.v1, {
       credentials: "include", referrerPolicy: "unsafe-url"
@@ -217,6 +233,14 @@ export default class RoleToTCode extends React.Component<IRoleToTCodeProps, IRol
         debugger;
         response.json()
           .then((appr) => {
+            if (appr.length === 0) {
+              alert(`No Primary Approver record found for ${this.props.user.email}. Please contact the system adminsitrator.`)
+
+            };
+            if (appr.length > 1) {
+              alert(`Multiple  Primary Approver records found for ${this.props.user.email}. Please contact the system adminsitrator.`)
+
+            }
             this.setState((current) => ({ ...current, primaryApprover: appr[0] }));
           })
           .catch((err) => {
@@ -232,7 +256,7 @@ export default class RoleToTCode extends React.Component<IRoleToTCodeProps, IRol
   @autobind
   public fetchRoleReview(ev?: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>, item?: IContextualMenuItem): void {
     //let query = "$filter=tolower(ApproverEmail) eq '" + this.props.user.email.toLowerCase() + "'";
-    let query = `${this.props.azureFunctionUrl}/api/RoleReviews/${this.props.user.email}?&code=${this.props.accessCode}`;
+    let query = `${this.props.azureFunctionUrl}/api/${this.props.roleReviewsPath}/${this.props.user.email}?&code=${this.props.accessCode}`;
 
     this.props.httpClient.fetch(query, HttpClient.configurations.v1, {
       credentials: "include", referrerPolicy: "unsafe-url"
@@ -256,7 +280,7 @@ export default class RoleToTCode extends React.Component<IRoleToTCodeProps, IRol
     console.log(RoleName);
     let r2 = RoleName.replace(/\//g, "~");
     //let query = "$filter=Role_Name eq '" + RoleName + "'";
-    let query = `${this.props.azureFunctionUrl}/api/RoleToTransactions/${r2}?&code=${this.props.accessCode}`;
+    let query = `${this.props.azureFunctionUrl}/api/${this.props.roleToTransactionsPath}/${r2}?&code=${this.props.accessCode}`;
     debugger;
     return this.props.httpClient.fetch(query, HttpClient.configurations.v1, {
       credentials: "include", referrerPolicy: "unsafe-url"
@@ -276,11 +300,11 @@ export default class RoleToTCode extends React.Component<IRoleToTCodeProps, IRol
    * this function gets called after the iframe has connected to the webapi.
    * After this we can make calls to the web api passing the credentials
    */
-  public frameLoaded() {
+  // public frameLoaded() {
 
-    this.fetchRoleReview();
-    this.fetchPrimaryApprover();
-  }
+  //   this.fetchRoleReview();
+  //   this.fetchPrimaryApprover();
+  // }
 
   public RenderApproval(item?: RoleReviewItem, index?: number, column?: IColumn): JSX.Element {
     let options = [
@@ -388,7 +412,7 @@ export default class RoleToTCode extends React.Component<IRoleToTCodeProps, IRol
         icon: "Completed",
         onClick: this.setComplete,
         disabled: !(this.state.primaryApprover) || this.state.primaryApprover.Completed === "Yes" ||
-        (filter(this.state.RoleReviewItems, (rr) => { return rr.Approval === "3"; }).length > 0) // "3" is the initial state after larry uploads the access db
+          (filter(this.state.RoleReviewItems, (rr) => { return rr.Approval === "3"; }).length > 0) // "3" is the initial state after larry uploads the access db
       },
       {
         key: "UnDone", name: "UnComplete", icon: "Completed", onClick: this.unsetComplete
@@ -400,7 +424,7 @@ export default class RoleToTCode extends React.Component<IRoleToTCodeProps, IRol
 
         key: "Save", name: "Save", icon: "Save", onClick: this.save,
         disabled: !(this.state.primaryApprover) || !(filter(this.state.RoleReviewItems, (rr) => { return rr.hasBeenUpdated; }).length > 0)
-        || this.state.primaryApprover.Completed === "Yes"
+          || this.state.primaryApprover.Completed === "Yes"
 
       }
     ];
@@ -408,8 +432,8 @@ export default class RoleToTCode extends React.Component<IRoleToTCodeProps, IRol
 
     return (
       <div className={styles.roleToTCode}>
-        <iframe src={this.props.azureFunctionUrl} onLoad={this.frameLoaded.bind(this)} />
-
+        {/* <iframe src={this.props.azureFunctionUrl} onLoad={this.frameLoaded.bind(this)} /> */}
+  
         <Dialog isBlocking={true}
           hidden={!this.state.showApprovalPopup}
           onDismiss={(e) => { this.setState((current) => ({ ...current, showApprovalPopup: false })); }}
@@ -538,7 +562,16 @@ export default class RoleToTCode extends React.Component<IRoleToTCodeProps, IRol
           />
         </Panel>
 
+<Overlay isDarkThemed={true} >
 
+
+
+<br /><br /><br /><br /><br /><br /><br />
+
+<Spinner size={SpinnerSize.large} label="Nope, still loading..." ariaLive="assertive"  />
+
+
+  </Overlay>
       </div>
     );
   }

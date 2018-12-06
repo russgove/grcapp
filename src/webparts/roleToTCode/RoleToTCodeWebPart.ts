@@ -7,6 +7,8 @@ import {
   PropertyPaneTextField
 } from '@microsoft/sp-webpart-base';
 
+
+import { AadHttpClient } from '@microsoft/sp-http';
 import * as strings from 'RoleToTCodeWebPartStrings';
 import RoleToTCode from './components/RoleToTCode';
 import { IRoleToTCodeProps } from './components/IRoleToTCodeProps';
@@ -14,29 +16,30 @@ import { IRoleToTCodeProps } from './components/IRoleToTCodeProps';
 export interface IRoleToTCodeWebPartProps {
   azureFunctionUrl: string;
   accessCode:string;
+  roleReviewsPath:string;
+  primaryApproversPath:string;
+  roleToTransactionsPath:string;
 
 }
 import { sp, EmailProperties, Items, Item } from "@pnp/sp";
-import { AadHttpClient } from "@microsoft/sp-http/dist/index-internal";
+
 
 export default class RoleToTCodeWebPart extends BaseClientSideWebPart<IRoleToTCodeWebPartProps> {
 
   private reactElement: React.ReactElement<IRoleToTCodeProps>;
   private formComponent: RoleToTCode;
-  private aadHttpClient: AadHttpClient
+
+  
 
   public async onInit(): Promise<void> {
-    await super.onInit().then(() => {
-      sp.setup({
-        spfxContext: this.context,
-      });
-      return this.context.aadHttpClientFactory.getClient(this.properties.azureFunctionUrl).then((client) => {
-        this.aadHttpClient = client;
-      }).catch((err) => {
-        debugger;
-      });
-      
-    });
+    // return new Promise<void>((resolve: () => void, reject: (error: any) => void): void => {
+    //   this.context.AadHttpClientFactory
+    //     .getClient('594e83da-9618-438f-a40a-4a977c03bc16')
+    //     .then((client: AadHttpClient): void => {
+    //       this.ordersClient = client;
+    //       resolve();
+    //     }, err => reject(err));
+    // });
   }
   public render(): void {
     
@@ -47,7 +50,11 @@ export default class RoleToTCodeWebPart extends BaseClientSideWebPart<IRoleToTCo
         azureFunctionUrl: this.properties.azureFunctionUrl,
         domElement: this.domElement,
         httpClient: this.context.httpClient,
-        accessCode:this.properties.accessCode
+        accessCode:this.properties.accessCode,
+        roleReviewsPath:this.properties.roleReviewsPath,
+        primaryApproversPath:this.properties.primaryApproversPath,
+        roleToTransactionsPath:this.properties.roleToTransactionsPath
+      
       }
     );
     this.formComponent = ReactDom.render(this.reactElement, this.domElement) as RoleToTCode;
@@ -73,11 +80,14 @@ export default class RoleToTCodeWebPart extends BaseClientSideWebPart<IRoleToTCo
                 PropertyPaneTextField('accessCode', {
                   label: "accress code"
                 }),
-                PropertyPaneTextField('roleReviewController', {
-                  label: "Role Review Controller"
+                PropertyPaneTextField('roleReviewsPath', {
+                  label: "Path to roleReviews in Azure function (RoleReviews or EPXROleReviews)"
                 }),
-                PropertyPaneTextField('roleToTcodeController', {
-                  label: "RoleToTcode Controller"
+                PropertyPaneTextField('primaryApproversPath', {
+                  label: "Path to Primary Approvers  in Azure function (PrimaryApprovers or EPXPrimaryApprovers)"
+                }),
+                PropertyPaneTextField('roleToTransactionsPath', {
+                  label: "Path to Transactions   in Azure function (RoleToTransaction or EPXRoleToTranaction)"
                 }),
 
               ]

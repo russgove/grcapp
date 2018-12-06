@@ -7,4 +7,8 @@ export interface IRoleToTCodeProps {
   user:SPUser; // the sharepoint user accessing the webpart
   domElement: any; // needed to disable button postback after render on classic pages
   httpClient:HttpClient;
+  roleReviewsPath:string;
+  primaryApproversPath:string;
+  roleToTransactionsPath:string;
+
 }

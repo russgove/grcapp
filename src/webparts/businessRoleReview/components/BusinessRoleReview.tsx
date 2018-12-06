@@ -29,7 +29,7 @@ import { find, map, clone, filter } from "lodash";
 export default class BusinessRoleReview extends React.Component<IBusinessRoleReviewProps, IBusinessRoleReviewState> {
   private selection: Selection = new Selection();
   public constructor(props: IBusinessRoleReviewProps) {
-    super();
+    super(props);
     console.log("in Construrctor");
     initializeIcons();
     this.selection.getKey = (item => { return item["Id"]; });
@@ -66,7 +66,7 @@ export default class BusinessRoleReview extends React.Component<IBusinessRoleRev
   }
   public updateSelected(ev?: React.MouseEvent<HTMLElement>, item?: IContextualMenuItem): void {
     debugger;
-    var tempArray = map(this.state.businessRoleReview, (rr) => {
+    var tempArray :Array<BusinessRoleReviewItem>= map(this.state.businessRoleReview, (rr) => {
       if (this.selection.isKeySelected(rr.Id.toString()) === this.state.changeSelected) {
         return {
           ...rr,

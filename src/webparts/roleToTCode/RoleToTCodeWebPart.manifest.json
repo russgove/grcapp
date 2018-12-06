@@ -1,28 +1,55 @@
 {
-  "$schema": "https://dev.office.com/json-schemas/spfx/client-side-web-part-manifest.schema.json",
+  "$schema": "https://developer.microsoft.com/json-schemas/spfx/client-side-web-part-manifest.schema.json",
   "id": "03771b4d-4e98-44f7-98a1-7c41b066f52e",
   "alias": "RoleToTCodeWebPart",
   "componentType": "WebPart",
-
   // The "*" signifies that the version should be taken from the package.json
   "version": "*",
   "manifestVersion": 2,
-
   // If true, the component can only be installed on sites where Custom Script is allowed.
   // Components that allow authors to embed arbitrary script code should set this to true.
   // https://support.office.com/en-us/article/Turn-scripting-capabilities-on-or-off-1f2c515f-5d7e-448a-9fd7-835da935584f
   "requiresCustomScript": false,
-
-  "preconfiguredEntries": [{
-    "groupId": "5c03119e-3074-46fd-976b-c60198311f70", // Other
-    "group": { "default": "Other" },
-    "title": { "default": "roleToTCode" },
-    "description": { "default": "role to tcode" },
-    "officeFabricIconFontName": "Page",
-    "properties": {
-      "azureFunctionUrl":"http://localhost:7071",
-      "accessCode":"vF1D8O81KKQzlIMUml1wC3ckSlhFjgedwTaxTXpmHoHdmOhkhpf06A=="
-   
+  "preconfiguredEntries": [
+    {
+      "groupId": "5c03119e-3074-46fd-976b-c60198311f70", // Other
+      "group": {
+        "default": "GRC"
+      },
+      "title": {
+        "default": "Role To Transaction (EPA)"
+      },
+      "description": {
+        "default": "Role To Transaction (EPA)"
+      },
+      "officeFabricIconFontName": "Page",
+      "properties": {
+        "azureFunctionUrl": "https://grcroletotransactionazurefunction.azurewebsites.net",
+        "accessCode": "vF1D8O81KKQzlIMUml1wC3ckSlhFjgedwTaxTXpmHoHdmOhkhpf06A==",
+        "roleReviewsPath": "RoleReviews",
+        "primaryApproversPath": "PrimaryApprovers",
+        "roleToTransactionsPath": "RoleToTransactions"
+      }
+    },
+    {
+      "groupId": "5c03119e-3074-46fd-976b-c60198311f70", // Other
+      "group": {
+        "default": "GRC"
+      },
+      "title": {
+        "default": "Role To Transaction (EPX)"
+      },
+      "description": {
+        "default": "Role To Transaction (EPX)"
+      },
+      "officeFabricIconFontName": "Page",
+      "properties": {
+        "azureFunctionUrl": "https://grcroletotransactionazurefunction.azurewebsites.net",
+        "accessCode": "vF1D8O81KKQzlIMUml1wC3ckSlhFjgedwTaxTXpmHoHdmOhkhpf06A==",
+        "roleReviewsPath": "EPXRoleReviews",
+        "primaryApproversPath": "EPXPrimaryApprovers",
+        "roleToTransactionsPath": "EPXRoleToTransactions"
+      }
     }
-  }]
+  ]
 }

@@ -30,7 +30,7 @@ import { find, map, clone, filter } from "lodash";
 export default class MitigatingControls extends React.Component<IMitigatingControlsProps, IMitigatingControlsState> {
   private selection: Selection = new Selection();
   public constructor(props: IMitigatingControlsProps) {
-    super();
+    super(props);
     console.log("in Construrctor");
     initializeIcons();
     this.selection.getKey = (item => { return item["Id"]; });

@@ -1,5 +1,5 @@
 {
-  "$schema": "https://dev.office.com/json-schemas/spfx/client-side-web-part-manifest.schema.json",
+  "$schema": "https://developer.microsoft.com/json-schemas/spfx/client-side-web-part-manifest.schema.json",
   "id": "746860a8-18c2-4110-bd12-62ce3e2fc801",
   "alias": "MitigatingControlsWebPart",
   "componentType": "WebPart",

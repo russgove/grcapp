@@ -1,6 +1,6 @@
-import { Item } from "@pnp/sp";
+
 // main list for grid
-export  class MitigatingControlsItem extends Item {
+export  class MitigatingControlsItem  {
 
     public Id: number;
     public Control_x0020_ID: string;
@@ -34,7 +34,7 @@ export  class MitigatingControlsItem extends Item {
     public hasBeenUpdated: boolean; //set in code to trigger update'
 
 }
-export  class PrimaryApproverItem extends Item {
+export  class PrimaryApproverItem  {
 
     public Id: number;
     public Owner_x0020_ID: string;

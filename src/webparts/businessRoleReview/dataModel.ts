@@ -1,6 +1,6 @@
-import { Item } from "@pnp/sp";
+
 // main list for grid
-export  class BusinessRoleReviewItem extends Item {
+export  class BusinessRoleReviewItem {
 
     public Id: number;
     public Role_x0020_Name: string;
@@ -22,7 +22,7 @@ public Alternate_x0020_Approver:string; // this is the name
     public hasBeenUpdated: boolean; //set in code to trigger update'
 
 }
-export  class PrimaryApproverItem extends Item {
+export  class PrimaryApproverItem {
 
     public Id: number;
     public Owner_x0020_ID: string;

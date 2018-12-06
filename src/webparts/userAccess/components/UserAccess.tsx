@@ -15,7 +15,7 @@ import {
   ColumnActionsMode
 } from "office-ui-fabric-react/lib/DetailsList";
 import { Dropdown, IDropdownOption, IDropdownProps } from "office-ui-fabric-react/lib/Dropdown";
-import { Modal, IModalProps } from "office-ui-fabric-react/lib/Modal";
+
 import { Panel, IPanelProps, PanelType } from "office-ui-fabric-react/lib/Panel";
 import { CommandBar } from "office-ui-fabric-react/lib/CommandBar";
 import { IContextualMenuItem } from "office-ui-fabric-react/lib/ContextualMenu";
@@ -29,7 +29,7 @@ import { ChoiceGroup, IChoiceGroupOption } from 'office-ui-fabric-react/lib/Choi
 export default class UserAccess extends React.Component<IUserAccessProps, IUserAccessState> {
   private selection: Selection = new Selection();
   public constructor(props: IUserAccessProps) {
-    super();
+    super(props);
     console.log("in Construrctor");
     initializeIcons();
     this.selection.getKey = (item => { return item["ID"]; });
@@ -75,7 +75,7 @@ export default class UserAccess extends React.Component<IUserAccessProps, IUserA
  */
   @autobind
   public updateSelected(ev?: React.MouseEvent<HTMLElement>, item?: IContextualMenuItem): void {
-    var tempArray = map(this.state.userAccessItems, (uaItem) => {
+    let  tempArray:UserAccessItem[] = map(this.state.userAccessItems, (uaItem) => {
       if (this.selection.isKeySelected(uaItem.ID.toString()) === this.state.changeSelected) {
         return {
           ...uaItem,
