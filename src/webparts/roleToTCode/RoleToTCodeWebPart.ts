@@ -4,7 +4,8 @@ import { Version } from '@microsoft/sp-core-library';
 import {
   BaseClientSideWebPart,
   IPropertyPaneConfiguration,
-  PropertyPaneTextField
+  PropertyPaneTextField,
+  PropertyPaneToggle
 } from '@microsoft/sp-webpart-base';
 
 
@@ -19,6 +20,7 @@ export interface IRoleToTCodeWebPartProps {
   roleReviewsPath:string;
   primaryApproversPath:string;
   roleToTransactionsPath:string;
+  enableUncomplete:boolean;
 
 }
 import { sp, EmailProperties, Items, Item } from "@pnp/sp";
@@ -53,7 +55,8 @@ export default class RoleToTCodeWebPart extends BaseClientSideWebPart<IRoleToTCo
         accessCode:this.properties.accessCode,
         roleReviewsPath:this.properties.roleReviewsPath,
         primaryApproversPath:this.properties.primaryApproversPath,
-        roleToTransactionsPath:this.properties.roleToTransactionsPath
+        roleToTransactionsPath:this.properties.roleToTransactionsPath,
+        enableUncomplete:this.properties.enableUncomplete
       
       }
     );
@@ -88,6 +91,9 @@ export default class RoleToTCodeWebPart extends BaseClientSideWebPart<IRoleToTCo
                 }),
                 PropertyPaneTextField('roleToTransactionsPath', {
                   label: "Path to Transactions   in Azure function (RoleToTransaction or EPXRoleToTranaction)"
+                }),
+                PropertyPaneToggle('enableUncomplete', {
+                  label: "Enable UnCompleting review (useful for testing. Turn Off when Live"
                 }),
 
               ]

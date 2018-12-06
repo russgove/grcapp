@@ -10,5 +10,6 @@ export interface IRoleToTCodeProps {
   roleReviewsPath:string;
   primaryApproversPath:string;
   roleToTransactionsPath:string;
+  enableUncomplete:boolean; // should we show menu item to uncomplete(for use in testing)
 
 }

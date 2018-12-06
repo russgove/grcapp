@@ -17,7 +17,7 @@ import {
 import { Dropdown, IDropdownOption, IDropdownProps } from "office-ui-fabric-react/lib/Dropdown";
 import { Modal, IModalProps } from "office-ui-fabric-react/lib/Modal";
 import { Overlay } from "office-ui-fabric-react/lib/Overlay";
-import { Spinner,SpinnerSize,SpinnerType } from "office-ui-fabric-react/lib/Spinner";
+import { Spinner, SpinnerSize, SpinnerType } from "office-ui-fabric-react/lib/Spinner";
 
 import { Panel, IPanelProps, PanelType } from "office-ui-fabric-react/lib/Panel";
 import { CommandBar } from "office-ui-fabric-react/lib/CommandBar";
@@ -41,13 +41,21 @@ export default class RoleToTCode extends React.Component<IRoleToTCodeProps, IRol
       primaryApprover: null,
       RoleReviewItems: [],
       showTcodePopup: false,
-      showApprovalPopup: false
+      showApprovalPopup: false,
+      showOverlay: true,
+      overlayMessage: "Loading ..."
     };
   }
   public componentDidMount(): void {
     debugger;
-     this.fetchRoleReview();
-     this.fetchPrimaryApprover();
+    Promise.all([
+      this.fetchRoleReview(),
+      this.fetchPrimaryApprover()])
+      .then((x) => {
+        debugger;
+        this.setState((current) => ({ ...current, showOverlay: false, overlayMessage: "" }));
+      }
+      )
   }
 
   public componentDidUpdate(): void {
@@ -190,14 +198,16 @@ export default class RoleToTCode extends React.Component<IRoleToTCodeProps, IRol
   }
   @autobind
   public save(ev?: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>, item?: IContextualMenuItem): void {
+    this.setState((current) => ({ ...current, showOverlay: true, overlayMessage: "Saving ..." }));
     this.updateRoleReviewItems(this.state.RoleReviewItems).then(() => {
       var tempArray = map(this.state.RoleReviewItems, (rr) => {
         return { ...rr, hasBeenUpdated: false };
       });
-      this.setState((current) => ({ ...current, RoleReviewItems: tempArray }));
-      alert("Saved");
+      this.setState((current) => ({ ...current, RoleReviewItems: tempArray, showOverlay: false }));
+
     }).catch((err) => {
       debugger;
+      this.setState((current) => ({ ...current, showOverlay: false }));
       alert(err);
     });
   }
@@ -231,7 +241,7 @@ export default class RoleToTCode extends React.Component<IRoleToTCodeProps, IRol
     })
       .then((response: HttpClientResponse) => {
         debugger;
-        response.json()
+        return response.json()
           .then((appr) => {
             if (appr.length === 0) {
               alert(`No Primary Approver record found for ${this.props.user.email}. Please contact the system adminsitrator.`)
@@ -254,16 +264,13 @@ export default class RoleToTCode extends React.Component<IRoleToTCodeProps, IRol
 
   }
   @autobind
-  public fetchRoleReview(ev?: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>, item?: IContextualMenuItem): void {
+  public fetchRoleReview(ev?: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>, item?: IContextualMenuItem): Promise<any> {
     //let query = "$filter=tolower(ApproverEmail) eq '" + this.props.user.email.toLowerCase() + "'";
     let query = `${this.props.azureFunctionUrl}/api/${this.props.roleReviewsPath}/${this.props.user.email}?&code=${this.props.accessCode}`;
 
-    this.props.httpClient.fetch(query, HttpClient.configurations.v1, {
-      credentials: "include", referrerPolicy: "unsafe-url"
-    })
-
+    return this.props.httpClient.fetch(query, HttpClient.configurations.v1, { credentials: "include", referrerPolicy: "unsafe-url" })
       .then((response: HttpClientResponse) => {
-        response.json().then((rolereviews) => {
+        return response.json().then((rolereviews) => {
           this.setState((current) => ({ ...current, RoleReviewItems: rolereviews }));
         })
       })
@@ -414,11 +421,14 @@ export default class RoleToTCode extends React.Component<IRoleToTCodeProps, IRol
         disabled: !(this.state.primaryApprover) || this.state.primaryApprover.Completed === "Yes" ||
           (filter(this.state.RoleReviewItems, (rr) => { return rr.Approval === "3"; }).length > 0) // "3" is the initial state after larry uploads the access db
       },
-      {
-        key: "UnDone", name: "UnComplete", icon: "Completed", onClick: this.unsetComplete
-      }
+
 
     ];
+    if (this.props.enableUncomplete) {
+      itemsNonFocusable.push({
+        key: "UnDone", name: "UnComplete", icon: "Completed", onClick: this.unsetComplete
+      });
+    }
     let farItemsNonFocusable: IContextualMenuItem[] = [
       {
 
@@ -433,7 +443,7 @@ export default class RoleToTCode extends React.Component<IRoleToTCodeProps, IRol
     return (
       <div className={styles.roleToTCode}>
         {/* <iframe src={this.props.azureFunctionUrl} onLoad={this.frameLoaded.bind(this)} /> */}
-  
+
         <Dialog isBlocking={true}
           hidden={!this.state.showApprovalPopup}
           onDismiss={(e) => { this.setState((current) => ({ ...current, showApprovalPopup: false })); }}
@@ -561,17 +571,18 @@ export default class RoleToTCode extends React.Component<IRoleToTCodeProps, IRol
             ]}
           />
         </Panel>
-
-<Overlay isDarkThemed={true} >
-
-
-
-<br /><br /><br /><br /><br /><br /><br />
-
-<Spinner size={SpinnerSize.large} label="Nope, still loading..." ariaLive="assertive"  />
+        {this.state.showOverlay && (
+          <Overlay >
 
 
-  </Overlay>
+
+            <br /><br /><br /><br /><br /><br /><br />
+
+            <Spinner size={SpinnerSize.large} label={this.state.overlayMessage} ariaLive="assertive" />
+
+
+          </Overlay>
+        )}
       </div>
     );
   }

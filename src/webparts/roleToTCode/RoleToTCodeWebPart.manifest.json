@@ -28,7 +28,8 @@
         "accessCode": "vF1D8O81KKQzlIMUml1wC3ckSlhFjgedwTaxTXpmHoHdmOhkhpf06A==",
         "roleReviewsPath": "RoleReviews",
         "primaryApproversPath": "PrimaryApprovers",
-        "roleToTransactionsPath": "RoleToTransactions"
+        "roleToTransactionsPath": "RoleToTransactions",
+        "enableUncomplete":false
       }
     },
     {
@@ -48,7 +49,8 @@
         "accessCode": "vF1D8O81KKQzlIMUml1wC3ckSlhFjgedwTaxTXpmHoHdmOhkhpf06A==",
         "roleReviewsPath": "EPXRoleReviews",
         "primaryApproversPath": "EPXPrimaryApprovers",
-        "roleToTransactionsPath": "EPXRoleToTransactions"
+        "roleToTransactionsPath": "EPXRoleToTransactions",
+        "enableUncomplete":false
       }
     }
   ]
