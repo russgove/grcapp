@@ -75,7 +75,8 @@ export default class HighRiskFunctions extends React.Component<IHighRiskFunction
 
 
   public showPopup(item: HighRiskFunction) {
-    this.fetchRoleToTransaction(item.Role_Name)
+    debugger;
+    this.fetchRoleToTransaction(item["Role name"])
       .then((roleToTransactions) => {
         console.log(roleToTransactions);
         this.setState((current) => ({ ...current, roleToTransaction: roleToTransactions, showTcodePopup: true }));
@@ -561,7 +562,7 @@ export default class HighRiskFunctions extends React.Component<IHighRiskFunction
               {
                 key: "Role", name: "Role",
                 isResizable: true,
-                fieldName: "Role", minWidth: 250, maxWidth: 250,
+                fieldName: "Composite role", minWidth: 250, maxWidth: 250,
               },
               {
                 key: "Comments", name: "TCode",
@@ -570,9 +571,9 @@ export default class HighRiskFunctions extends React.Component<IHighRiskFunction
 
               },
               {
-                key: "Remediation", name: "Transaction Text",
+                key: "Transaction Text", name: "Transaction Text",
                 isResizable: true,
-                fieldName: "Transaction_Text", minWidth: 150, maxWidth: 150,
+                fieldName: "Transaction Text", minWidth: 150, maxWidth: 150,
 
               },
 
