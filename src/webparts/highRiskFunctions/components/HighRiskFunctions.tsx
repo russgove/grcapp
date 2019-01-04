@@ -168,7 +168,7 @@ export default class HighRiskFunctions extends React.Component<IHighRiskFunction
     updatedApprover.Completed = "Yes";
     let query = `${this.props.azureFunctionUrl}/api/${this.props.primaryApproversPath}/${updatedApprover.ID}?&code=${this.props.accessCode}`;
     let body = JSON.stringify(updatedApprover);
-   this.props.httpClient.fetch(query, HttpClient.configurations.v1, {
+    this.props.httpClient.fetch(query, HttpClient.configurations.v1, {
       referrerPolicy: "unsafe-url",
       body: body,
       method: "PUT",
@@ -176,7 +176,7 @@ export default class HighRiskFunctions extends React.Component<IHighRiskFunction
     })
       .then(() => {
 
-      this.setState((current) => ({ ...current, primaryApprover: updatedApprover }));
+        this.setState((current) => ({ ...current, primaryApprover: updatedApprover }));
       })
       .catch((err) => {
         debugger;
@@ -283,9 +283,7 @@ export default class HighRiskFunctions extends React.Component<IHighRiskFunction
           this.setState((current) => ({ ...current, HighRiskFunctionItems: rolereviews }));
         })
       })
-      .catch((err) => {
-        debugger;
-      })
+     
       .catch(err => {
         console.log(err);
         alert("There was an error fetching Role Review Items");
