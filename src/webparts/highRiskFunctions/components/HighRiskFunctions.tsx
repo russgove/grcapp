@@ -186,25 +186,20 @@ export default class HighRiskFunctions extends React.Component<IHighRiskFunction
   }
   @autobind
   public updateRoleReviewItems(items: HighRiskFunction[]): Promise<any> {
-    let promises: Array<Promise<any>> = [];
-    for (let item of items) {
-
-      // promises.push(this.putApi(this.props.roleReviewController, item));
-      let query = `${this.props.azureFunctionUrl}/api/${this.props.highRiskFunctionsPath}/${item.ID}?&code=${this.props.accessCode}`;
-      if (item.hasBeenUpdated) {
-        let query = `${this.props.azureFunctionUrl}/api/${this.props.highRiskFunctionsPath}/${item.ID}?&code=${this.props.accessCode}`;
-        let body = JSON.stringify(item);
+      let query = `${this.props.azureFunctionUrl}/api/${this.props.highRiskFunctionsPath}?&code=${this.props.accessCode}`;
+      const requestHeaders: Headers = new Headers();
+      requestHeaders.append('Content-Type', 'application/json');
+      let body = JSON.stringify(items);
         console.log(body);
-        promises.push(this.props.httpClient.fetch(query, HttpClient.configurations.v1, {
+        return this.props.httpClient.fetch(query, HttpClient.configurations.v1, {headers:requestHeaders,
           referrerPolicy: "unsafe-url",
           body: body,
           method: "PUT",
           mode: "cors"
-        }));
+        });
       }
-    }
-    return Promise.all(promises);
-  }
+    
+  
   @autobind
   public save(ev?: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>, item?: IContextualMenuItem): void {
     this.setState((current) => ({ ...current, showOverlay: true, overlayMessage: "Saving ..." }));
