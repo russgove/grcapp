@@ -55,7 +55,7 @@ export default class RoleToTCode extends React.Component<IRoleToTCodeProps, IRol
         debugger;
         this.setState((current) => ({ ...current, showOverlay: false, overlayMessage: "" }));
       }
-      )
+      );
   }
 
   public componentDidUpdate(): void {
@@ -244,18 +244,19 @@ export default class RoleToTCode extends React.Component<IRoleToTCodeProps, IRol
         return response.json()
           .then((appr) => {
             if (appr.length === 0) {
-              alert(`No Primary Approver record found for ${this.props.user.email}. Please contact the system adminsitrator.`)
+              alert(`No Primary Approver record found for ${this.props.user.email}. Please contact the system adminsitrator.`);
 
-            };
+            }
             if (appr.length > 1) {
-              alert(`Multiple  Primary Approver records found for ${this.props.user.email}. Please contact the system adminsitrator.`)
+              alert(`Multiple  Primary Approver records found for ${this.props.user.email}. Please contact the system adminsitrator.`);
 
             }
             this.setState((current) => ({ ...current, primaryApprover: appr[0] }));
           })
           .catch((err) => {
-            debugger
-          })
+            debugger;
+            alert(err);
+          });
       }).catch(e => {
         console.log(e);
         debugger;
@@ -271,8 +272,11 @@ export default class RoleToTCode extends React.Component<IRoleToTCodeProps, IRol
     return this.props.httpClient.fetch(query, HttpClient.configurations.v1, { credentials: "include", referrerPolicy: "unsafe-url" })
       .then((response: HttpClientResponse) => {
         return response.json().then((rolereviews) => {
-          this.setState((current) => ({ ...current, RoleReviewItems: rolereviews }));
-        })
+          this.setState((current) => (
+            { ...current, RoleReviewItems: rolereviews }
+            )
+            );
+        });
       })
       .catch((err) => {
         debugger;
@@ -298,7 +302,7 @@ export default class RoleToTCode extends React.Component<IRoleToTCodeProps, IRol
       })
       .catch((err) => {
         debugger;
-      })
+      });
 
 
   }

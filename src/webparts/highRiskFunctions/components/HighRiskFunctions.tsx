@@ -54,7 +54,7 @@ export default class HighRiskFunctions extends React.Component<IHighRiskFunction
 
         this.setState((current) => ({ ...current, showOverlay: false, overlayMessage: "" }));
       }
-      )
+      );
   }
 
   public componentDidUpdate(): void {
@@ -248,18 +248,18 @@ export default class HighRiskFunctions extends React.Component<IHighRiskFunction
         return response.json()
           .then((appr) => {
             if (appr.length === 0) {
-              alert(`No Primary Approver record found for ${this.props.user.email}. Please contact the system adminsitrator.`)
+              alert(`No Primary Approver record found for ${this.props.user.email}. Please contact the system adminsitrator.`);
 
-            };
+            }
             if (appr.length > 1) {
-              alert(`Multiple  Primary Approver records found for ${this.props.user.email}. Please contact the system adminsitrator.`)
+              alert(`Multiple  Primary Approver records found for ${this.props.user.email}. Please contact the system adminsitrator.`);
 
             }
             this.setState((current) => ({ ...current, primaryApprover: appr[0] }));
           })
           .catch((err) => {
-            debugger
-          })
+            debugger;
+          });
       }).catch(e => {
         console.log(e);
         debugger;
@@ -276,7 +276,7 @@ export default class HighRiskFunctions extends React.Component<IHighRiskFunction
       .then((response: HttpClientResponse) => {
         return response.json().then((rolereviews) => {
           this.setState((current) => ({ ...current, HighRiskFunctionItems: rolereviews }));
-        })
+        });
       })
      
       .catch(err => {
@@ -300,7 +300,7 @@ export default class HighRiskFunctions extends React.Component<IHighRiskFunction
       })
       .catch((err) => {
         debugger;
-      })
+      });
 
 
   }

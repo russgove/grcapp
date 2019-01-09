@@ -156,7 +156,7 @@ export default class UserAccess extends React.Component<IUserAccessProps, IUserA
 
       .catch((err) => {
         console.log(err);
-        alert("An error occurred saving the primary approver record")
+        alert("An error occurred saving the primary approver record");
       });
 
   }
