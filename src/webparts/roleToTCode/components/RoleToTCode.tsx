@@ -146,7 +146,7 @@ export default class RoleToTCode extends React.Component<IRoleToTCodeProps, IRol
   public updateRoleReviewItems(items: RoleReviewItem[]): Promise<any> {
     let promises: Array<Promise<any>> = [];
     for (let item of items) {
-      debugger;
+      
       // promises.push(this.putApi(this.props.roleReviewController, item));
       let query = `${this.props.azureFunctionUrl}/api/${this.props.roleReviewsPath}/${item.ID}?&code=${this.props.accessCode}`;
       if (item.hasBeenUpdated) {
@@ -168,8 +168,9 @@ export default class RoleToTCode extends React.Component<IRoleToTCodeProps, IRol
       body: JSON.stringify(updatedApprover), method: "PUT", mode: "cors", referrerPolicy: "unsafe-url"
     })
       .then(() => {
-        debugger;
+       
         this.setState((current) => ({ ...current, primaryApprover: updatedApprover }));
+        alert("Completed");
       })
       .catch((err) => {
         debugger;
@@ -186,7 +187,7 @@ export default class RoleToTCode extends React.Component<IRoleToTCodeProps, IRol
       body: JSON.stringify(updatedApprover), method: "PUT", mode: "cors", referrerPolicy: "unsafe-url"
     })
       .then(() => {
-        debugger;
+       
         this.setState((current) => ({ ...current, primaryApprover: updatedApprover }));
       })
       .catch((err) => {
@@ -204,7 +205,7 @@ export default class RoleToTCode extends React.Component<IRoleToTCodeProps, IRol
         return { ...rr, hasBeenUpdated: false };
       });
       this.setState((current) => ({ ...current, RoleReviewItems: tempArray, showOverlay: false }));
-
+      alert("Saved");
     }).catch((err) => {
       debugger;
       this.setState((current) => ({ ...current, showOverlay: false }));
@@ -240,7 +241,7 @@ export default class RoleToTCode extends React.Component<IRoleToTCodeProps, IRol
       credentials: "include", referrerPolicy: "unsafe-url"
     })
       .then((response: HttpClientResponse) => {
-        debugger;
+       
         return response.json()
           .then((appr) => {
             if (appr.length === 0) {
@@ -274,8 +275,8 @@ export default class RoleToTCode extends React.Component<IRoleToTCodeProps, IRol
         return response.json().then((rolereviews) => {
           this.setState((current) => (
             { ...current, RoleReviewItems: rolereviews }
-            )
-            );
+          )
+          );
         });
       })
       .catch((err) => {
@@ -292,12 +293,12 @@ export default class RoleToTCode extends React.Component<IRoleToTCodeProps, IRol
     let r2 = RoleName.replace(/\//g, "~");
     //let query = "$filter=Role_Name eq '" + RoleName + "'";
     let query = `${this.props.azureFunctionUrl}/api/${this.props.roleToTransactionsPath}/${r2}?&code=${this.props.accessCode}`;
-    debugger;
+   
     return this.props.httpClient.fetch(query, HttpClient.configurations.v1, {
       credentials: "include", referrerPolicy: "unsafe-url"
     })
       .then((response: HttpClientResponse) => {
-        debugger;
+     
         return response.json();
       })
       .catch((err) => {
@@ -372,9 +373,30 @@ export default class RoleToTCode extends React.Component<IRoleToTCodeProps, IRol
       );
     }
   }
+  @autobind
+  public getCompleteDisabledState(): boolean {
+    debugger;
+    let disabled: boolean = false;
+    if (!(this.state.primaryApprover)) {
+      disabled = true;
+    } else {
+      if (this.state.primaryApprover.Completed === "Yes") {
+        disabled = true;
+      }
+    }
+    if (filter(this.state.RoleReviewItems, (rr) => { return rr.Approval === "3"; }).length > 0) {
+      disabled = true;
+    }
+    if (filter(this.state.RoleReviewItems, (rr) => { return rr.Comments === null || rr.Comments.trim() == ""; }).length > 0) {
+      disabled = true;
+    }
+    console.log(`Complete disabled=${disabled}`);
+    return disabled;
+  }
   public render(): React.ReactElement<IRoleToTCodeProps> {
     console.log(this.props.azureFunctionUrl);
-    debugger;
+   
+    let completeDisabled: boolean = this.getCompleteDisabledState();
     let itemsNonFocusable: IContextualMenuItem[] = [
       {
         key: "Update Selected",
@@ -422,8 +444,12 @@ export default class RoleToTCode extends React.Component<IRoleToTCodeProps, IRol
         name: "Complete",
         icon: "Completed",
         onClick: this.setComplete,
-        disabled: !(this.state.primaryApprover) || this.state.primaryApprover.Completed === "Yes" ||
-          (filter(this.state.RoleReviewItems, (rr) => { return rr.Approval === "3"; }).length > 0) // "3" is the initial state after larry uploads the access db
+        disabled: completeDisabled,
+        isDisabled: completeDisabled
+
+        // disabled: !(this.state.primaryApprover) || this.state.primaryApprover.Completed === "Yes" ||
+        // (filter(this.state.RoleReviewItems, (rr) => { return rr.Approval === "3"; }).length > 0) || // "3" is the initial state after larry uploads the access db
+        // (filter(this.state.RoleReviewItems, (rr) => { return rr.Comments === null || rr.Comments.trim() == ""; }).length > 0)
       },
 
 
@@ -438,7 +464,7 @@ export default class RoleToTCode extends React.Component<IRoleToTCodeProps, IRol
 
         key: "Save", name: "Save", icon: "Save", onClick: this.save,
         disabled: !(this.state.primaryApprover) || !(filter(this.state.RoleReviewItems, (rr) => { return rr.hasBeenUpdated; }).length > 0)
-          || this.state.primaryApprover.Completed === "Yes"
+        || this.state.primaryApprover.Completed === "Yes"
 
       }
     ];

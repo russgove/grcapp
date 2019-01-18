@@ -198,7 +198,7 @@ export default class UserAccess extends React.Component<IUserAccessProps, IUserA
        let query = "$filter=tolower(ApproverEmail) eq '" + this.props.user.email.toLowerCase() + "'";
     return this.getApi(this.props.primaryApproverController, query)
       .then((appr) => {
-        debugger;
+        
         this.setState((current) => ({ ...current, primaryApprover: appr[0] }));
       }).catch(e => {
         console.log(e);
