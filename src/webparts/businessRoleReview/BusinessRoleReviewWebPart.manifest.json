@@ -24,12 +24,12 @@
       },
       "officeFabricIconFontName": "Page",
       "properties": {
-        "webApiUrl":"https://grcuseraccessreview.azurewebsites.net",
-        "businessROleReviewController":"Business Role Owners",
-        "primaryApproverController":"Primary_Approver_List",
-        
+        "azureFunctionUrl": "http://localhost:7071",
+        "accessCode": "vF1D8O81KKQzlIMUml1wC3ckSlhFjgedwTaxTXpmHoHdmOhkhpf06A==",
+        "businessRoleOwnersPath": "BusinessRoleOwners",
+        "primaryApproversPath": "PrimaryApprovers",
+        "enableUncomplete":false,
         "roleNameWidth": 400,
- 
         "approverWidth": 110,
         "altApproverWidth": 110,
         "approvalDecisionWidth": 170,

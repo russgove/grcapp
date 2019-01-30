@@ -28,7 +28,7 @@
     "@types/webpack-env": "1.13.1",
     "csv-parse": "^2.0.0",
     "lodash": "^4.17.4",
-    "office-ui-fabric-react": "^5.113.1",
+    "office-ui-fabric-react": "5.131.0",
     "react": "16.3.2",
     "react-dom": "16.3.2"
   },

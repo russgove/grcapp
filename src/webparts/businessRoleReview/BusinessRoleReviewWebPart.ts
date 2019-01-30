@@ -5,30 +5,35 @@ import {
   BaseClientSideWebPart,
   IPropertyPaneConfiguration,
   PropertyPaneTextField,
-  PropertyPaneSlider,IPropertyPaneSliderProps
+  PropertyPaneSlider, IPropertyPaneSliderProps, PropertyPaneToggle
 } from '@microsoft/sp-webpart-base';
-import{
+import {
   Environment,
   EnvironmentType
-  } from '@microsoft/sp-core-library';
+} from '@microsoft/sp-core-library';
 import * as strings from 'BusinessRoleReviewWebPartStrings';
 import BusinessRoleReview from './components/BusinessRoleReview';
 import { IBusinessRoleReviewProps } from './components/IBusinessRoleReviewProps';
-import { PropertyFieldCodeEditor,PropertyFieldCodeEditorLanguages } from '@pnp/spfx-property-controls/lib/PropertyFieldCodeEditor';
-import {sp} from "@pnp/sp";
+import { PropertyFieldCodeEditor, PropertyFieldCodeEditorLanguages } from '@pnp/spfx-property-controls/lib/PropertyFieldCodeEditor';
+import { sp } from "@pnp/sp";
 import { find, filter } from "lodash";
-import { BusinessRoleReviewItem, PrimaryApproverItem,HelpLink } from "./dataModel";
-
+import { BusinessRoleReviewItem, PrimaryApproverItem, HelpLink } from "./dataModel";
+import { SPUser } from '@microsoft/sp-page-context';
 export interface IBusinessRoleReviewWebPartProps {
-  primaryApproversListName: string;
-  businessRoleReviewListName: string;
-  roleNameWidth:number;
- // compositeRoleWidth:number;
-  approverWidth:number;
-  altApproverWidth:number;
-  approvalDecisionWidth:number;
-  commentsWidth:number;
-  helpLinksListName:string;
+  azureFunctionUrl: string;
+  accessCode: string;
+  user: SPUser; // the sharepoint user accessing the webpart
+  domElement: any; // needed to disable button postback after render on classic pages
+  businessRoleOwnersPath: string;
+  primaryApproversPath: string;
+  enableUncomplete: boolean; // should we show menu item to uncomplete(for use in testing)
+  roleNameWidth: number;
+  // compositeRoleWidth:number;
+  approverWidth: number;
+  altApproverWidth: number;
+  approvalDecisionWidth: number;
+  commentsWidth: number;
+  helpLinksListName: string;
 
 }
 
@@ -40,109 +45,27 @@ export default class BusinessRoleReviewWebPart extends BaseClientSideWebPart<IBu
   private helpLinks: Array<HelpLink>;
   public async onInit(): Promise<void> {
 
-    await super.onInit().then(() => {
-      sp.setup({
-        spfxContext: this.context,
-      });
-      return;
-    });
-    await sp.site.rootWeb.lists.getByTitle(this.properties.helpLinksListName).items
-    .filter("Audit eq'Mitigating Controls' or Audit eq 'All'")
-    .get<Array<HelpLink>>().then((helps => {
-      debugger;
-      this.helpLinks = helps;
-    })).catch((err) => {
-      console.error(err);
-      debugger;
-      alert("There was an error fetching the helplinks");
-      alert(err.data.responseBody["odata.error"].message.value);
-    });
-    let userId = this.context.pageContext.legacyPageContext.userId;
-    // this.testmethod();
-    let expands = "PrimaryApprover";
-    let select = "Id,Completed,PrimaryApprover,PrimaryApproverId,PrimaryApprover/Title";
-    return sp.web.lists.getByTitle(this.properties.primaryApproversListName).items
-      .select(select)
-      .expand(expands)
-      .filter('PrimaryApproverId eq ' + userId)
-      .get()
-      .then((result) => {
-        this.primaryApproverLists = result;
-
-      }).catch((err) => {
-      
-        console.error(err.data.responseBody["odata.error"].message.value);
-        alert(err.data.responseBody["odata.error"].message.value);
-        debugger;
-      });
-
 
 
   }
-  private async fetchBusinessRoleReview(): Promise<any> {
-  
-    let userId = this.context.pageContext.legacyPageContext.userId;
-    let select = `*,PrimaryApproverId,PrimaryApprover/Title`;
-    let expands = "PrimaryApprover";
 
-    return sp.web.lists.getByTitle(this.properties.businessRoleReviewListName).items
-      .select(select)
-      .expand(expands)
-      .filter('PrimaryApproverId eq ' + userId)
-      .get<Array<BusinessRoleReviewItem>>();
-  }
-  public setComplete(primaryApproverList: any): Promise<any> {
-
-    let userId = this.context.pageContext.legacyPageContext.userId;
-    return sp.web.lists.getByTitle(this.properties.primaryApproversListName)
-      .items.getById(primaryApproverList.Id).update({ "Completed": "Yes" }).then(() => {
-        let newProps = this.reactElement.props;
-        newProps.primaryApprover[0].Completed = "Yes";
-        this.reactElement.props = newProps;
-        this.formComponent.forceUpdate();
-
-      });
-
-  }
-  public save(MitigatingControls: Array<BusinessRoleReviewItem>): Promise<any> {
-    let itemsToSave = filter(MitigatingControls, (rtc) => { return rtc.hasBeenUpdated === true; });
-    let batch = sp.createBatch();
-    //let promises: Array<Promise<any>> = [];
-
-    for (let item of itemsToSave) {
-      sp.web.lists.getByTitle(this.properties.businessRoleReviewListName)
-        .items.getById(item.Id).inBatch(batch).update({
-          "Approval": item.Approval,
-          "Comments": item.Comments
-        })
-        .then((x) => {
-
-        })
-        .catch((err) => {
-          console.error(err);
-          alert(err);
-          debugger;
-        });
-
-    }
-    return batch.execute();
-
-  }
   public render(): void {
     this.reactElement = React.createElement(
       BusinessRoleReview,
       {
-        primaryApprover: this.primaryApproverLists,
-        save: this.save.bind(this),
-        fetchBusinessRoleReview: this.fetchBusinessRoleReview.bind(this),
-        setComplete: this.setComplete.bind(this),
+        azureFunctionUrl: this.properties.azureFunctionUrl,
+        accessCode: this.properties.accessCode,
+        user: this.context.pageContext.user,
         domElement: this.domElement,
-        roleNameWidth:this.properties.roleNameWidth,
-     //   compositeRoleWidth:this.properties.compositeRoleWidth,
-        approverWidth:this.properties.approverWidth,
-        altApproverWidth:this.properties.altApproverWidth,
-        approvalDecisionWidth:this.properties.approvalDecisionWidth,
-        commentsWidth:this.properties.commentsWidth,
+        httpClient: this.context.httpClient,
+        businessRoleOwnersPath: this.properties.businessRoleOwnersPath,
+        primaryApproversPath: this.properties.primaryApproversPath,
+        enableUncomplete: this.properties.enableUncomplete,
+        roleNameWidth: this.properties.roleNameWidth,
+        approverWidth: this.properties.approverWidth,
+        altApproverWidth: this.properties.altApproverWidth,
+        approvalDecisionWidth: this.properties.approvalDecisionWidth,
+        commentsWidth: this.properties.commentsWidth,
         helpLinks: this.helpLinks
 
       }
@@ -180,17 +103,26 @@ export default class BusinessRoleReviewWebPart extends BaseClientSideWebPart<IBu
             {
               groupName: strings.BasicGroupName,
               groupFields: [
-                PropertyPaneTextField('primaryApproversListName', {
-                  label: "Primary Approvers List"
+                PropertyPaneTextField('azureFunctionUrl', {
+                  label: "azureFunctionUrl"
                 }),
-                PropertyPaneTextField('businessRoleReviewListName', {
-                  label: "Business Role Owers List"
+                PropertyPaneTextField('accessCode', {
+                  label: "accress code"
                 }),
-                PropertyPaneSlider("roleNameWidth",{
-                  min:10,
-                  max:1000,
-                  label:"Width of Role Name column",
-                  showValue:true
+                PropertyPaneTextField('businessRoleOwnersPath', {
+                  label: "Path to businessRoleOwnersPath in Azure function (RoleReviews or EPXROleReviews)"
+                }),
+                PropertyPaneTextField('primaryApproversPath', {
+                  label: "Path to Primary Approvers  in Azure function (PrimaryApprovers or EPXPrimaryApprovers)"
+                }),
+                PropertyPaneToggle('enableUncomplete', {
+                  label: "Enable UnCompleting review (useful for testing. Turn Off when Live"
+                }),
+                PropertyPaneSlider("roleNameWidth", {
+                  min: 10,
+                  max: 1000,
+                  label: "Width of Role Name column",
+                  showValue: true
                 }),
                 // PropertyPaneSlider("compositeRoleWidth",{
                 //   min:10,
@@ -198,29 +130,29 @@ export default class BusinessRoleReviewWebPart extends BaseClientSideWebPart<IBu
                 //   label:"Width of Composite Role Name column",
                 //   showValue:true
                 // }),
-                PropertyPaneSlider("approverWidth",{
-                  min:10,
-                  max:1000,
-                  label:"Width of Approver column",
-                  showValue:true
+                PropertyPaneSlider("approverWidth", {
+                  min: 10,
+                  max: 1000,
+                  label: "Width of Approver column",
+                  showValue: true
                 }),
-                PropertyPaneSlider("altApproverWidth",{
-                  min:10,
-                  max:1000,
-                  label:"Width of Alternate Approver column",
-                  showValue:true
+                PropertyPaneSlider("altApproverWidth", {
+                  min: 10,
+                  max: 1000,
+                  label: "Width of Alternate Approver column",
+                  showValue: true
                 }),
-                PropertyPaneSlider("approvalDecisionWidth",{
-                  min:10,
-                  max:1000,
-                  label:"Width of Approval Decision column",
-                  showValue:true
+                PropertyPaneSlider("approvalDecisionWidth", {
+                  min: 10,
+                  max: 1000,
+                  label: "Width of Approval Decision column",
+                  showValue: true
                 }),
-                PropertyPaneSlider("commentsWidth",{
-                  min:10,
-                  max:1000,
-                  label:"Width of Comments column",
-                  showValue:true
+                PropertyPaneSlider("commentsWidth", {
+                  min: 10,
+                  max: 1000,
+                  label: "Width of Comments column",
+                  showValue: true
                 }),
 
               ]
