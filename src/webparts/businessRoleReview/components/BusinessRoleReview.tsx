@@ -28,7 +28,7 @@ import { find, map, clone, filter } from "lodash";
 import { HttpClient, HttpClientResponse, IHttpClientOptions } from '@microsoft/sp-http';
 import { autobind } from "office-ui-fabric-react/lib/Utilities";
 import { Overlay } from "office-ui-fabric-react/lib/Overlay";
-import { Spinner ,SpinnerSize} from "office-ui-fabric-react/lib/Spinner";
+import { Spinner, SpinnerSize } from "office-ui-fabric-react/lib/Spinner";
 
 
 
@@ -223,7 +223,7 @@ export default class businessbusinessRoleReviewItems extends React.Component<IBu
     let query = `${this.props.azureFunctionUrl}/api/${this.props.businessRoleOwnersPath}?code=${this.props.accessCode}`;
     return this.props.httpClient.fetch(query, HttpClient.configurations.v1, {
       referrerPolicy: "unsafe-url",
-      body: JSON.stringify(updatedItems), method: "PUT", mode: "cors",headers:requestHeaders
+      body: JSON.stringify(updatedItems), method: "PUT", mode: "cors", headers: requestHeaders
     });
   }
 
@@ -343,9 +343,9 @@ export default class businessbusinessRoleReviewItems extends React.Component<IBu
     return true;
   }
   public render(): React.ReactElement<IBusinessRoleReviewProps> {
-debugger;
-   const hasUnsavedChanges:boolean=(filter(this.state.businessRoleReviewItems, (rr) => { return rr.hasBeenUpdated; }).length > 0);
-   const selectedItemCount:number=this.selection.getSelectedCount();
+
+    const hasUnsavedChanges: boolean = (filter(this.state.businessRoleReviewItems, (rr) => { return rr.hasBeenUpdated; }).length > 0);
+    const selectedItemCount: number = this.selection.getSelectedCount();
 
     let itemsNonFocusable: IContextualMenuItem[] = [
       {
@@ -361,17 +361,17 @@ debugger;
             }));
           }
         },
-        disabled: !(this.state.primaryApprover) || this.state.primaryApprover.Completed === "Yes" || this.selection.getSelectedCount() <1,
+        disabled: !(this.state.primaryApprover) || this.state.primaryApprover.Completed === "Yes",
 
       },
       {
         key: "Update Unselected",
         name: "Update Unselected",
         icon: "TriggerAuto",
-        disabled: !(this.state.primaryApprover) || this.state.primaryApprover.Completed === "Yes" || this.selection.getSelectedCount() <this.state.businessRoleReviewItems.length,
+        disabled: !(this.state.primaryApprover) || this.state.primaryApprover.Completed === "Yes",
         onClick: (e) => {
           debugger;
-          if (!this.selection.count || this.selection.getSelectedCount() < this.state.businessRoleReviewItems.length+1) {
+          if (!this.selection.count || this.selection.getSelectedCount() < this.state.businessRoleReviewItems.length + 1) {
             this.setState((current) => ({
               ...current,
               showPopup: true,
@@ -398,8 +398,8 @@ debugger;
     ];
     if (this.props.enableUncomplete) {
       itemsNonFocusable.push({
-        key: "UnDone", name: "UnComplete", icon: "Completed", onClick: this.unsetComplete ,
-        disabled: !(this.state.primaryApprover) ||  this.state.primaryApprover.Completed !== "Yes"
+        key: "UnDone", name: "UnComplete", icon: "Completed", onClick: this.unsetComplete,
+        disabled: !(this.state.primaryApprover) || this.state.primaryApprover.Completed !== "Yes"
       });
     }
     let farItemsNonFocusable: IContextualMenuItem[] = [
@@ -430,7 +430,7 @@ debugger;
 
     return (
       <div className={styles.businessRoleReview}>
-      <Label>{selectedItemCount}</Label>
+
         <Dialog isBlocking={true}
           hidden={!this.state.showPopup}
           onDismiss={(e) => { this.setState((current) => ({ ...current, showPopup: false })); }}
@@ -443,17 +443,17 @@ debugger;
                 : `Update ${this.state.businessRoleReviewItems.length} Unselected Items`,
             subText: 'All selected items will be updated with the following values'
           }} >
-          <ChoiceGroup label="Approval Decision" 
+          <ChoiceGroup label="Approval Decision"
             options={[
               {
                 key: '1',
                 text: 'Yes',
-                disabled: !(this.state.primaryApprover) ||this.state.primaryApprover.Completed === "Yes" 
+                disabled: !(this.state.primaryApprover) || this.state.primaryApprover.Completed === "Yes"
               },
               {
                 key: '2',
                 text: 'No',
-                disabled: !(this.state.primaryApprover) ||this.state.primaryApprover.Completed === "Yes" 
+                disabled: !(this.state.primaryApprover) || this.state.primaryApprover.Completed === "Yes"
               },
             ]}
             selectedKey={this.state.popupValueApproval}
@@ -463,12 +463,12 @@ debugger;
             }}
           />
 
-          <TextField label="Comments" 
-          disabled= {!(this.state.primaryApprover) ||this.state.primaryApprover.Completed === "Yes" }
-           onChanged={(e) => {
+          <TextField label="Comments"
+            disabled={!(this.state.primaryApprover) || this.state.primaryApprover.Completed === "Yes"}
+            onChanged={(e) => {
 
-            this.setState((current) => ({ ...current, popupValueComments: e }));
-          }}
+              this.setState((current) => ({ ...current, popupValueComments: e }));
+            }}
 
           />
 
@@ -569,7 +569,7 @@ debugger;
           ]}
         />
 
-{this.state.showOverlay && (
+        {this.state.showOverlay && (
           <Overlay >
 
 
