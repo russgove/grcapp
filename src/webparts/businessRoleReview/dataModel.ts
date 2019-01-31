@@ -25,13 +25,10 @@ export class BusinessRoleReviewItem {
 export class PrimaryApproverItem {
 
     public Id: number;
-    public Owner_x0020_ID: string;
     public ApproverEmail: string;
     public Completed: string;
-    public PrimaryApproverId: string;
-    public PrimaryApprover: {
-        Title: string;
-    };
+    public DateCompletedString:string;
+  
 
 }
 export class HelpLink {

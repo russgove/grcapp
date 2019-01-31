@@ -29,10 +29,10 @@
         "businessRoleOwnersPath": "BusinessRoleOwners",
         "primaryApproversPath": "PrimaryApprovers",
         "enableUncomplete":false,
-        "roleNameWidth": 231,
-        "approverWidth": 244,
-        "altApproverWidth": 227,
-        "approvalDecisionWidth": 170,
+        "roleNameWidth": 300,
+        "approverWidth": 200,
+        "altApproverWidth": 200,
+        "approvalDecisionWidth": 200,
         "commentsWidth": 300,
         "helpLinksListName":"HelpLinks"
       }

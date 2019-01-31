@@ -18,6 +18,7 @@ import { Dropdown, IDropdownOption, IDropdownProps } from "office-ui-fabric-reac
 import { Modal, IModalProps } from "office-ui-fabric-react/lib/Modal";
 import { Panel, IPanelProps, PanelType } from "office-ui-fabric-react/lib/Panel";
 import { CommandBar } from "office-ui-fabric-react/lib/CommandBar";
+import { MessageBar, MessageBarType } from "office-ui-fabric-react/lib/MessageBar";
 import { Label } from "office-ui-fabric-react/lib/Label";
 import { IContextualMenuItem } from "office-ui-fabric-react/lib/ContextualMenu";
 
@@ -147,11 +148,11 @@ export default class businessbusinessRoleReviewItems extends React.Component<IBu
    */
   @autobind
   public updateSelected(ev?: React.MouseEvent<HTMLElement>, item?: IContextualMenuItem): void {
-    debugger;
+
     var tempArray = map(this.state.businessRoleReviewItems, (brrItem: BusinessRoleReviewItem) => {
-      debugger;
+
       if (this.selection.isKeySelected(brrItem.Id.toString()) === this.state.changeSelected) {
-        debugger;
+
         return {
           ...brrItem,
           Approval: this.state.popupValueApproval ? this.state.popupValueApproval : brrItem.Approval,
@@ -184,10 +185,13 @@ export default class businessbusinessRoleReviewItems extends React.Component<IBu
     this.props.httpClient.fetch(query, HttpClient.configurations.v1, {
       body: JSON.stringify(updatedApprover), method: "PUT", mode: "cors", referrerPolicy: "unsafe-url"
     })
-      .then(() => {
-
-        this.setState((current) => ({ ...current, primaryApprover: updatedApprover }));
-        alert("Completed");
+      .then((result: HttpClientResponse) => {
+        if (result.status != 200) {
+          alert(result.statusText);
+        } else {
+          this.setState((current) => ({ ...current, primaryApprover: updatedApprover }));
+          alert("Completed");
+        }
       })
       .catch((err) => {
         debugger;
@@ -198,13 +202,19 @@ export default class businessbusinessRoleReviewItems extends React.Component<IBu
   @autobind
   public unsetComplete(ev?: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>, item?: IContextualMenuItem): void {
     let updatedApprover = this.state.primaryApprover;
+    debugger;
     updatedApprover.Completed = "";
     let query = `${this.props.azureFunctionUrl}/api/${this.props.primaryApproversPath}/${updatedApprover.Id}?code=${this.props.accessCode}`;
     this.props.httpClient.fetch(query, HttpClient.configurations.v1, {
       body: JSON.stringify(updatedApprover), method: "PUT", mode: "cors", referrerPolicy: "unsafe-url"
     })
-      .then(() => {
-        this.setState((current) => ({ ...current, primaryApprover: updatedApprover }));
+      .then((result: HttpClientResponse) => {
+        if (result.status != 200) {
+          alert(result.statusText);
+        }
+        else {
+          this.setState((current) => ({ ...current, primaryApprover: updatedApprover }));
+        }
       })
       .catch((err) => {
         debugger;
@@ -214,7 +224,8 @@ export default class businessbusinessRoleReviewItems extends React.Component<IBu
 
   }
   @autobind
-  public updateBusinessRoleReviewItems(items: BusinessRoleReviewItem[]): Promise<any> {
+  public updateBusinessRoleReviewItems(items: BusinessRoleReviewItem[]): Promise<HttpClientResponse> {
+    debugger;
     var updatedItems = filter(this.state.businessRoleReviewItems, (brr) => {
       return brr.hasBeenUpdated;
     });
@@ -231,12 +242,19 @@ export default class businessbusinessRoleReviewItems extends React.Component<IBu
   public save(ev?: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>, item?: IContextualMenuItem): void {
     debugger;
     this.setState((current) => ({ ...current, showOverlay: true, overlayMessage: "Saving ..." }));
-    this.updateBusinessRoleReviewItems(this.state.businessRoleReviewItems).then(() => {
-      var tempArray = map(this.state.businessRoleReviewItems, (rr) => {
-        return { ...rr, hasBeenUpdated: false };
-      });
-      this.setState((current) => ({ ...current, businessRoleReviewItems: tempArray, showOverlay: false }));
-      alert("Saved");
+    this.updateBusinessRoleReviewItems(this.state.businessRoleReviewItems).then((response) => {
+      if (response.status != 200) {
+        alert("Error saving");
+        alert(response.statusText);
+
+      }
+      else {
+        var tempArray = map(this.state.businessRoleReviewItems, (rr) => {
+          return { ...rr, hasBeenUpdated: false };
+        });
+        this.setState((current) => ({ ...current, businessRoleReviewItems: tempArray, showOverlay: false }));
+        alert("Saved");
+      }
     }).catch((err) => {
       debugger;
       this.setState((current) => ({ ...current, showOverlay: false }));
@@ -346,6 +364,11 @@ export default class businessbusinessRoleReviewItems extends React.Component<IBu
 
     const hasUnsavedChanges: boolean = (filter(this.state.businessRoleReviewItems, (rr) => { return rr.hasBeenUpdated; }).length > 0);
     const selectedItemCount: number = this.selection.getSelectedCount();
+debugger;
+var dateCompleted:Date=new Date();
+if (this.state.primaryApprover && this.state.primaryApprover.DateCompletedString){
+  dateCompleted=new Date(this.state.primaryApprover.DateCompletedString)
+}
 
     let itemsNonFocusable: IContextualMenuItem[] = [
       {
@@ -410,21 +433,7 @@ export default class businessbusinessRoleReviewItems extends React.Component<IBu
         || this.state.primaryApprover.Completed === "Yes"
 
       },
-      {
-        key: "helpLinks", name: "Help", icon: "help",
-        items: map(this.props.helpLinks, (hl): IContextualMenuItem => {
-          debugger;
-          return {
-            key: hl.Id.toString(), // this is the id of the listitem
-            href: hl.Url.Url,
-            title: hl.Url.Description,
-            icon: hl.IconName,
-            name: hl.Title,
-            target: hl.Target
-
-          };
-        })
-      }
+    
     ];
 
 
@@ -475,7 +484,7 @@ export default class businessbusinessRoleReviewItems extends React.Component<IBu
 
 
           <DialogFooter>
-            <PrimaryButton text='Save' onClick={this.updateSelected.bind(this)} />
+            <PrimaryButton text='OK' onClick={this.updateSelected.bind(this)} />
             <DefaultButton text='Cancel' onClick={(e) => {
               this.setState((current) => ({ ...current, showPopup: false }));
             }} />
@@ -487,6 +496,14 @@ export default class businessbusinessRoleReviewItems extends React.Component<IBu
           farItems={farItemsNonFocusable}
 
         />
+        {this.state.primaryApprover && this.state.primaryApprover.Completed=="Yes" && (
+          <MessageBar messageBarType={MessageBarType.success}>
+
+Review has been completed ({dateCompleted.toLocaleDateString()})
+
+
+          </MessageBar>
+        )}
         <DetailsList
           items={this.state.businessRoleReviewItems}
           selectionMode={SelectionMode.multiple}
