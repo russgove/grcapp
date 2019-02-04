@@ -5,7 +5,8 @@ import { HttpClient } from '@microsoft/sp-http';
 import {
   BaseClientSideWebPart,
   IPropertyPaneConfiguration,
-  PropertyPaneTextField
+  PropertyPaneTextField,
+  PropertyPaneToggle
 } from '@microsoft/sp-webpart-base';
 
 import * as strings from 'UserAccessWebPartStrings';
@@ -17,10 +18,14 @@ import { find, filter } from "lodash";
 import { sp, EmailProperties, Items, Item } from "@pnp/sp";
 
 export interface IUserAccessWebPartProps {
-  webApiUrl: string;
-  roleToTcodeController: string;
-  primaryApproverController: string;
-  userAccessController: string;
+azureFunctionUrl: string;
+  accessCode: string;
+  userAccessReviewPath: string;
+  primaryApproversPath: string;
+  roleToTransactionsPath: string;
+  enableUncomplete: boolean;
+  system:string;
+
 }
 
 export default class UserAccessWebPart extends BaseClientSideWebPart<IUserAccessWebPartProps> {
@@ -42,12 +47,15 @@ export default class UserAccessWebPart extends BaseClientSideWebPart<IUserAccess
       UserAccess,
       {
         user: this.context.pageContext.user,
-        webApiUrl: this.properties.webApiUrl,
-        roleToTcodeController: this.properties.roleToTcodeController,
-        primaryApproverController: this.properties.primaryApproverController,
-        userAccessController: this.properties.userAccessController,
+        azureFunctionUrl: this.properties.azureFunctionUrl,
         domElement: this.domElement,
-        httpClient: this.context.httpClient
+        httpClient: this.context.httpClient,
+        accessCode:this.properties.accessCode,
+        userAccessReviewPath:this.properties.userAccessReviewPath,
+        primaryApproversPath:this.properties.primaryApproversPath,
+        roleToTransactionsPath:this.properties.roleToTransactionsPath,
+        enableUncomplete:this.properties.enableUncomplete,
+        system:this.properties.system
       }
     );
     this.formComponent = ReactDom.render(this.reactElement, this.domElement) as UserAccess;
@@ -68,17 +76,26 @@ export default class UserAccessWebPart extends BaseClientSideWebPart<IUserAccess
             {
               groupName: strings.BasicGroupName,
               groupFields: [
-                PropertyPaneTextField('webApiUrl', {
-                  label: "Web API Url"
+                PropertyPaneTextField('azureFunctionUrl', {
+                  label: "azureFunctionUrl"
                 }),
-                PropertyPaneTextField('primaryApproverController', {
-                  label: "Primary Approvers Controller"
+                PropertyPaneTextField('accessCode', {
+                  label: "accress code"
                 }),
-                PropertyPaneTextField('userAccessController', {
-                  label: "User Access Controller"
+                PropertyPaneTextField('userAccessReviewPath', {
+                  label: "Path to User acess function (RoleReviews or EPXROleReviews)"
                 }),
-                PropertyPaneTextField('roleToTcodeController', {
-                  label: "RoleToTcode Controller"
+                PropertyPaneTextField('primaryApproversPath', {
+                  label: "Path to Primary Approvers  in Azure function (PrimaryApprovers or EPXPrimaryApprovers)"
+                }),
+                PropertyPaneTextField('roleToTransactionsPath', {
+                  label: "Path to Transactions   in Azure function (RoleToTransaction or EPXRoleToTranaction)"
+                }),
+                PropertyPaneTextField('system', {
+                  label: "EPA/EPX/GRP"
+                }),
+                PropertyPaneToggle('enableUncomplete', {
+                  label: "Enable UnCompleting review (useful for testing. Turn Off when Live"
                 }),
 
               ]

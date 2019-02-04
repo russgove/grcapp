@@ -100,47 +100,20 @@ export default class UserAccess extends React.Component<IUserAccessProps, IUserA
     }));
   }
   @autobind
-  public getApi(controller: string, query: string): Promise<any> {
-    let url = this.props.webApiUrl + "/api/" + controller + "?" + query;
-    let httpClientOptions: IHttpClientOptions = {
-      credentials: "include",
-    };
-    return this.props.httpClient.get(url,    HttpClient.configurations.v1,httpClientOptions)
-      .then((response: HttpClientResponse) => {
-        return response.json();
-      });
-  }
-  @autobind
-  public putApi(controller: string, entity: any): Promise<any> {
-    let url = this.props.webApiUrl + "/api/" + controller + "/" + entity["ID"];
-    let requestHeaders: Headers = new Headers();
-    requestHeaders.append('Content-type', 'application/json');
-    let httpClientOptions: IHttpClientOptions = {
-      credentials: "include",
-      headers: requestHeaders,
-      method: "PUT",
-      body: JSON.stringify(entity)
-    };
-    return this.props.httpClient.fetch(url, HttpClient.configurations.v1, httpClientOptions);
-  }
-  @autobind
-  public updateUserAccessItems(items: UserAccessItem[]): Promise<any> {
-    let promises: Array<Promise<any>> = [];
-    for (let item of items) {
-      promises.push(this.putApi(this.props.userAccessController, item));
-    }
-    return Promise.all(promises);
-  }
- 
-  @autobind
   public setComplete(ev?: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>, item?: IContextualMenuItem): void {
     let updatedApprover = this.state.primaryApprover;
     updatedApprover.Completed = "Yes";
-    this.putApi(this.props.primaryApproverController, updatedApprover)
+    let query = `${this.props.azureFunctionUrl}/api/${this.props.system}/${this.props.primaryApproversPath}/${updatedApprover.ID}?&code=${this.props.accessCode}`;
+    this.props.httpClient.fetch(query, HttpClient.configurations.v1, {
+      body: JSON.stringify(updatedApprover), method: "PUT", mode: "cors", referrerPolicy: "unsafe-url"
+    })
       .then(() => {
+       
         this.setState((current) => ({ ...current, primaryApprover: updatedApprover }));
+        alert("Completed");
       })
       .catch((err) => {
+        debugger;
         console.log(err);
         alert("An error occurred saving the primary approver record");
       });
@@ -149,91 +122,142 @@ export default class UserAccess extends React.Component<IUserAccessProps, IUserA
   public unsetComplete(ev?: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>, item?: IContextualMenuItem): void {
     let updatedApprover = this.state.primaryApprover;
     updatedApprover.Completed = "";
-    this.putApi(this.props.primaryApproverController, updatedApprover)
+    let query = `${this.props.azureFunctionUrl}/api/${this.props.system}/${this.props.primaryApproversPath}/${updatedApprover.ID}?&code=${this.props.accessCode}`;
+    this.props.httpClient.fetch(query, HttpClient.configurations.v1, {
+      body: JSON.stringify(updatedApprover), method: "PUT", mode: "cors", referrerPolicy: "unsafe-url"
+    })
       .then(() => {
+       
         this.setState((current) => ({ ...current, primaryApprover: updatedApprover }));
       })
-
       .catch((err) => {
+        debugger;
         console.log(err);
         alert("An error occurred saving the primary approver record");
       });
 
   }
   @autobind
+  public updateUserAccessItems(items: UserAccessItem[]): Promise<any> {
+    debugger;
+    var updatedItems = filter(this.state.userAccessItems, (brr) => {
+      return brr.hasBeenUpdated;
+    });
+    const requestHeaders: Headers = new Headers();
+    requestHeaders.append('Content-Type', 'application/json');// if you dont do this you get an error No Media type is available to read an object of type ...
+    let query = `${this.props.azureFunctionUrl}/api/${this.props.system}/${this.props.userAccessReviewPath}?code=${this.props.accessCode}`;
+    return this.props.httpClient.fetch(query, HttpClient.configurations.v1, {
+      referrerPolicy: "unsafe-url",
+      body: JSON.stringify(updatedItems), method: "PUT", mode: "cors", headers: requestHeaders
+    });
+  }
+  @autobind
   public save(ev?: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>, item?: IContextualMenuItem): void {
+    this.setState((current) => ({ ...current, showOverlay: true, overlayMessage: "Saving ..." }));
     this.updateUserAccessItems(this.state.userAccessItems).then(() => {
       var tempArray = map(this.state.userAccessItems, (rr) => {
         return { ...rr, hasBeenUpdated: false };
       });
-      this.setState((current) => ({ ...current, userAccessItems: tempArray }));
+      this.setState((current) => ({ ...current, userAccessItems: tempArray, showOverlay: false }));
       alert("Saved");
     }).catch((err) => {
       debugger;
+      this.setState((current) => ({ ...current, showOverlay: false }));
       alert(err);
     });
   }
-  @autobind
-  public addApprover(approver: any): Promise<HttpClientResponse> {
-    
-    let requestHeaders: Headers = new Headers();
-    requestHeaders.append('Content-type', 'application/json');
-    requestHeaders.append('Cache-Control', 'no-cache');
 
-    let httpClientOptions: IHttpClientOptions = {
-      credentials: "include",
-      body: JSON.stringify(approver)
-    };
-
-    //let url=`${this.props.webApiUrl}/api/${this.props.primaryApproverController}?$filter=tolower(ApproverEmail) eq '${approverEmail.toLowerCase()}'`;
-    let url = `${this.props.webApiUrl}/api/${this.props.primaryApproverController}`;
-    console.log(url);
-    return this.props.httpClient.post(url,
-      HttpClient.configurations.v1,
-      httpClientOptions);
-  }
-  
-  @autobind
-  public fetchPrimaryApprover(): Promise<any> {
-       let query = "$filter=tolower(ApproverEmail) eq '" + this.props.user.email.toLowerCase() + "'";
-    return this.getApi(this.props.primaryApproverController, query)
-      .then((appr) => {
-        
-        this.setState((current) => ({ ...current, primaryApprover: appr[0] }));
-      }).catch(e => {
-        console.log(e);
-        alert("There was an error fetching Primary approvers");
-      });
-
-  }
-  @autobind
-  public fetchUserAccess(ev?: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>, item?: IContextualMenuItem): void {
-    let query = "$filter=tolower(ApproverEmail) eq '" + this.props.user.email.toLowerCase() + "'";
-     this.getApi(this.props.userAccessController, query)
-      .then((response: any) => {
-        this.setState((current) => ({ ...current, userAccessItems: response }));
-      })
-      .catch(err => {
-        console.log(err);
-        alert("There was an error fetching User Access Items");
-      });
-  }
-  @autobind
-  public fetchRoleToTransaction(role: string) {
-    let query = "$filter=Composite_role eq '" + role + "'";
-    return this.getApi(this.props.roleToTcodeController, query);
-  }
-
-  /**
-   * this function gets called after the iframe has connected to the webapi.
-   * After this we can make calls to the web api passing the credentials
-   */
   public frameLoaded() {
 
     this.fetchUserAccess();
     this.fetchPrimaryApprover();
   }
+  @autobind
+  public fetchPrimaryApprover(): Promise<any> {
+    //let query = "$filter=tolower(ApproverEmail) eq '" + this.props.user.email.toLowerCase() + "'";
+    let query = `${this.props.azureFunctionUrl}/api/${this.props.system}/${this.props.primaryApproversPath}/${this.props.user.email}?&code=${this.props.accessCode}`;
 
+    return this.props.httpClient.fetch(query, HttpClient.configurations.v1, {
+      credentials: "include", referrerPolicy: "unsafe-url"
+    })
+      .then((response: HttpClientResponse) => {
+       
+        return response.json()
+          .then((appr) => {
+            if (appr.length === 0) {
+              alert(`No Primary Approver record found for ${this.props.user.email}. Please contact the system adminsitrator.`);
+
+            }
+            if (appr.length > 1) {
+              alert(`Multiple  Primary Approver records found for ${this.props.user.email}. Please contact the system adminsitrator.`);
+
+            }
+            this.setState((current) => ({ ...current, primaryApprover: appr[0] }));
+          })
+          .catch((err) => {
+            debugger;
+            alert(err);
+          });
+      }).catch(e => {
+        console.log(e);
+        debugger;
+        alert("There was an error fetching Primary approvers");
+      });
+
+  }
+  @autobind
+  public fetchUserAccess(ev?: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>, item?: IContextualMenuItem): Promise<any> {
+    //let query = "$filter=tolower(ApproverEmail) eq '" + this.props.user.email.toLowerCase() + "'";
+    let query = `${this.props.azureFunctionUrl}/api/${this.props.system}/${this.props.userAccessReviewPath}/${this.props.user.email}?&code=${this.props.accessCode}`;
+
+    return this.props.httpClient.fetch(query, HttpClient.configurations.v1, { credentials: "include", referrerPolicy: "unsafe-url" })
+      .then((response: HttpClientResponse) => {
+        return response.json().then((rolereviews) => {
+          this.setState((current) => (
+            { ...current, userAccessItems: rolereviews }
+          )
+          );
+        });
+      })
+      .catch((err) => {
+        debugger;
+      })
+      .catch(err => {
+        console.log(err);
+        alert("There was an error fetching Role Review Items");
+      });
+  }
+  @autobind
+  public fetchRoleToTransaction(RoleName: string): Promise<any> {
+    console.log(RoleName);
+    let r2 = RoleName.replace(/\//g, "~");
+    //let query = "$filter=Role_Name eq '" + RoleName + "'";
+    let query = `${this.props.azureFunctionUrl}/api/${this.props.system}/${this.props.roleToTransactionsPath}/${r2}?&code=${this.props.accessCode}`;
+   
+    return this.props.httpClient.fetch(query, HttpClient.configurations.v1, {
+      credentials: "include", referrerPolicy: "unsafe-url"
+    })
+      .then((response: HttpClientResponse) => {
+     
+        return response.json();
+      })
+      .catch((err) => {
+        debugger;
+      });
+
+
+  }
+  public componentDidMount(): void {
+    debugger;
+    Promise.all([
+      this.fetchUserAccess(),
+      this.fetchPrimaryApprover()])
+      .then((x) => {
+        debugger;
+        this.setState((current) => ({ ...current, showOverlay: false, overlayMessage: "" }));
+      }
+      );
+  }
   public RenderApproval(item?: UserAccessItem, index?: number, column?: IColumn): JSX.Element {
     let options = [
       { key: "1", text: "Yes" },
@@ -360,7 +384,7 @@ export default class UserAccess extends React.Component<IUserAccessProps, IUserA
 
     return (
       <div className={styles.userAccess}>
-        <iframe src={this.props.webApiUrl} onLoad={this.frameLoaded.bind(this)} />
+        {/* <iframe src={this.props.webApiUrl} onLoad={this.frameLoaded.bind(this)} /> */}
 
         <Dialog isBlocking={true}
           hidden={!this.state.showApprovalPopup}
@@ -400,7 +424,7 @@ export default class UserAccess extends React.Component<IUserAccessProps, IUserA
 
           />
           <DialogFooter>
-            <PrimaryButton text='Save' onClick={this.updateSelected.bind(this)} />
+            <PrimaryButton text='OK' onClick={this.updateSelected.bind(this)} />
             <DefaultButton text='Cancel' onClick={(e) => {
               this.setState((current) => ({ ...current, showApprovalPopup: false }));
             }} />
@@ -420,24 +444,24 @@ export default class UserAccess extends React.Component<IUserAccessProps, IUserA
           columns={[
             {
               key: "UserID", name: "User Id",
-              fieldName: "User_ID", minWidth: 90, maxWidth: 90,
+              fieldName: "UserId", minWidth: 90, maxWidth: 90,
               isResizable: true,
             },
             {
               key: "userName", name: "User Name",
-              fieldName: "User_Full_Name", minWidth: 100, maxWidth: 100,
+              fieldName: "UserFullName", minWidth: 100, maxWidth: 100,
               isResizable: true,
             },
             {
               key: "title", name: "Role Name",
-              fieldName: "Role_name", minWidth: 300, maxWidth: 300,
+              fieldName: "RoleName", minWidth: 300, maxWidth: 300,
               isResizable: true,
 
             },
             {
               key: "info", name: "Transactions",
               isResizable: true,
-              fieldName: "Role_name", minWidth: 60, maxWidth: 60,
+              fieldName: "Role name", minWidth: 60, maxWidth: 60,
               onRender: (item?: any, index?: number, column?: IColumn) => {
                 return (
                   <IconButton iconProps={{ iconName: "Info" }} onClick={(e) => { this.showPopup(item); }} />
@@ -489,9 +513,9 @@ export default class UserAccess extends React.Component<IUserAccessProps, IUserA
 
               },
               {
-                key: "Remediation", name: "Transaction Text",
+                key: "TransactionText", name: "Transaction Text",
                 isResizable: true,
-                fieldName: "Transaction_Text", minWidth: 150, maxWidth: 150,
+                fieldName: "TransactionText", minWidth: 150, maxWidth: 150,
 
               },
 

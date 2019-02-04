@@ -3,10 +3,10 @@
 export class UserAccessItem  {
 
     public ID: number;
-    public User_ID: string;
-    public User_Full_Name: string;
+    public UserId: string;
+    public UserFullName: string;
     public Role: string;
-    public Role_name: string;
+    public RoleName: string;
     public ApproverEmail: string;
     
   

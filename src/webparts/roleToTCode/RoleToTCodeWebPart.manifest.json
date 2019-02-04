@@ -50,7 +50,8 @@
         "roleReviewsPath": "EPXRoleReviews",
         "primaryApproversPath": "EPXPrimaryApprovers",
         "roleToTransactionsPath": "EPXRoleToTransactions",
-        "enableUncomplete":false
+        "enableUncomplete":false,
+        "system":"EPA"
       }
     }
   ]

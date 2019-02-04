@@ -33,14 +33,6 @@
           "manifest": "./src/webparts/roleToTCode/RoleToTCodeWebPart.manifest.json"
         }
       ]
-    },
-    "high-risk-functions-web-part": {
-      "components": [
-        {
-          "entrypoint": "./lib/webparts/highRiskFunctions/HighRiskFunctionsWebPart.js",
-          "manifest": "./src/webparts/highRiskFunctions/HighRiskFunctionsWebPart.manifest.json"
-        }
-      ]
     }
   },
   "externals": {
@@ -78,12 +70,12 @@
     }
   },
   "localizedResources": {
-    "GrcAzureManagementWebPartStrings": "lib/webparts/grcAzureManagement/loc/{locale}.js",
+
     "MitigatingControlsWebPartStrings": "lib/webparts/mitigatingControls/loc/{locale}.js",
     "PropertyControlStrings": "./node_modules/@pnp/spfx-property-controls/lib/loc/{locale}.js",
     "BusinessRoleReviewWebPartStrings": "lib/webparts/businessRoleReview/loc/{locale}.js",
     "UserAccessWebPartStrings": "lib/webparts/userAccess/loc/{locale}.js",
     "RoleToTCodeWebPartStrings": "lib/webparts/roleToTCode/loc/{locale}.js",
-    "HighRiskFunctionsWebPartStrings": "lib/webparts/highRiskFunctions/loc/{locale}.js"
+
   }
 }
